@@ -5,6 +5,7 @@ from app.api.system import router as system_router
 from app.api.auth import router as auth_router
 from app.api.endpoints.products import router as products_router
 from app.api.endpoints.warehouses import router as warehouses_router
+from app.api.endpoints.movements import router as movements_router
 from app.core.config import settings
 from app.core.middleware import ActiveSessionMiddleware
 
@@ -31,6 +32,7 @@ app.include_router(system_router, prefix="/system", tags=["System"])
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(products_router, prefix="/products", tags=["Products"])
 app.include_router(warehouses_router, prefix="/warehouses", tags=["Warehouses"])
+app.include_router(movements_router, prefix="/movements", tags=["Movements"])
 
 @app.get("/")
 def read_root():

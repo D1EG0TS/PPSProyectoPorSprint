@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.api import deps
+from app.crud.movement import movement
 from app.schemas import warehouse as schemas
 from app.models import warehouse as models
 from app.models.user import User
@@ -82,6 +83,24 @@ def read_warehouse(
     if warehouse is None:
         raise HTTPException(status_code=404, detail="Warehouse not found")
     return warehouse
+
+@router.get("/{warehouse_id}/stock", response_model=List[schemas.WarehouseStockItem])
+def read_warehouse_stock(
+    warehouse_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Get full stock inventory for a warehouse.
+    """
+    check_read_permissions(current_user)
+    
+    warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+        
+    stock = movement.get_warehouse_stock(db, warehouse_id=warehouse_id)
+    return stock
 
 @router.put("/{warehouse_id}", response_model=schemas.Warehouse)
 def update_warehouse(

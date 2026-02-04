@@ -46,5 +46,9 @@ class Warehouse(WarehouseBase):
     class Config:
         from_attributes = True
 
+class WarehouseStockItem(BaseModel):
+    product_id: int
+    quantity: int
+
 Location.model_rebuild()
 Warehouse.model_rebuild()

@@ -3,14 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import { DataTable, Text } from 'react-native-paper';
 import { Colors } from '../constants/Colors';
 
-interface Column {
+export interface Column<T> {
   key: string;
   label: string;
   numeric?: boolean;
+  renderCell?: (item: T) => React.ReactNode;
 }
 
 interface TableProps<T> {
-  columns: Column[];
+  columns: Column<T>[];
   data: T[];
   keyExtractor: (item: T) => string;
   page?: number;
@@ -65,7 +66,7 @@ export function Table<T>({
           <DataTable.Row key={keyExtractor(item)}>
             {columns.map((col) => (
               <DataTable.Cell key={col.key} numeric={col.numeric}>
-                {(item as any)[col.key]}
+                {col.renderCell ? col.renderCell(item) : (item as any)[col.key]}
               </DataTable.Cell>
             ))}
           </DataTable.Row>

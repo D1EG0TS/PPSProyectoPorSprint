@@ -38,6 +38,18 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
     icon: 'cog',
     allowedRoles: [USER_ROLES.SUPER_ADMIN],
   },
+  {
+    label: 'Nueva Solicitud',
+    path: '/(dashboard)/operator/requests/create',
+    icon: 'file-document-edit',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+  },
+  {
+    label: 'Aprobaciones',
+    path: '/(dashboard)/moderator/requests/pending',
+    icon: 'check-decagram',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+  },
 ];
 
 export const PROTECTED_ROUTES: Record<string, number[]> = {
@@ -46,4 +58,7 @@ export const PROTECTED_ROUTES: Record<string, number[]> = {
   '/(dashboard)/admin/warehouses': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
   '/(dashboard)/settings': [USER_ROLES.SUPER_ADMIN],
   '/(dashboard)/reports': [USER_ROLES.SUPER_ADMIN],
+  '/(dashboard)/operator/requests/create': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+  '/(dashboard)/moderator/requests/pending': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+  '/(dashboard)/moderator/requests/[id]': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
 };

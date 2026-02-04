@@ -14,4 +14,6 @@ export const Colors = {
   text: '#212529',
   textSecondary: '#6c757d',
   border: '#dee2e6',
+  error: '#dc3545',
+  gray: '#6c757d',
 };

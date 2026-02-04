@@ -43,11 +43,21 @@ export interface LocationUpdate {
   parent_location_id?: number | null;
 }
 
+export interface WarehouseStockItem {
+  product_id: number;
+  quantity: number;
+}
+
 export const warehouseService = {
   getWarehouses: async (skip = 0, limit = 100) => {
     const response = await api.get<Warehouse[]>('/warehouses/', {
       params: { skip, limit },
     });
+    return response.data;
+  },
+
+  getWarehouseStock: async (id: number) => {
+    const response = await api.get<WarehouseStockItem[]>(`/warehouses/${id}/stock`);
     return response.data;
   },
 

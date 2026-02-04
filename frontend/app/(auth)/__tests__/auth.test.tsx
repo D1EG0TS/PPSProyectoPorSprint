@@ -108,11 +108,11 @@ describe('Auth Screens', () => {
       fireEvent.press(getByTestId('register-button'));
 
       await waitFor(() => {
-        expect(mockRegister).toHaveBeenCalledWith(
-          'test@example.com',
-          'password123',
-          'Test User'
-        );
+        expect(mockRegister).toHaveBeenCalledWith({
+          email: 'test@example.com',
+          password: 'password123',
+          full_name: 'Test User'
+        });
       });
     });
   });
