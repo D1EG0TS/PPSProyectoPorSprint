@@ -245,7 +245,7 @@ export default function WarehouseLocationsScreen() {
         {locations.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={{ color: Colors.gray }}>No hay ubicaciones registradas.</Text>
-            <Button mode="contained" onPress={handleOpenCreateRoot} style={styles.emptyButton}>
+            <Button variant="primary" onPress={handleOpenCreateRoot} style={styles.emptyButton}>
               Crear Ubicación Raíz
             </Button>
           </View>
@@ -298,10 +298,10 @@ export default function WarehouseLocationsScreen() {
         </FormGroup>
 
         <View style={styles.modalActions}>
-          <Button mode="outlined" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 8 }}>
+          <Button variant="outline" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 8 }}>
             Cancelar
           </Button>
-          <Button mode="contained" onPress={handleSave} loading={saving} style={{ flex: 1 }}>
+          <Button variant="primary" onPress={handleSave} loading={saving} style={{ flex: 1 }}>
             Guardar
           </Button>
         </View>

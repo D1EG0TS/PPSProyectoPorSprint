@@ -1,6 +1,6 @@
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add parent directory to path to import app modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,7 +14,7 @@ def cleanup_expired_sessions():
     """
     db = SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         deleted_count = db.query(Session).filter(Session.expires_at < now).delete()
         db.commit()
         print(f"[{now}] Cleaned up {deleted_count} expired sessions.")

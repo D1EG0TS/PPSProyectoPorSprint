@@ -3,10 +3,10 @@ import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { Text, Searchbar, ActivityIndicator, Chip, useTheme, Menu, Button, IconButton } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../../hooks/useAuth';
 import { Product, Category, getProducts, getCategories } from '../../../services/productService';
 import { ProductCard } from '../../../components/products/ProductCard';
 import { Colors } from '../../../constants/Colors';
-import { useFocusEffect } from '@react-navigation/native';
 
 export default function CatalogScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,6 +23,7 @@ export default function CatalogScreen() {
   
   const theme = useTheme();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const loadData = async () => {
     try {
@@ -66,7 +67,14 @@ export default function CatalogScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text variant="headlineMedium" style={styles.title}>Catálogo</Text>
+      <View style={styles.headerTop}>
+        <Text variant="headlineMedium" style={styles.title}>Catálogo</Text>
+        <IconButton 
+          icon="logout" 
+          iconColor={Colors.primary} 
+          onPress={logout} 
+        />
+      </View>
       
       <Searchbar
         placeholder="Buscar productos..."

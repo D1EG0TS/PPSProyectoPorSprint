@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
+import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Text, Button, Card, Chip, IconButton, TextInput, Menu, Portal, Modal } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -106,22 +107,23 @@ export default function PendingRequestsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="headlineMedium" style={styles.title}>Solicitudes Pendientes</Text>
-        <View style={{ flexDirection: 'row' }}>
-            <Button 
-                mode={showFilters ? "contained" : "outlined"} 
-                onPress={() => setShowFilters(!showFilters)} 
-                icon="filter"
-                style={{ marginRight: 8 }}
-            >
-                Filtros
-            </Button>
-            <Button mode="outlined" onPress={loadRequests} icon="refresh">Actualizar</Button>
+      <ScrollableContent>
+        <View style={styles.header}>
+          <Text variant="headlineMedium" style={styles.title}>Solicitudes Pendientes</Text>
+          <View style={{ flexDirection: 'row' }}>
+              <Button 
+                  mode={showFilters ? "contained" : "outlined"} 
+                  onPress={() => setShowFilters(!showFilters)} 
+                  icon="filter"
+                  style={{ marginRight: 8 }}
+              >
+                  Filtros
+              </Button>
+              <Button mode="outlined" onPress={loadRequests} icon="refresh">Actualizar</Button>
+          </View>
         </View>
-      </View>
 
-      {showFilters && (
+        {showFilters && (
           <Card style={styles.filtersCard}>
               <Card.Content>
                   <Text variant="titleSmall" style={{ marginBottom: 8 }}>Filtrar por Tipo</Text>
@@ -189,6 +191,7 @@ export default function PendingRequestsScreen() {
            )}
         </Card.Content>
       </Card>
+      </ScrollableContent>
     </View>
   );
 }

@@ -97,7 +97,6 @@ export default function ResetPasswordScreen() {
       />
 
       <Button
-        mode="contained"
         onPress={handleSubmit(onSubmit)}
         loading={isLoading}
         disabled={isLoading}

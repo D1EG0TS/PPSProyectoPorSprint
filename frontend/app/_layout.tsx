@@ -39,7 +39,7 @@ function RootLayoutNav() {
           headerStyle: {
             backgroundColor: Colors.primary,
           },
-          headerTintColor: Colors.white,
+          headerTintColor: Colors.text, // Contrast correction for Orange background
           headerTitleStyle: {
             fontWeight: 'bold',
           },

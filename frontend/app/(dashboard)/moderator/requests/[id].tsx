@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Text, Button, Card, Divider, TextInput, Chip, HelperText } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -141,7 +142,7 @@ export default function RequestDetailScreen() {
   const isCompleted = request.status === MovementStatus.COMPLETED;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollableContent containerStyle={styles.container}>
       <View style={styles.header}>
         <Button icon="arrow-left" mode="text" onPress={() => router.back()}>Volver</Button>
         <Text variant="headlineSmall">Solicitud #{request.id}</Text>
@@ -291,7 +292,7 @@ export default function RequestDetailScreen() {
       )}
 
       <View style={{ height: 40 }} />
-    </ScrollView>
+    </ScrollableContent>
   );
 }
 

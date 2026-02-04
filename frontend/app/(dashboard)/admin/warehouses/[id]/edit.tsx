@@ -119,7 +119,7 @@ export default function EditWarehouseScreen() {
 
         <View style={styles.actions}>
           <Button 
-            mode="outlined" 
+            variant="outline" 
             onPress={() => router.back()}
             style={styles.button}
             disabled={saving}
@@ -127,7 +127,7 @@ export default function EditWarehouseScreen() {
             Cancelar
           </Button>
           <Button 
-            mode="contained" 
+            variant="primary" 
             onPress={handleSubmit}
             style={styles.button}
             loading={saving}

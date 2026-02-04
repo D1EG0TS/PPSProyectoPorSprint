@@ -43,7 +43,7 @@ export function Card({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: 6,
     marginVertical: 8,
   },

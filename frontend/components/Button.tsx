@@ -55,6 +55,7 @@ export function Button({
     if (variant === 'outline') return Colors.primary;
     if (variant === 'light') return Colors.dark;
     if (variant === 'warning') return Colors.dark; // better contrast
+    if (variant === 'primary') return Colors.dark; // Exproof Orange needs dark text for contrast
     return Colors.white;
   };
 

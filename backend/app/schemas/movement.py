@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.models.movement import MovementType, MovementStatus
 
@@ -17,8 +17,7 @@ class MovementRequestItem(MovementRequestItemBase):
     id: int
     request_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Ledger Schemas
 class MovementBase(BaseModel):
@@ -34,8 +33,7 @@ class Movement(MovementBase):
     movement_request_id: Optional[int] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Request Schemas
 class MovementRequestBase(BaseModel):
@@ -67,5 +65,4 @@ class MovementRequest(MovementRequestBase):
     items: List[MovementRequestItem] = []
     movements: List[Movement] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -79,7 +79,7 @@ export default function CreateWarehouseScreen() {
 
         <View style={styles.actions}>
           <Button 
-            mode="outlined" 
+            variant="outline" 
             onPress={() => router.back()}
             style={styles.button}
             disabled={loading}
@@ -87,7 +87,7 @@ export default function CreateWarehouseScreen() {
             Cancelar
           </Button>
           <Button 
-            mode="contained" 
+            variant="primary" 
             onPress={handleSubmit}
             style={styles.button}
             loading={loading}

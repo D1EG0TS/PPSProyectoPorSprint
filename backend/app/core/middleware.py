@@ -3,7 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.security import verify_token
 from app.db.connection import SessionLocal
 from app.models.session import Session as UserSession
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ActiveSessionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -24,7 +24,7 @@ class ActiveSessionMiddleware(BaseHTTPMiddleware):
                         try:
                             # Update timestamp
                             db.query(UserSession).filter(UserSession.id == session_id).update(
-                                {"last_active_at": datetime.utcnow()}
+                                {"last_active_at": datetime.now(timezone.utc).replace(tzinfo=None)}
                             )
                             db.commit()
                         except Exception:

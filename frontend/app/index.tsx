@@ -1,33 +1,40 @@
-import { View, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Link, Redirect } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { Button } from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Index() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (user) {
+    return <Redirect href="/(dashboard)" />;
+  }
 
   return (
     <View style={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>Sistema de Inventario</Text>
       <Text variant="titleMedium" style={styles.subtitle}>Sprint 2.3 - Auth Integration</Text>
       
-      {user && (
-        <View style={styles.userInfo}>
-          <Text variant="bodyLarge">Bienvenido, {user.full_name || user.email}</Text>
-          <Text variant="bodyMedium" style={{ color: 'gray' }}>{user.email}</Text>
-        </View>
-      )}
-
-      <Link href="/details" asChild>
+      <Link href="/login" asChild>
         <Button variant="primary" style={styles.button}>
-          Ir a Detalles
+          Iniciar Sesión
         </Button>
       </Link>
 
-      <Button variant="outline" onPress={logout} style={styles.logoutButton} textColor="#d32f2f">
-        Cerrar Sesión
-      </Button>
+      <Link href="/register" asChild>
+        <Button variant="outline" style={styles.logoutButton}>
+          Registrarse
+        </Button>
+      </Link>
     </View>
   );
 }

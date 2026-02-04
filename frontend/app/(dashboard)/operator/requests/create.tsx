@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Button as PaperButton, Card, IconButton, HelperText, Divider, Menu, TextInput } from 'react-native-paper';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -156,7 +156,7 @@ export default function CreateRequestScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollableContent containerStyle={styles.container} contentContainerStyle={styles.content}>
       <Text variant="headlineMedium" style={styles.title}>Nueva Solicitud</Text>
 
       {/* General Info */}
@@ -191,7 +191,7 @@ export default function CreateRequestScreen() {
                     visible={showSourceMenu}
                     onDismiss={() => setShowSourceMenu(false)}
                     anchor={
-                    <PaperButton mode="outlined" onPress={() => setShowSourceMenu(true)} borderColor={errors.source_warehouse_id ? Colors.error : undefined}>
+                    <PaperButton mode="outlined" onPress={() => setShowSourceMenu(true)} style={{ borderColor: errors.source_warehouse_id ? Colors.error : undefined }}>
                         {getSourceWarehouseName()}
                     </PaperButton>
                     }
@@ -211,7 +211,7 @@ export default function CreateRequestScreen() {
                     visible={showDestMenu}
                     onDismiss={() => setShowDestMenu(false)}
                     anchor={
-                    <PaperButton mode="outlined" onPress={() => setShowDestMenu(true)} borderColor={errors.destination_warehouse_id ? Colors.error : undefined}>
+                    <PaperButton mode="outlined" onPress={() => setShowDestMenu(true)} style={{ borderColor: errors.destination_warehouse_id ? Colors.error : undefined }}>
                          {getDestWarehouseName()}
                     </PaperButton>
                     }
@@ -305,7 +305,7 @@ export default function CreateRequestScreen() {
         </PaperButton>
       </View>
 
-    </ScrollView>
+    </ScrollableContent>
   );
 }
 

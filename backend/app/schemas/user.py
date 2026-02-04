@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Optional, List
 from datetime import datetime
 
 # --- Role Schemas ---
@@ -14,8 +14,7 @@ class RoleCreate(RoleBase):
 class RoleResponse(RoleBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- User Schemas ---
 class UserBase(BaseModel):
@@ -40,5 +39,19 @@ class UserResponse(UserBase):
     updated_at: datetime
     role: Optional[RoleResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+class UserResetPassword(BaseModel):
+    new_password: str
+
+# --- Audit Schemas ---
+class UserAuditResponse(BaseModel):
+    id: int
+    user_id: int
+    changed_by: Optional[int]
+    action: str
+    details: Optional[str]
+    created_at: datetime
+    actor_name: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)

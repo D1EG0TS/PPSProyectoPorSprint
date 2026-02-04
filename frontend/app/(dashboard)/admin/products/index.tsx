@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView, Platform } from 'react-native';
+import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Text, IconButton, Chip, useTheme, ActivityIndicator, Searchbar, Menu, Divider } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { getProducts, deleteProduct, Product, getCategories, Category } from '../../../../services/productService';
@@ -146,61 +147,62 @@ export default function ProductsListScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-             <Text variant="headlineMedium">Gestión de Productos</Text>
-             <Text variant="bodyMedium" style={{ color: Colors.gray }}>{products.length} productos encontrados</Text>
+      <ScrollableContent>
+        <View style={styles.header}>
+          <View>
+              <Text variant="headlineMedium">Gestión de Productos</Text>
+              <Text variant="bodyMedium" style={{ color: Colors.gray }}>{products.length} productos encontrados</Text>
+          </View>
+          <View style={styles.headerButtons}>
+              <Button variant="outline" icon="download" onPress={handleExportCSV} style={{ marginRight: 8 }}>
+                  Exportar
+              </Button>
+              <Button 
+              variant="primary" 
+              icon="plus" 
+              onPress={() => router.push('/(dashboard)/admin/products/create')}
+              >
+              Crear Producto
+              </Button>
+          </View>
         </View>
-        <View style={styles.headerButtons}>
-            <Button variant="outline" icon="download" onPress={handleExportCSV} style={{ marginRight: 8 }}>
-                Exportar
-            </Button>
-            <Button 
-            variant="primary" 
-            icon="plus" 
-            onPress={() => router.push('/(dashboard)/admin/products/create')}
-            >
-            Crear Producto
-            </Button>
+
+        <View style={styles.filters}>
+          <Searchbar
+              placeholder="Buscar por nombre o SKU"
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchbar}
+          />
+          <Menu
+              visible={showCategoryMenu}
+              onDismiss={() => setShowCategoryMenu(false)}
+              anchor={
+                  <Button variant="outline" onPress={() => setShowCategoryMenu(true)} icon="filter">
+                      {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name || 'Categoría' : 'Todas las Categorías'}
+                  </Button>
+              }
+          >
+              <Menu.Item onPress={() => { setSelectedCategory(undefined); setShowCategoryMenu(false); }} title="Todas" />
+              <Divider />
+              {categories.map(cat => (
+                  <Menu.Item key={cat.id} onPress={() => { setSelectedCategory(cat.id); setShowCategoryMenu(false); }} title={cat.name} />
+              ))}
+          </Menu>
         </View>
-      </View>
 
-      <View style={styles.filters}>
-        <Searchbar
-            placeholder="Buscar por nombre o SKU"
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchbar}
-        />
-        <Menu
-            visible={showCategoryMenu}
-            onDismiss={() => setShowCategoryMenu(false)}
-            anchor={
-                <Button variant="outline" onPress={() => setShowCategoryMenu(true)} icon="filter">
-                    {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name || 'Categoría' : 'Todas las Categorías'}
-                </Button>
-            }
-        >
-            <Menu.Item onPress={() => { setSelectedCategory(undefined); setShowCategoryMenu(false); }} title="Todas" />
-            <Divider />
-            {categories.map(cat => (
-                <Menu.Item key={cat.id} onPress={() => { setSelectedCategory(cat.id); setShowCategoryMenu(false); }} title={cat.name} />
-            ))}
-        </Menu>
-      </View>
-
-      {loading ? (
-        <ActivityIndicator style={styles.loader} size="large" />
-      ) : (
-        <ScrollView style={styles.content}>
-            <Table
+        {loading ? (
+          <ActivityIndicator style={styles.loader} size="large" />
+        ) : (
+          <Table
             columns={columns}
             data={products}
             keyExtractor={(item) => item.id.toString()}
             itemsPerPage={10}
-            />
-        </ScrollView>
-      )}
+            emptyMessage="No se encontraron productos"
+          />
+        )}
+      </ScrollableContent>
     </View>
   );
 }

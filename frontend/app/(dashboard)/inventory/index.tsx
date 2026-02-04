@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Text, Card, Button, Chip, Menu, Portal, Modal, TextInput, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
+import { ScrollableContent } from '../../../components/ScrollableContent';
 import { Table, Column } from '../../../components/Table';
 import { LoadingScreen } from '../../../components/LoadingScreen';
 import { warehouseService, WarehouseStockItem } from '../../../services/warehouseService';
@@ -144,79 +145,74 @@ export default function InventoryScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="headlineMedium" style={styles.title}>Inventario</Text>
-        <View style={styles.headerActions}>
-           <Menu
-            visible={showWarehouseMenu}
-            onDismiss={() => setShowWarehouseMenu(false)}
-            anchor={
-              <Button 
-                mode="outlined" 
-                onPress={() => setShowWarehouseMenu(true)} 
-                icon="warehouse"
-                style={{ marginRight: 8 }}
-              >
-                {selectedWarehouse ? selectedWarehouse.name : 'Seleccionar Almacén'}
-              </Button>
-            }
-          >
-            {warehouses.map(w => (
-              <Menu.Item 
-                key={w.id} 
-                onPress={() => {
-                  setSelectedWarehouse(w);
-                  setShowWarehouseMenu(false);
-                }} 
-                title={w.name} 
-              />
-            ))}
-          </Menu>
-          <Button mode="outlined" onPress={loadData} icon="refresh">Actualizar</Button>
-        </View>
-      </View>
-
-      <Card style={styles.filtersCard}>
-        <Card.Content style={styles.filtersContent}>
-            <TextInput 
-                label="Buscar producto (Nombre/SKU)"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                style={styles.searchInput}
-                mode="outlined"
-                dense
-                right={<TextInput.Icon icon="magnify" />}
-            />
-            <View style={styles.filterChips}>
-                <Chip 
-                    selected={showLowStock} 
-                    onPress={() => setShowLowStock(!showLowStock)}
-                    showSelectedOverlay
-                    icon={showLowStock ? "check" : "alert-circle-outline"}
-                    style={showLowStock ? { backgroundColor: '#ffebee' } : {}}
-                    textStyle={showLowStock ? { color: Colors.error } : {}}
+      <ScrollableContent>
+        <View style={styles.header}>
+          <Text variant="headlineMedium" style={styles.title}>Inventario</Text>
+          <View style={styles.headerActions}>
+             <Menu
+              visible={showWarehouseMenu}
+              onDismiss={() => setShowWarehouseMenu(false)}
+              anchor={
+                <Button 
+                  mode="outlined" 
+                  onPress={() => setShowWarehouseMenu(true)} 
+                  icon="warehouse"
+                  style={{ marginRight: 8 }}
                 >
-                    Solo Stock Bajo
-                </Chip>
-            </View>
-        </Card.Content>
-      </Card>
+                  {selectedWarehouse ? selectedWarehouse.name : 'Seleccionar Almacén'}
+                </Button>
+              }
+            >
+              {warehouses.map(w => (
+                <Menu.Item 
+                  key={w.id} 
+                  onPress={() => {
+                    setSelectedWarehouse(w);
+                    setShowWarehouseMenu(false);
+                  }} 
+                  title={w.name} 
+                />
+              ))}
+            </Menu>
+            <Button mode="outlined" onPress={loadData} icon="refresh">Actualizar</Button>
+          </View>
+        </View>
 
-      <Card style={styles.card}>
-        <Card.Content>
-           {loading && products.length === 0 ? (
-               <LoadingScreen />
-           ) : products.length === 0 ? (
-               <Text style={styles.emptyText}>No se encontraron productos.</Text>
-           ) : (
-               <Table
-                columns={columns}
-                data={products}
-                keyExtractor={(item) => String(item.id)}
-               />
-           )}
-        </Card.Content>
-      </Card>
+        <Card style={styles.filtersCard}>
+          <Card.Content style={styles.filtersContent}>
+              <TextInput 
+                  label="Buscar producto (Nombre/SKU)"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  style={styles.searchInput}
+                  mode="outlined"
+                  dense
+                  right={<TextInput.Icon icon="magnify" />}
+              />
+              <View style={styles.filterChips}>
+                  <Chip 
+                      selected={showLowStock} 
+                      onPress={() => setShowLowStock(!showLowStock)}
+                      showSelectedOverlay
+                      icon={showLowStock ? "check" : "alert-circle-outline"}
+                      style={showLowStock ? { backgroundColor: '#ffebee' } : {}}
+                      textStyle={showLowStock ? { color: Colors.error } : {}}
+                  >
+                      Solo Stock Bajo
+                  </Chip>
+              </View>
+          </Card.Content>
+        </Card>
+
+        <Table
+          data={products}
+          columns={columns}
+          keyExtractor={(item) => item.id.toString()}
+          emptyMessage="No hay productos en inventario"
+          loading={loading}
+          itemsPerPage={10}
+        />
+      </ScrollableContent>
     </View>
   );
 }

@@ -46,6 +46,19 @@ Este proyecto consiste en un sistema de gestión de inventarios y almacenes (War
   - Validaciones de integridad referencial (no eliminar si tiene hijos).
 - **Frontend Service**: Integración completa con API de almacenes.
 
+### Sprint 10.1: Módulo de Herramientas (Backend)
+**Estado:** Completado
+**Implementación:**
+- **Modelo de Herramientas (`Tool`):** Gestión de activos individuales con número de serie único, condición, ubicación y asignación a usuarios.
+- **Historial de Herramientas (`ToolHistory`):** Registro de auditoría para cambios de estado, ubicación y asignaciones.
+- **Endpoints CRUD:** API completa para gestión de herramientas (crear, leer, actualizar, eliminar).
+- **Operaciones Específicas:**
+  - Asignación a usuarios (`/assign`).
+  - Devolución/Check-in (`/check-in`).
+  - Consulta de herramientas por usuario (`/user/{id}`).
+- **Validaciones:** Control de números de serie duplicados y validación de estados (AVAILABLE, ASSIGNED, etc.).
+- **Tests de Integración:** Pruebas automatizadas para el flujo completo de vida de una herramienta.
+
 ## Instalación y Ejecución
 
 ### Backend

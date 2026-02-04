@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # Location Schemas
 class LocationBase(BaseModel):
@@ -20,8 +20,7 @@ class Location(LocationBase):
     path: Optional[str] = None
     children: List['Location'] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Warehouse Schemas
 class WarehouseBase(BaseModel):
@@ -43,8 +42,7 @@ class Warehouse(WarehouseBase):
     created_by: int
     locations: List[Location] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class WarehouseStockItem(BaseModel):
     product_id: int

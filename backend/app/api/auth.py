@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import Any, List
 
 from app.core import security
@@ -71,7 +71,7 @@ def login(
     user_agent = request.headers.get("user-agent", "Unknown")
     client_ip = request.client.host if request.client else "Unknown"
     
-    expires_at = datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     
     session = UserSession(
         user_id=user.id,
@@ -133,7 +133,7 @@ def refresh_token(
     active_sessions = db.query(UserSession).filter(
         UserSession.user_id == user.id,
         UserSession.revoked_at.is_(None),
-        UserSession.expires_at > datetime.utcnow()
+        UserSession.expires_at > datetime.now(timezone.utc).replace(tzinfo=None)
     ).all()
     
     valid_session = None
@@ -149,7 +149,7 @@ def refresh_token(
         )
 
     # Actualizar última actividad
-    valid_session.last_active_at = datetime.utcnow()
+    valid_session.last_active_at = datetime.now(timezone.utc).replace(tzinfo=None)
     
     # Rotar tokens
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -159,7 +159,7 @@ def refresh_token(
     
     new_refresh_token = security.create_refresh_token(user.id)
     valid_session.refresh_token_hash = security.get_password_hash(new_refresh_token)
-    valid_session.expires_at = datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    valid_session.expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
     
     if request:
         valid_session.ip_address = request.client.host if request.client else valid_session.ip_address
@@ -198,7 +198,7 @@ def logout(
     active_sessions = db.query(UserSession).filter(
         UserSession.user_id == int(user_id),
         UserSession.revoked_at.is_(None),
-        UserSession.expires_at > datetime.utcnow()
+        UserSession.expires_at > datetime.now(timezone.utc).replace(tzinfo=None)
     ).all()
     
     valid_session = None
@@ -208,7 +208,7 @@ def logout(
             break
             
     if valid_session:
-        valid_session.revoked_at = datetime.utcnow()
+        valid_session.revoked_at = datetime.now(timezone.utc).replace(tzinfo=None)
         db.commit()
         
     return {"msg": "Successfully logged out"}
@@ -224,7 +224,7 @@ def read_sessions(
     sessions = db.query(UserSession).filter(
         UserSession.user_id == current_user.id,
         UserSession.revoked_at.is_(None),
-        UserSession.expires_at > datetime.utcnow()
+        UserSession.expires_at > datetime.now(timezone.utc).replace(tzinfo=None)
     ).all()
     return sessions
 

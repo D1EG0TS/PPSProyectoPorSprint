@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { DataTable, Text } from 'react-native-paper';
-import { Colors } from '../constants/Colors';
+import { DataTable, Text, ActivityIndicator } from 'react-native-paper';
 
 export interface Column<T> {
   key: string;
@@ -18,6 +17,8 @@ interface TableProps<T> {
   itemsPerPage?: number;
   onPageChange?: (page: number) => void;
   totalItems?: number; // Optional, for server-side pagination
+  emptyMessage?: string;
+  loading?: boolean;
 }
 
 export function Table<T>({
@@ -27,7 +28,9 @@ export function Table<T>({
   page = 0,
   itemsPerPage = 10,
   onPageChange,
-  totalItems
+  totalItems,
+  emptyMessage,
+  loading
 }: TableProps<T>) {
   const [internalPage, setInternalPage] = useState(page);
 
@@ -48,39 +51,57 @@ export function Table<T>({
     : data.slice(internalPage * itemsPerPage, (internalPage + 1) * itemsPerPage);
 
   const total = totalItems || data.length;
-  const from = internalPage * itemsPerPage;
-  const to = Math.min((internalPage + 1) * itemsPerPage, total);
 
   return (
     <View style={styles.container}>
       <DataTable>
         <DataTable.Header>
           {columns.map((col) => (
-            <DataTable.Title key={col.key} numeric={col.numeric}>
-              <Text style={styles.headerText}>{col.label}</Text>
+            <DataTable.Title 
+              key={col.key} 
+              numeric={col.numeric}
+              style={col.numeric ? styles.numericCol : undefined}
+            >
+              {col.label}
             </DataTable.Title>
           ))}
         </DataTable.Header>
 
-        {displayData.map((item) => (
-          <DataTable.Row key={keyExtractor(item)}>
-            {columns.map((col) => (
-              <DataTable.Cell key={col.key} numeric={col.numeric}>
-                {col.renderCell ? col.renderCell(item) : (item as any)[col.key]}
-              </DataTable.Cell>
-            ))}
-          </DataTable.Row>
-        ))}
+        {loading ? (
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size="large" />
+          </View>
+        ) : displayData.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text variant="bodyMedium" style={styles.emptyText}>
+              {emptyMessage || 'No hay datos disponibles'}
+            </Text>
+          </View>
+        ) : (
+          displayData.map((item) => (
+            <DataTable.Row key={keyExtractor(item)}>
+              {columns.map((col) => (
+                <DataTable.Cell 
+                  key={col.key} 
+                  numeric={col.numeric}
+                  style={col.numeric ? styles.numericCol : undefined}
+                >
+                  {col.renderCell ? col.renderCell(item) : (item as any)[col.key]}
+                </DataTable.Cell>
+              ))}
+            </DataTable.Row>
+          ))
+        )}
 
         <DataTable.Pagination
           page={internalPage}
           numberOfPages={Math.ceil(total / itemsPerPage)}
           onPageChange={handlePageChange}
-          label={`${from + 1}-${to} of ${total}`}
+          label={`${internalPage * itemsPerPage + 1}-${Math.min((internalPage + 1) * itemsPerPage, total)} de ${total}`}
+          numberOfItemsPerPageList={[itemsPerPage]}
           numberOfItemsPerPage={itemsPerPage}
-          // onItemsPerPageChange={onItemsPerPageChange}
-          showFastPaginationControls
-          selectPageDropdownLabel={'Rows per page'}
+          onItemsPerPageChange={() => {}}
+          selectPageDropdownLabel={'Filas por página'}
         />
       </DataTable>
     </View>
@@ -89,14 +110,23 @@ export function Table<T>({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.white,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
+    backgroundColor: 'white',
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
-  headerText: {
-    fontWeight: 'bold',
-    color: Colors.text,
+  numericCol: {
+    justifyContent: 'flex-end',
+  },
+  emptyContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    opacity: 0.6,
   },
 });
