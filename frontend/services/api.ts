@@ -1,7 +1,27 @@
 import axios from 'axios';
 import * as AuthStorage from './authStorage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const getBaseUrl = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  
+  // Use hostUri for dev environment on mobile devices
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  const localhost = debuggerHost?.split(":")[0];
+
+  if (localhost && Platform.OS !== 'web') {
+    return `http://${localhost}:8000`;
+  }
+
+  // Fallback for web or if hostUri is missing
+  return 'http://localhost:8000';
+}
+
+const API_URL = getBaseUrl();
+console.log('API URL configured as:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,

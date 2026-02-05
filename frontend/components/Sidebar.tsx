@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Drawer, useTheme, Avatar, Divider } from 'react-native-paper';
 import { useRouter, usePathname } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
@@ -45,19 +44,19 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       <Divider />
 
-      <Drawer.Section showDivider={false} style={styles.drawerSection}>
-        {menuItems.map((item, index) => (
-            <Drawer.Item
-                key={index}
-                label={item.label}
-                icon={item.icon}
-                active={isActive(item.path)}
-                onPress={() => handleNavigate(item.path)}
-            />
-        ))}
-      </Drawer.Section>
-
-      <View style={styles.spacer} />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Drawer.Section showDivider={false} style={styles.drawerSection}>
+            {menuItems.map((item, index) => (
+                <Drawer.Item
+                    key={index}
+                    label={item.label}
+                    icon={item.icon}
+                    active={isActive(item.path)}
+                    onPress={() => handleNavigate(item.path)}
+                />
+            ))}
+        </Drawer.Section>
+      </ScrollView>
       
       <Divider />
       
@@ -91,10 +90,13 @@ const styles = StyleSheet.create({
   role: {
     opacity: 0.7,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 10,
+  },
   drawerSection: {
     marginTop: 10,
-  },
-  spacer: {
-    flex: 1,
   },
 });

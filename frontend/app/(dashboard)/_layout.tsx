@@ -4,10 +4,8 @@ import { Slot } from 'expo-router';
 import { Drawer as PaperDrawer } from 'react-native-paper';
 import { Sidebar } from '../../components/Sidebar';
 import { Topbar } from '../../components/Topbar';
-import { useProtectedRoute } from '../../hooks/useProtectedRoute';
 
 export default function DashboardLayout() {
-  useProtectedRoute();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dimensions = useWindowDimensions();

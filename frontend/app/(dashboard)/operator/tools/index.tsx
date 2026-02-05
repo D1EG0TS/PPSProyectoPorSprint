@@ -34,11 +34,11 @@ export default function MyToolsScreen() {
   );
 
   const columns = [
-    { key: 'serial_number', label: 'Serial' },
-    { key: 'status', label: 'Estado', renderCell: (item: Tool) => (
+    { key: 'serial_number', label: 'Serial', flex: 1 },
+    { key: 'status', label: 'Estado', width: 150, renderCell: (item: Tool) => (
       <Chip>{item.status}</Chip>
     )},
-    { key: 'actions', label: 'Acciones', renderCell: (item: Tool) => (
+    { key: 'actions', label: 'Acciones', width: 120, renderCell: (item: Tool) => (
       <Button 
         mode="outlined" 
         onPress={() => router.push(`/(dashboard)/operator/tools/${item.id}/check-out`)}

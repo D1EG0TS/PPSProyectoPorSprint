@@ -1,17 +1,20 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, FAB, IconButton, Chip, useTheme, Searchbar, Portal, Dialog, Button as PaperButton } from 'react-native-paper';
+import { Text, FAB, IconButton, Chip, useTheme, Searchbar } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Table } from '../../../../components/Table';
-import userService, { User } from '../../../../services/userService';
+import userService, { User, CreateUserData, UpdateUserData } from '../../../../services/userService';
 import { getRoleName } from '../../../../constants/roles';
 import { Colors } from '../../../../constants/Colors';
+import { UserDialog } from './UserDialog';
 
 export default function UsersListScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
   
   const router = useRouter();
   const theme = useTheme();
@@ -59,18 +62,53 @@ export default function UsersListScreen() {
     );
   };
 
+  const handleOpenCreate = () => {
+    setSelectedUser(undefined);
+    setDialogVisible(true);
+  };
+
+  const handleOpenEdit = (user: User) => {
+    setSelectedUser(user);
+    setDialogVisible(true);
+  };
+
+  const handleDismiss = () => {
+    setDialogVisible(false);
+    setSelectedUser(undefined);
+  };
+
+  const handleSubmit = async (data: any) => {
+    try {
+      if (selectedUser) {
+        await userService.updateUser(selectedUser.id, data as UpdateUserData);
+        Alert.alert('Éxito', 'Usuario actualizado correctamente');
+      } else {
+        await userService.createUser(data as CreateUserData);
+        Alert.alert('Éxito', 'Usuario creado correctamente');
+      }
+      handleDismiss();
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error saving user:', error);
+      const message = error.response?.data?.detail || 'No se pudo guardar el usuario';
+      Alert.alert('Error', message);
+    }
+  };
+
   const columns = [
-    { key: 'id', label: 'ID', numeric: true },
-    { key: 'full_name', label: 'Nombre' },
-    { key: 'email', label: 'Email' },
+    { key: 'id', label: 'ID', numeric: true, width: 60 },
+    { key: 'full_name', label: 'Nombre', width: 150 },
+    { key: 'email', label: 'Email', width: 220 },
     { 
       key: 'role_id', 
-      label: 'Rol', 
+      label: 'Rol',
+      width: 120,
       renderCell: (item: User) => <Chip mode="outlined" style={styles.chip}>{getRoleName(item.role_id)}</Chip>
     },
     { 
       key: 'is_active', 
-      label: 'Estado', 
+      label: 'Estado',
+      width: 100,
       renderCell: (item: User) => (
         <Chip 
           mode="flat" 
@@ -84,9 +122,10 @@ export default function UsersListScreen() {
     {
       key: 'actions',
       label: 'Acciones',
+      width: 100,
       renderCell: (item: User) => (
         <View style={styles.actions}>
-          <IconButton icon="pencil" size={20} onPress={() => Alert.alert('Info', 'Editar usuario: Próximamente')} />
+          <IconButton icon="pencil" size={20} onPress={() => handleOpenEdit(item)} />
           <IconButton 
             icon="delete" 
             size={20} 
@@ -118,13 +157,21 @@ export default function UsersListScreen() {
           keyExtractor={(item) => item.id.toString()}
           itemsPerPage={10}
           emptyMessage="No se encontraron usuarios"
+          minWidth={800}
         />
       </ScrollableContent>
 
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => Alert.alert('Info', 'Crear usuario: Próximamente')}
+        onPress={handleOpenCreate}
+      />
+
+      <UserDialog
+        visible={dialogVisible}
+        onDismiss={handleDismiss}
+        onSubmit={handleSubmit}
+        user={selectedUser}
       />
     </View>
   );

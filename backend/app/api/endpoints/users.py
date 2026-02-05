@@ -49,6 +49,10 @@ def read_users(
     
     if role_id:
         query = query.filter(User.role_id == role_id)
+
+    # RBAC: Role 2 cannot see Role 1
+    if current_user.role_id == 2:
+        query = query.filter(User.role_id != 1)
     
     if is_active is not None:
         query = query.filter(User.is_active == is_active)

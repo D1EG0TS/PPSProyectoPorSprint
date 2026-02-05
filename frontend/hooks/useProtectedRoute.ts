@@ -49,7 +49,10 @@ export const useProtectedRoute = () => {
         
         if (requiredRoles && !requiredRoles.includes(user.role_id)) {
             console.log(`Access denied for user role ${user.role_id} to ${currentPath}`);
-            router.replace('/');
+            // Prevent infinite loop if already at root or other fallback
+            if (currentPath !== '/') {
+                router.replace('/');
+            }
         }
     }
   }, [isAuthenticated, isLoading, segments, user]);

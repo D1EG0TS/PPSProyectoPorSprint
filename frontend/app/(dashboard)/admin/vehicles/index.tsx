@@ -73,21 +73,25 @@ const VehicleListScreen = () => {
     { 
         key: 'license_plate', 
         label: 'Plate', 
+        width: 100,
         renderCell: (item: Vehicle) => <Text style={{fontWeight: 'bold'}}>{item.license_plate}</Text> 
     },
     { 
         key: 'model', 
         label: 'Brand/Model', 
+        width: 200,
         renderCell: (item: Vehicle) => <Text>{item.brand} {item.model} ({item.year})</Text> 
     },
     { 
         key: 'status', 
         label: 'Status', 
+        width: 120,
         renderCell: (item: Vehicle) => <Chip mode="outlined" style={{height: 28}} textStyle={{fontSize: 10, lineHeight: 18}}>{item.status}</Chip> 
     },
     { 
         key: 'insurance', 
         label: 'Insurance', 
+        width: 150,
         renderCell: (item: Vehicle) => {
             const color = getStatusColor(item);
             return (
@@ -102,6 +106,7 @@ const VehicleListScreen = () => {
     { 
         key: 'actions', 
         label: 'Actions', 
+        width: 100,
         renderCell: (item: Vehicle) => (
             <Button mode="text" onPress={() => router.push(`/admin/vehicles/${item.id}`)}>
                 Details

@@ -64,13 +64,13 @@ export default function ToolsListScreen() {
   };
 
   const columns = [
-    { key: 'serial_number', label: 'Serial' },
-    { key: 'status', label: 'Estado', renderCell: (item: Tool) => (
+    { key: 'serial_number', label: 'Serial', flex: 1 },
+    { key: 'status', label: 'Estado', width: 150, renderCell: (item: Tool) => (
       <Chip style={{ backgroundColor: theme.colors.surfaceVariant }}>
         <Text style={{ color: getStatusColor(item.status) }}>{item.status}</Text>
       </Chip>
     )},
-    { key: 'actions', label: 'Acciones', renderCell: (item: Tool) => (
+    { key: 'actions', label: 'Acciones', width: 120, renderCell: (item: Tool) => (
       <View style={styles.actions}>
         <IconButton
           icon="eye"

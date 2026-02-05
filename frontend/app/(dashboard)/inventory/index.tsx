@@ -96,6 +96,7 @@ export default function InventoryScreen() {
     {
       key: 'name',
       label: 'Producto',
+      flex: 2,
       renderCell: (item) => (
         <View>
           <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>{item.name}</Text>
@@ -107,6 +108,7 @@ export default function InventoryScreen() {
       key: 'current_stock',
       label: 'Stock',
       numeric: true,
+      width: 150,
       renderCell: (item) => {
         const isLow = item.current_stock < (item.min_stock || 0);
         return (
@@ -131,6 +133,7 @@ export default function InventoryScreen() {
     {
       key: 'actions',
       label: 'Acciones',
+      width: 100,
       renderCell: (item) => (
         <Button 
           mode="text" 

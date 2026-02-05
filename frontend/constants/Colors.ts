@@ -1,5 +1,5 @@
 export const Colors = {
-  primary: 'hsla(214, 100%, 50%, 0.93)', // Naranja Exproof
+  primary: 'hsla(39, 100%, 50%, 0.93)', // Naranja Exproof
   secondary: '#333333', // Gris Oscuro (Texto/Títulos) used as secondary for now to ensure visibility
   success: '#4CAF50', // Verde Éxito
   danger: '#D32F2F', // Rojo Error
