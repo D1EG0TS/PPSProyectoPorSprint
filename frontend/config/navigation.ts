@@ -2,107 +2,149 @@ import { USER_ROLES } from '../constants/roles';
 
 export interface NavigationItem {
   label: string;
-  path: string;
+  path?: string;
   icon: string;
   allowedRoles: number[];
+  children?: NavigationItem[];
 }
 
 export const SIDEBAR_ITEMS: NavigationItem[] = [
   {
     label: 'Dashboard',
-    path: '/(dashboard)', // Points to index of dashboard group
+    path: '/(dashboard)',
     icon: 'view-dashboard',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER, USER_ROLES.GUEST],
   },
   {
-    label: 'Usuarios',
-    path: '/(dashboard)/admin/users',
-    icon: 'account-group',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
-  },
-  {
     label: 'Inventario',
-    path: '/(dashboard)/inventory',
     icon: 'package-variant',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+    children: [
+      {
+        label: 'Movimientos',
+        path: '/(dashboard)/inventory',
+        icon: 'dolly',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+      {
+        label: 'Gestión Productos',
+        path: '/(dashboard)/admin/products',
+        icon: 'archive-edit',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+      {
+        label: 'Herramientas',
+        path: '/(dashboard)/admin/tools',
+        icon: 'tools',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+      {
+        label: 'Almacenes',
+        path: '/(dashboard)/admin/warehouses',
+        icon: 'warehouse',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+    ]
   },
   {
-    label: 'Herramientas',
-    path: '/(dashboard)/admin/tools',
-    icon: 'tools',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
-  },
-  {
-    label: 'Almacenes',
-    path: '/(dashboard)/admin/warehouses',
-    icon: 'warehouse',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
-  },
-  {
-    label: 'Configuración',
-    path: '/(dashboard)/settings',
-    icon: 'cog',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN],
-  },
-  {
-    label: 'Nueva Solicitud',
-    path: '/(dashboard)/operator/requests/create',
-    icon: 'file-document-edit',
+    label: 'Solicitudes',
+    icon: 'file-document-multiple',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
-  },
-  {
-    label: 'Aprobaciones',
-    path: '/(dashboard)/moderator/requests/pending',
-    icon: 'check-decagram',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
-  },
-  {
-    label: 'Gestión EPP',
-    path: '/(dashboard)/admin/epp',
-    icon: 'shield-account',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
-  },
-  {
-    label: 'Inspecciones EPP',
-    path: '/(dashboard)/moderator/epp/inspections',
-    icon: 'clipboard-check',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
-  },
-  {
-    label: 'Dashboard EPP',
-    path: '/(dashboard)/moderator/dashboard/epp',
-    icon: 'chart-bar',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
-  },
-  {
-    label: 'Mis EPP',
-    path: '/(dashboard)/operator/epp',
-    icon: 'hard-hat',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+    children: [
+      {
+        label: 'Nueva Solicitud',
+        path: '/(dashboard)/operator/requests/create',
+        icon: 'file-document-edit',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+      },
+      {
+        label: 'Aprobaciones',
+        path: '/(dashboard)/moderator/requests/pending',
+        icon: 'check-decagram',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+    ]
   },
   {
     label: 'Vehículos',
-    path: '/(dashboard)/admin/vehicles',
     icon: 'car',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
-  },
-  {
-    label: 'Validación Docs',
-    path: '/(dashboard)/moderator/vehicles/pending-validation',
-    icon: 'file-document-check',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+    children: [
+      {
+        label: 'Lista Vehículos',
+        path: '/(dashboard)/admin/vehicles',
+        icon: 'car-side',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+      {
+        label: 'Validación Docs',
+        path: '/(dashboard)/moderator/vehicles/pending-validation',
+        icon: 'file-document-check',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+    ]
   },
   {
-    label: 'Métricas Sistema',
-    path: '/(dashboard)/superadmin/metrics',
-    icon: 'server-network',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN],
+    label: 'Seguridad (EPP)',
+    icon: 'shield-account',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+    children: [
+      {
+        label: 'Mis EPP',
+        path: '/(dashboard)/operator/epp',
+        icon: 'hard-hat',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+      },
+      {
+        label: 'Dashboard EPP',
+        path: '/(dashboard)/moderator/dashboard/epp',
+        icon: 'chart-bar',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+      {
+        label: 'Inspecciones',
+        path: '/(dashboard)/moderator/epp/inspections',
+        icon: 'clipboard-check',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+      {
+        label: 'Gestión EPP',
+        path: '/(dashboard)/admin/epp',
+        icon: 'cog-transfer',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+    ]
   },
   {
-    label: 'Logs Sistema',
-    path: '/(dashboard)/superadmin/logs',
-    icon: 'history',
-    allowedRoles: [USER_ROLES.SUPER_ADMIN],
+    label: 'Administración',
+    icon: 'cog',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+    children: [
+      {
+        label: 'Usuarios',
+        path: '/(dashboard)/admin/users',
+        icon: 'account-group',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+      {
+        label: 'Métricas Sistema',
+        path: '/(dashboard)/superadmin/metrics',
+        icon: 'server-network',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN],
+      },
+      {
+        label: 'Logs Sistema',
+        path: '/(dashboard)/superadmin/logs',
+        icon: 'history',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN],
+      },
+      {
+        label: 'Configuración',
+        path: '/(dashboard)/settings',
+        icon: 'cog-outline',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN],
+      },
+    ]
   },
 ];
 

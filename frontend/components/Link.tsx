@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link as ExpoLink } from 'expo-router';
 import { Text, useTheme } from 'react-native-paper';
-import { StyleSheet, TextStyle, TouchableOpacity } from 'react-native';
+import { StyleSheet, TextStyle, TouchableOpacity, StyleProp } from 'react-native';
 
-interface LinkProps {
+export interface LinkProps {
   href: string;
   children: React.ReactNode;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
   variant?: 'bodySmall' | 'bodyMedium' | 'bodyLarge' | 'labelSmall' | 'labelMedium' | 'labelLarge';
 }
 

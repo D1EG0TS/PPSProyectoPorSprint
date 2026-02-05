@@ -8,6 +8,7 @@ import { Modal } from '../../../../components/Modal';
 import { Input } from '../../../../components/Input';
 import { User } from '../../../../services/userService';
 import { USER_ROLES, getRoleName } from '../../../../constants/roles';
+import { useAuth } from '../../../../hooks/useAuth';
 import { Picker } from '@react-native-picker/picker';
 
 const userSchema = z.object({
@@ -42,6 +43,7 @@ interface UserDialogProps {
 export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogProps) {
   const isEdit = !!user;
   const theme = useTheme();
+  const { user: currentUser } = useAuth();
   
   const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm<UserFormData>({
     resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
@@ -83,6 +85,15 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
     }
     await onSubmit(data);
   };
+
+  const availableRoles = Object.values(USER_ROLES).filter(role => {
+    // If current user is Super Admin, show all roles
+    if (currentUser?.role_id === USER_ROLES.SUPER_ADMIN) {
+      return true;
+    }
+    // If current user is NOT Super Admin, hide Super Admin role
+    return role !== USER_ROLES.SUPER_ADMIN;
+  });
 
   return (
     <Modal
@@ -127,7 +138,7 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
                             onValueChange={(itemValue) => onChange(Number(itemValue))}
                             style={styles.picker}
                         >
-                            {Object.values(USER_ROLES).map((role) => (
+                            {availableRoles.map((role) => (
                                 <Picker.Item key={role} label={getRoleName(role)} value={role} />
                             ))}
                         </Picker>

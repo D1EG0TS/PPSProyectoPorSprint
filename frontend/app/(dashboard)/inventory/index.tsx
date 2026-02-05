@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Card, Button, Chip, Menu, Portal, Modal, TextInput, ActivityIndicator, IconButton } from 'react-native-paper';
+import { Text, Card, Button, Chip, Menu, Portal, Modal, TextInput, ActivityIndicator, IconButton, FAB } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
@@ -216,6 +216,13 @@ export default function InventoryScreen() {
           itemsPerPage={10}
         />
       </ScrollableContent>
+
+      <FAB
+        icon="plus"
+        label="Nuevo Movimiento"
+        style={styles.fab}
+        onPress={() => router.push('/(dashboard)/inventory/movements/create')}
+      />
     </View>
   );
 }
@@ -225,6 +232,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f5f5f5',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
   },
   header: {
     flexDirection: 'row',

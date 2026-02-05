@@ -89,6 +89,7 @@ export const getProducts = async (params?: {
   search?: string;
   category_id?: number;
   order_by?: 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc';
+  include_inactive?: boolean;
 }) => {
   const response = await api.get<Product[]>('/products/', { params });
   return response.data;

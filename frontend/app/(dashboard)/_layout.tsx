@@ -1,27 +1,67 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, useWindowDimensions, PanResponder, Platform } from 'react-native';
 import { Slot } from 'expo-router';
-import { Drawer as PaperDrawer } from 'react-native-paper';
 import { Sidebar } from '../../components/Sidebar';
 import { Topbar } from '../../components/Topbar';
 
 export default function DashboardLayout() {
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
+  
   const dimensions = useWindowDimensions();
   const isLargeScreen = dimensions.width >= 768; // Tablet/Desktop breakpoint
+  
+  const initialWidthRef = useRef(280);
 
-  // On large screens, sidebar is always visible
-  // On small screens, it's a drawer
-  const showSidebar = isLargeScreen || isSidebarOpen;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        initialWidthRef.current = sidebarWidth;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const newWidth = initialWidthRef.current + gestureState.dx;
+        // Limit width between 200 and 600
+        const clampedWidth = Math.max(200, Math.min(newWidth, 600));
+        setSidebarWidth(clampedWidth);
+      },
+    })
+  ).current;
+
+  // Effective width depends on collapsed state
+  const currentWidth = isSidebarCollapsed ? 80 : sidebarWidth;
 
   return (
     <View style={styles.container}>
       {/* Permanent Sidebar for large screens */}
       {isLargeScreen && (
-        <View style={styles.sidebarContainer}>
-           <Sidebar />
-        </View>
+        <>
+          <View style={[
+            styles.sidebarContainer, 
+            { width: currentWidth },
+            // If we have a resizer, we don't need the border right on the container itself
+            // strictly speaking, but the resizer acts as the border.
+            !isSidebarCollapsed && { borderRightWidth: 0 } 
+          ]}>
+             <Sidebar 
+               collapsed={isSidebarCollapsed}
+               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+             />
+          </View>
+          
+          {/* Resizer Handle - Only visible when not collapsed */}
+          {!isSidebarCollapsed && (
+            <View 
+              {...panResponder.panHandlers}
+              style={[
+                styles.resizer, 
+                Platform.OS === 'web' ? { cursor: 'col-resize' } as any : {}
+              ]} 
+            />
+          )}
+        </>
       )}
 
       {/* Main Content Area */}
@@ -57,9 +97,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   sidebarContainer: {
-    width: 250,
     borderRightWidth: 1,
     borderRightColor: '#e0e0e0',
+    overflow: 'hidden',
+    backgroundColor: '#fff', // Ensure background is white
+  },
+  resizer: {
+    width: 6,
+    backgroundColor: '#f0f0f0',
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
+    borderLeftWidth: 1,
+    borderLeftColor: '#fff', // visual effect
+    zIndex: 10,
   },
   contentContainer: {
     flex: 1,

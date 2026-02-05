@@ -62,11 +62,11 @@ export function Button({
   const getSizeStyles = () => {
     switch (size) {
       case 'small':
-        return { paddingVertical: 0, height: 32 };
+        return { paddingVertical: 0, minHeight: 32 };
       case 'large':
-        return { paddingVertical: 8, height: 56 };
+        return { paddingVertical: 8, minHeight: 56 };
       default:
-        return { paddingVertical: 4, height: 40 };
+        return { paddingVertical: 4, minHeight: 48 }; // Increased to 48px for better touch target and visibility
     }
   };
   

@@ -49,13 +49,18 @@ def read_products(
     search: Optional[str] = None,
     category_id: Optional[int] = None,
     order_by: Optional[str] = None,
+    include_inactive: bool = False,
     current_user: User = Depends(deps.get_current_user),
 ):
     """
     Retrieve products.
     """
+    # Only Admin/Manager can see inactive products
+    if include_inactive and (not current_user.role or current_user.role.id > 3):
+        include_inactive = False
+
     products = crud_product.get_products(
-        db, skip=skip, limit=limit, search=search, category_id=category_id, order_by=order_by, active_only=True
+        db, skip=skip, limit=limit, search=search, category_id=category_id, order_by=order_by, active_only=not include_inactive
     )
     return filter_sensitive_data(products, current_user)
 

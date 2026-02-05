@@ -44,7 +44,9 @@ function RootLayoutNav() {
             fontWeight: 'bold',
           },
         }}
-      />
+      >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      </Stack>
       <Toast config={toastConfig} />
     </>
   );

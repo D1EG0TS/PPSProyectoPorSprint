@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { TextInput, Button, Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface } from 'react-native-paper';
+import { TextInput, Button, Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { 
-  getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch,
-  Product, ProductBatch, ProductUpdate, ProductBatchCreate, ProductBatchUpdate 
+  getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch, getCategories, getUnits,
+  Product, ProductBatch, ProductUpdate, ProductBatchCreate, ProductBatchUpdate, Category, Unit
 } from '../../../../../services/productService';
 import { BatchTable } from '../../../../../components/products/BatchTable';
 
@@ -16,6 +16,12 @@ export default function EditProductScreen() {
   const [activeTab, setActiveTab] = useState('details');
   const [product, setProduct] = useState<Product | null>(null);
   const [batches, setBatches] = useState<ProductBatch[]>([]);
+
+  // Metadata
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showUnitMenu, setShowUnitMenu] = useState(false);
 
   // Product Form State
   const [sku, setSku] = useState('');
@@ -43,6 +49,10 @@ export default function EditProductScreen() {
   const productId = Number(id);
 
   useEffect(() => {
+    loadMetadata();
+  }, []);
+
+  useEffect(() => {
     if (tab && typeof tab === 'string' && ['details', 'batches'].includes(tab)) {
       setActiveTab(tab);
     }
@@ -51,6 +61,16 @@ export default function EditProductScreen() {
   useEffect(() => {
     loadData();
   }, [productId]);
+
+  const loadMetadata = async () => {
+    try {
+      const [cats, uns] = await Promise.all([getCategories(), getUnits()]);
+      setCategories(cats);
+      setUnits(uns);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -177,6 +197,14 @@ export default function EditProductScreen() {
     }
   };
 
+  const getCategoryName = () => {
+    return categories.find(c => c.id.toString() === categoryId)?.name || '';
+  };
+
+  const getUnitName = () => {
+    return units.find(u => u.id.toString() === unitId)?.name || '';
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -206,8 +234,55 @@ export default function EditProductScreen() {
             <TextInput label="Description" value={description} onChangeText={setDescription} mode="outlined" multiline style={styles.input} />
             
             <View style={styles.row}>
-              <TextInput label="Category ID" value={categoryId} onChangeText={setCategoryId} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
-              <TextInput label="Unit ID" value={unitId} onChangeText={setUnitId} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
+              <View style={[styles.halfInput, { marginBottom: 15 }]}>
+                <Menu
+                  visible={showCategoryMenu}
+                  onDismiss={() => setShowCategoryMenu(false)}
+                  anchor={
+                    <TextInput
+                      label="Category"
+                      value={getCategoryName()}
+                      mode="outlined"
+                      editable={false}
+                      right={<TextInput.Icon icon="menu-down" onPress={() => setShowCategoryMenu(true)} />}
+                      style={{ backgroundColor: 'white' }}
+                    />
+                  }
+                >
+                  {categories.map((cat) => (
+                    <Menu.Item 
+                      key={cat.id} 
+                      onPress={() => { setCategoryId(cat.id.toString()); setShowCategoryMenu(false); }} 
+                      title={cat.name} 
+                    />
+                  ))}
+                </Menu>
+              </View>
+
+              <View style={[styles.halfInput, { marginBottom: 15 }]}>
+                <Menu
+                  visible={showUnitMenu}
+                  onDismiss={() => setShowUnitMenu(false)}
+                  anchor={
+                    <TextInput
+                      label="Unit"
+                      value={getUnitName()}
+                      mode="outlined"
+                      editable={false}
+                      right={<TextInput.Icon icon="menu-down" onPress={() => setShowUnitMenu(true)} />}
+                      style={{ backgroundColor: 'white' }}
+                    />
+                  }
+                >
+                  {units.map((u) => (
+                    <Menu.Item 
+                      key={u.id} 
+                      onPress={() => { setUnitId(u.id.toString()); setShowUnitMenu(false); }} 
+                      title={u.name} 
+                    />
+                  ))}
+                </Menu>
+              </View>
             </View>
 
             <View style={styles.row}>

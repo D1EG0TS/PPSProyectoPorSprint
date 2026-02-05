@@ -5,7 +5,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
-import { getProducts, deleteProduct, Product, getCategories, Category } from '../../../../services/productService';
+import { getProducts, deleteProduct, updateProduct, Product, getCategories, Category } from '../../../../services/productService';
 import { useAuth } from '../../../../hooks/useAuth';
 import { Colors } from '../../../../constants/Colors';
 
@@ -16,6 +16,7 @@ export default function ProductsListScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showInactive, setShowInactive] = useState(true);
   
   const router = useRouter();
   const theme = useTheme();
@@ -25,7 +26,7 @@ export default function ProductsListScreen() {
     try {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
-        getProducts({ search: searchQuery, category_id: selectedCategory }),
+        getProducts({ search: searchQuery, category_id: selectedCategory, include_inactive: showInactive }),
         getCategories()
       ]);
       setProducts(productsData);
@@ -41,7 +42,7 @@ export default function ProductsListScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [searchQuery, selectedCategory])
+    }, [searchQuery, selectedCategory, showInactive])
   );
 
   const handleDelete = (product: Product) => {
@@ -60,6 +61,28 @@ export default function ProductsListScreen() {
             } catch (error) {
               console.error('Error deleting product:', error);
               Alert.alert('Error', 'No se pudo desactivar el producto');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRestore = (product: Product) => {
+    Alert.alert(
+      'Confirmar reactivación',
+      `¿Estás seguro de que deseas reactivar el producto "${product.name}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reactivar',
+          onPress: async () => {
+            try {
+              await updateProduct(product.id, { is_active: true });
+              loadData();
+            } catch (error) {
+              console.error('Error restoring product:', error);
+              Alert.alert('Error', 'No se pudo reactivar el producto');
             }
           },
         },
@@ -135,10 +158,10 @@ export default function ProductsListScreen() {
            />
           )}
           <IconButton 
-            icon="delete" 
+            icon={p.is_active ? "delete" : "refresh"} 
             size={20} 
-            iconColor={Colors.error}
-            onPress={() => handleDelete(p)} 
+            iconColor={p.is_active ? Colors.error : Colors.primary}
+            onPress={() => p.is_active ? handleDelete(p) : handleRestore(p)} 
           />
         </View>
       )
@@ -162,7 +185,7 @@ export default function ProductsListScreen() {
               icon="plus" 
               onPress={() => router.push('/(dashboard)/admin/products/create')}
               >
-              Crear Producto
+              Registrar Nuevo
               </Button>
           </View>
         </View>
@@ -189,6 +212,13 @@ export default function ProductsListScreen() {
                   <Menu.Item key={cat.id} onPress={() => { setSelectedCategory(cat.id); setShowCategoryMenu(false); }} title={cat.name} />
               ))}
           </Menu>
+          <Button 
+            variant={showInactive ? "primary" : "outline"} 
+            onPress={() => setShowInactive(!showInactive)} 
+            icon={showInactive ? "eye" : "eye-off"}
+          >
+            {showInactive ? "Ocultar Inactivos" : "Mostrar Inactivos"}
+          </Button>
         </View>
 
         {loading ? (

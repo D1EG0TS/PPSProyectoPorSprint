@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useForm } from 'react-hook-form';
@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResponsive } from '../../hooks/useResponsive';
 
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
@@ -28,8 +29,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function RegisterScreen() {
   const { register, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
-  const { width } = Dimensions.get('window');
-  const isDesktop = width >= 768;
+  const { isDesktop, isTablet, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
 
   const { control, handleSubmit } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -53,7 +53,6 @@ export default function RegisterScreen() {
         text1: '¡Registro exitoso!',
         text2: 'Tu cuenta ha sido creada correctamente.',
       });
-      // Navigation is usually handled by useProtectedRoute or auto-login
     } catch (err: any) {
       Toast.show({
         type: 'error',
@@ -65,14 +64,14 @@ export default function RegisterScreen() {
 
   const renderFormContent = () => (
     <>
-      <View style={styles.headerContainer}>
+      <View style={[styles.headerContainer, { marginBottom: isSmallDevice ? 24 : 32 }]}>
          <Image 
           source={require('../../assets/isologo_desarrollado.webp')}
-          style={styles.logo}
+          style={[styles.logo, { width: isSmallDevice ? 100 : 140, height: isSmallDevice ? 50 : 70 }]}
           resizeMode="contain"
         />
-        <Text variant="headlineMedium" style={styles.title}>Crear Cuenta</Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>Únete a nosotros para empezar</Text>
+        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title }]}>CREAR CUENTA</Text>
+        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle }]}>Únete a nosotros para empezar</Text>
       </View>
 
       <View style={styles.formContainer}>
@@ -83,6 +82,8 @@ export default function RegisterScreen() {
           autoCapitalize="words"
           testID="fullname-input"
           style={styles.input}
+          outlineColor="#E0E0E0"
+          activeOutlineColor={Colors.primary}
         />
 
         <Input
@@ -93,6 +94,8 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           testID="email-input"
           style={styles.input}
+          outlineColor="#E0E0E0"
+          activeOutlineColor={Colors.primary}
         />
 
         <Input
@@ -102,6 +105,8 @@ export default function RegisterScreen() {
           secureTextEntry
           testID="password-input"
           style={styles.input}
+          outlineColor="#E0E0E0"
+          activeOutlineColor={Colors.primary}
         />
 
         <Input
@@ -111,6 +116,8 @@ export default function RegisterScreen() {
           secureTextEntry
           testID="confirm-input"
           style={styles.input}
+          outlineColor="#E0E0E0"
+          activeOutlineColor={Colors.primary}
         />
 
         <Button
@@ -119,15 +126,17 @@ export default function RegisterScreen() {
           loading={isLoading}
           disabled={isLoading}
           style={styles.button}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.buttonLabel}
           testID="register-button"
           fullWidth
         >
-          Registrarse
+          REGISTRARSE
         </Button>
 
         <View style={styles.footer}>
-          <Text variant="bodyMedium" style={{ color: Colors.textSecondary }}>¿Ya tienes cuenta? </Text>
-          <Link href="/login" variant="bodyMedium" style={styles.loginLink}>
+          <Text variant="bodyMedium" style={{ color: '#666666', fontSize: fontSize.body }}>¿Ya tienes cuenta? </Text>
+          <Link href="/login" variant="bodyMedium" style={[styles.loginLink, { fontSize: fontSize.body }]}>
             Iniciar Sesión
           </Link>
         </View>
@@ -169,8 +178,16 @@ export default function RegisterScreen() {
         >
           <View style={styles.spacer} />
 
-          <View style={[styles.cardContainer, { paddingBottom: insets.bottom + 20 }]}>
-            {renderFormContent()}
+          <View style={[
+            styles.cardContainer, 
+            { 
+              paddingBottom: insets.bottom + 20,
+              paddingHorizontal: paddingHorizontal
+            }
+          ]}>
+            <View style={[styles.formWrapper, { maxWidth: isTablet ? 480 : '100%' }]}>
+              {renderFormContent()}
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -197,71 +214,85 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 24,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     paddingTop: 32,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
+    alignItems: 'center',
+  },
+  formWrapper: {
+    width: '100%',
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 24,
   },
   logo: {
-    width: 120,
-    height: 60,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   title: {
     fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 4,
+    color: '#1A1A1A',
+    marginBottom: 8,
+    letterSpacing: 1.5,
   },
   subtitle: {
-    color: Colors.textSecondary,
+    color: '#666666',
+    textAlign: 'center',
   },
   formContainer: {
     width: '100%',
   },
   input: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
+    marginBottom: 4,
   },
   button: {
-    marginTop: 16,
-    borderRadius: 25,
-    paddingVertical: 6,
+    marginTop: 24,
+    borderRadius: 4,
+    elevation: 0,
+  },
+  buttonContent: {
+    paddingVertical: 8,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: 24,
     marginBottom: 10,
+    flexWrap: 'wrap',
   },
   loginLink: {
     fontWeight: 'bold',
+    color: Colors.primary,
   },
   desktopContainer: {
     flex: 1,
     flexDirection: 'row',
   },
   desktopImageSide: {
-    flex: 1,
+    flex: 1.2,
     height: '100%',
   },
   desktopFormSide: {
-    flex: 1,
-    backgroundColor: '#fff',
+    flex: 0.8,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   desktopFormContent: {
     width: '100%',
-    maxWidth: 480,
-    padding: 40,
+    maxWidth: 420,
+    padding: 48,
     alignSelf: 'center',
     justifyContent: 'center',
     minHeight: '100%',

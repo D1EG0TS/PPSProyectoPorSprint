@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
+import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Colors } from '../../../../constants/Colors';
 import { ProductSearch } from '../../../../components/products/ProductSearch';
 import { Input } from '../../../../components/Input';

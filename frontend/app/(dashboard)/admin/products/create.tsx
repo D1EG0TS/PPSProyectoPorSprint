@@ -1,23 +1,71 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { TextInput, Button, HelperText, Switch, Text, ProgressBar, useTheme, Surface } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, ScrollView, Pressable, Platform } from 'react-native';
+import { TextInput, Button, HelperText, Switch, Text, ProgressBar, useTheme, Surface, Menu, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { createProduct, createProductBatch, getProductByCode, ProductCreate, ProductBatchCreate } from '../../../../services/productService';
+import { createProduct, createProductBatch, getProductByCode, getCategories, getUnits, ProductCreate, ProductBatchCreate, Category, Unit } from '../../../../services/productService';
+import { useAuth } from '../../../../hooks/useAuth';
+import { USER_ROLES } from '../../../../constants/roles';
 
 export default function CreateProductScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Snackbar State
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarColor, setSnackbarColor] = useState(theme.colors.error);
+
+  const showSnackbar = (message: string, isError = true) => {
+    setSnackbarMessage(message);
+    setSnackbarColor(isError ? theme.colors.error : theme.colors.primary);
+    setSnackbarVisible(true);
+  };
+
+  // Check Permissions
+  useEffect(() => {
+    // console.log('Checking permissions:', user);
+    if (user && user.role_id !== USER_ROLES.SUPER_ADMIN && user.role_id !== USER_ROLES.ADMIN) {
+      Alert.alert('Acceso Denegado', 'No tienes permisos para acceder a esta sección.', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
+    }
+  }, [user]);
+
+  // Data Sources
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showUnitMenu, setShowUnitMenu] = useState(false);
+
+  useEffect(() => {
+    loadMetadata();
+  }, []);
+
+  const loadMetadata = async () => {
+    try {
+      const [cats, uns] = await Promise.all([getCategories(), getUnits()]);
+      setCategories(cats);
+      setUnits(uns);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Error al cargar categorías/unidades');
+    }
+  };
 
   // Step 1: Basic Info
   const [sku, setSku] = useState('');
   const [skuError, setSkuError] = useState('');
   const [barcode, setBarcode] = useState('');
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [categoryError, setCategoryError] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [unitError, setUnitError] = useState('');
 
   // Step 2: Config & Pricing
   const [cost, setCost] = useState('');
@@ -39,7 +87,7 @@ export default function CreateProductScreen() {
     try {
       const existing = await getProductByCode(sku);
       if (existing) {
-        setSkuError('SKU already exists');
+        setSkuError('El SKU ya existe');
       } else {
         setSkuError('');
       }
@@ -49,12 +97,20 @@ export default function CreateProductScreen() {
   };
 
   const validateStep1 = () => {
-    if (!sku || !name || !categoryId || !unitId) {
-      Alert.alert('Error', 'Please fill in all required fields (SKU, Name, Category, Unit)');
+    let isValid = true;
+    
+    if (!sku) { setSkuError('SKU es requerido'); isValid = false; }
+    if (!name) { setNameError('Nombre es requerido'); isValid = false; }
+    if (!categoryId) { setCategoryError('Categoría es requerida'); isValid = false; }
+    if (!unitId) { setUnitError('Unidad es requerida'); isValid = false; }
+    
+    if (!isValid) {
+      showSnackbar('Por favor completa los campos requeridos', true);
       return false;
     }
+
     if (skuError) {
-      Alert.alert('Error', 'SKU is invalid or already taken');
+      showSnackbar('El SKU es inválido o ya existe', true);
       return false;
     }
     return true;
@@ -68,11 +124,11 @@ export default function CreateProductScreen() {
   const validateStep3 = () => {
     if (!hasBatch) return true;
     if (!batchNumber || !batchQty) {
-      Alert.alert('Error', 'Batch Number and Quantity are required for initial batch');
+      showSnackbar('El número de lote y la cantidad son requeridos', true);
       return false;
     }
     if (hasExpiration && !expDate) {
-      Alert.alert('Error', 'Expiration Date is required for this product type');
+      showSnackbar('La fecha de caducidad es requerida', true);
       return false;
     }
     return true;
@@ -87,9 +143,6 @@ export default function CreateProductScreen() {
       if (hasBatch) {
         setStep(2);
       } else {
-        // Skip step 2 if no batch, go to review or submit? 
-        // Let's just submit from here or show a review step?
-        // Prompt says "multi-step". Let's treat step 2 as the final step if no batch, but button should change to "Submit"
         handleSubmit();
       }
     } else {
@@ -133,12 +186,13 @@ export default function CreateProductScreen() {
         await createProductBatch(newProduct.id, batchData);
       }
 
-      Alert.alert('Success', 'Product created successfully', [
-        { text: 'OK', onPress: () => router.replace('/admin/products') }
-      ]);
+      showSnackbar('Producto registrado exitosamente', false);
+      setTimeout(() => {
+        router.replace('/admin/products');
+      }, 1500);
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to create product');
+      showSnackbar(error.response?.data?.detail || 'Error al registrar el producto', true);
     } finally {
       setLoading(false);
     }
@@ -147,12 +201,28 @@ export default function CreateProductScreen() {
   const totalSteps = hasBatch ? 3 : 2;
   const progress = (step + 1) / totalSteps;
 
+  const getCategoryName = () => {
+    return categories.find(c => c.id.toString() === categoryId)?.name || '';
+  };
+
+  const getUnitName = () => {
+    return units.find(u => u.id.toString() === unitId)?.name || '';
+  };
+
   return (
     <View style={styles.container}>
-      <ProgressBar progress={progress} color={theme.colors.primary} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={{ width: '100%', height: 4, zIndex: 1 }}>
+        <ProgressBar progress={progress} color={theme.colors.primary} style={{ height: 4 }} />
+      </View>
+      
+      <View style={{ flex: 1, width: '100%', overflow: 'hidden' }}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text variant="headlineMedium" style={styles.title}>
-          {step === 0 ? 'Basic Information' : step === 1 ? 'Configuration & Pricing' : 'Initial Batch'}
+          {step === 0 ? 'Información Básica' : step === 1 ? 'Configuración y Precios' : 'Lote Inicial'}
         </Text>
 
         {step === 0 && (
@@ -169,7 +239,7 @@ export default function CreateProductScreen() {
             {!!skuError && <HelperText type="error">{skuError}</HelperText>}
 
             <TextInput
-              label="Barcode"
+              label="Código de Barras"
               value={barcode}
               onChangeText={setBarcode}
               mode="outlined"
@@ -177,15 +247,17 @@ export default function CreateProductScreen() {
             />
 
             <TextInput
-              label="Name *"
+              label="Nombre *"
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => { setName(text); setNameError(''); }}
               mode="outlined"
+              error={!!nameError}
               style={styles.input}
             />
+            {!!nameError && <HelperText type="error">{nameError}</HelperText>}
 
             <TextInput
-              label="Description"
+              label="Descripción"
               value={description}
               onChangeText={setDescription}
               mode="outlined"
@@ -195,22 +267,67 @@ export default function CreateProductScreen() {
             />
 
             <View style={styles.row}>
-              <TextInput
-                label="Category ID *"
-                value={categoryId}
-                onChangeText={setCategoryId}
-                keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
-              />
-              <TextInput
-                label="Unit ID *"
-                value={unitId}
-                onChangeText={setUnitId}
-                keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
-              />
+              <View style={[styles.halfInput, { marginBottom: 15 }]}>
+                <Menu
+                  visible={showCategoryMenu}
+                  onDismiss={() => setShowCategoryMenu(false)}
+                  anchor={
+                    <Pressable onPress={() => setShowCategoryMenu(true)}>
+                      <View pointerEvents="none">
+                        <TextInput
+                          label="Categoría *"
+                          value={getCategoryName()}
+                          mode="outlined"
+                          editable={false}
+                          error={!!categoryError}
+                          right={<TextInput.Icon icon="menu-down" />}
+                          style={{ backgroundColor: 'white' }}
+                        />
+                      </View>
+                    </Pressable>
+                  }
+                >
+                  {categories.map((cat) => (
+                    <Menu.Item 
+                      key={cat.id} 
+                      onPress={() => { setCategoryId(cat.id.toString()); setCategoryError(''); setShowCategoryMenu(false); }} 
+                      title={cat.name} 
+                    />
+                  ))}
+                </Menu>
+                {!!categoryError && <HelperText type="error">{categoryError}</HelperText>}
+              </View>
+
+              <View style={[styles.halfInput, { marginBottom: 15 }]}>
+                <Menu
+                  visible={showUnitMenu}
+                  onDismiss={() => setShowUnitMenu(false)}
+                  anchor={
+                    <Pressable onPress={() => setShowUnitMenu(true)}>
+                      <View pointerEvents="none">
+                         <TextInput
+                          label="Unidad *"
+                          value={getUnitName()}
+                          mode="outlined"
+                          editable={false}
+                          error={!!unitError}
+                          right={<TextInput.Icon icon="menu-down" />}
+                          style={{ backgroundColor: 'white' }}
+                        />
+                      </View>
+                    </Pressable>
+                  }
+                >
+                  {units.map((u) => (
+                    <Menu.Item 
+                      key={u.id} 
+                      onPress={() => { setUnitId(u.id.toString()); setUnitError(''); setShowUnitMenu(false); }} 
+                      title={u.name} 
+                    />
+                  ))}
+                </Menu>
+                {!!unitError && <HelperText type="error">{unitError}</HelperText>}
+              </View>
             </View>
           </View>
         )}
@@ -219,7 +336,7 @@ export default function CreateProductScreen() {
           <View style={styles.stepContainer}>
             <View style={styles.row}>
               <TextInput
-                label="Cost"
+                label="Costo"
                 value={cost}
                 onChangeText={setCost}
                 keyboardType="numeric"
@@ -228,7 +345,7 @@ export default function CreateProductScreen() {
                 left={<TextInput.Affix text="$" />}
               />
               <TextInput
-                label="Price"
+                label="Precio"
                 value={price}
                 onChangeText={setPrice}
                 keyboardType="numeric"
@@ -240,7 +357,7 @@ export default function CreateProductScreen() {
 
             <View style={styles.row}>
               <TextInput
-                label="Min Stock"
+                label="Stock Mínimo"
                 value={minStock}
                 onChangeText={setMinStock}
                 keyboardType="numeric"
@@ -248,7 +365,7 @@ export default function CreateProductScreen() {
                 style={[styles.input, styles.halfInput]}
               />
               <TextInput
-                label="Target Stock"
+                label="Stock Objetivo"
                 value={targetStock}
                 onChangeText={setTargetStock}
                 keyboardType="numeric"
@@ -259,15 +376,15 @@ export default function CreateProductScreen() {
 
             <Surface style={styles.switchContainer} elevation={1}>
               <View style={styles.switchRow}>
-                <Text>Active</Text>
+                <Text>Activo</Text>
                 <Switch value={isActive} onValueChange={setIsActive} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Has Batch Management</Text>
+                <Text>Gestiona Lotes</Text>
                 <Switch value={hasBatch} onValueChange={setHasBatch} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Has Expiration Date</Text>
+                <Text>Tiene Fecha de Caducidad</Text>
                 <Switch value={hasExpiration} onValueChange={setHasExpiration} />
               </View>
             </Surface>
@@ -276,16 +393,16 @@ export default function CreateProductScreen() {
 
         {step === 2 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.subtitle}>Initial Batch Details</Text>
+            <Text style={styles.subtitle}>Detalles del Lote Inicial</Text>
             <TextInput
-              label="Batch Number *"
+              label="Número de Lote *"
               value={batchNumber}
               onChangeText={setBatchNumber}
               mode="outlined"
               style={styles.input}
             />
             <TextInput
-              label="Quantity *"
+              label="Cantidad *"
               value={batchQty}
               onChangeText={setBatchQty}
               keyboardType="numeric"
@@ -293,7 +410,7 @@ export default function CreateProductScreen() {
               style={styles.input}
             />
             <TextInput
-              label="Manufactured Date (YYYY-MM-DD)"
+              label="Fecha de Fabricación (AAAA-MM-DD)"
               value={mfgDate}
               onChangeText={setMfgDate}
               mode="outlined"
@@ -301,7 +418,7 @@ export default function CreateProductScreen() {
               placeholder="2023-01-01"
             />
             <TextInput
-              label={`Expiration Date${hasExpiration ? ' *' : ''} (YYYY-MM-DD)`}
+              label={`Fecha de Caducidad${hasExpiration ? ' *' : ''} (AAAA-MM-DD)`}
               value={expDate}
               onChangeText={setExpDate}
               mode="outlined"
@@ -315,7 +432,7 @@ export default function CreateProductScreen() {
         <View style={styles.buttonRow}>
           {step > 0 && (
             <Button mode="outlined" onPress={handleBack} style={styles.button} disabled={loading}>
-              Back
+              Atrás
             </Button>
           )}
           <Button 
@@ -325,10 +442,19 @@ export default function CreateProductScreen() {
             loading={loading}
             disabled={loading}
           >
-            {step === totalSteps - 1 ? 'Create Product' : 'Next'}
+            {step === totalSteps - 1 ? 'Registrar Producto' : 'Siguiente'}
           </Button>
         </View>
       </ScrollView>
+      </View>
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={3000}
+        style={{ backgroundColor: snackbarColor }}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 }
@@ -338,8 +464,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
   scrollContent: {
     padding: 20,
+    paddingBottom: 40,
+    flexGrow: 1,
+    minHeight: 300, 
   },
   title: {
     marginBottom: 20,

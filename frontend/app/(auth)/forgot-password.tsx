@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Toast from 'react-native-toast-message';
 import api from '../../services/api';
-
 import { Link as RouterLink } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResponsive } from '../../hooks/useResponsive';
+
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { Link } from '../../components/Link';
+import { Colors } from '../../constants/Colors';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -21,6 +24,8 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { isDesktop, isTablet, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
 
   const { control, handleSubmit } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -50,81 +55,230 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  if (isSuccess) {
-    return (
-      <View style={styles.container}>
-        <Text variant="headlineMedium" style={styles.title}>Correo Enviado</Text>
-        <Text style={styles.text}>
-          Hemos enviado las instrucciones para restablecer tu contraseña a tu correo electrónico.
+  const renderFormContent = () => (
+    <>
+      <View style={[styles.headerContainer, { marginBottom: isSmallDevice ? 24 : 32 }]}>
+         <Image 
+          source={require('../../assets/isologo_desarrollado.webp')}
+          style={[styles.logo, { width: isSmallDevice ? 100 : 140, height: isSmallDevice ? 50 : 70 }]}
+          resizeMode="contain"
+        />
+        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title }]}>
+          {isSuccess ? 'CORREO ENVIADO' : 'RECUPERAR CONTRASEÑA'}
         </Text>
-        <RouterLink href="/login" asChild>
-          <Button variant="primary" style={styles.button}>
-            Volver al inicio de sesión
-          </Button>
-        </RouterLink>
+        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle }]}>
+          {isSuccess 
+            ? 'Hemos enviado las instrucciones para restablecer tu contraseña a tu correo electrónico.'
+            : 'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.'
+          }
+        </Text>
+      </View>
+
+      <View style={styles.formContainer}>
+        {isSuccess ? (
+            <View style={styles.buttonContainer}>
+             <RouterLink href="/login" asChild>
+              <Button variant="primary" style={styles.button} fullWidth>
+                VOLVER AL INICIO DE SESIÓN
+              </Button>
+            </RouterLink>
+           </View>
+        ) : (
+          <>
+            <Input
+              name="email"
+              control={control}
+              label="Email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              testID="email-input"
+              style={styles.input}
+              outlineColor="#E0E0E0"
+              activeOutlineColor={Colors.primary}
+            />
+
+            <Button
+              variant="primary"
+              onPress={handleSubmit(onSubmit)}
+              loading={isLoading}
+              disabled={isLoading}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
+              testID="submit-button"
+              fullWidth
+            >
+              ENVIAR ENLACE
+            </Button>
+          </>
+        )}
+
+        <View style={styles.footer}>
+            {!isSuccess && (
+                <Link href="/login" variant="bodyMedium" style={[styles.loginLink, { fontSize: fontSize.body }]}>
+                    Volver al inicio de sesión
+                </Link>
+            )}
+        </View>
+      </View>
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <View style={styles.desktopContainer}>
+        <ImageBackground 
+          source={require('../../assets/instalacion-electrica-industrial-01.webp')} 
+          style={styles.desktopImageSide}
+          resizeMode="cover"
+        />
+        <View style={styles.desktopFormSide}>
+          <ScrollView contentContainerStyle={styles.desktopFormContent}>
+            {renderFormContent()}
+          </ScrollView>
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>Recuperar Contraseña</Text>
-      <Text style={styles.text}>
-        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-      </Text>
-
-      <Input
-        name="email"
-        control={control}
-        label="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        testID="email-input"
-      />
-
-      <Button
-        variant="primary"
-        onPress={handleSubmit(onSubmit)}
-        loading={isLoading}
-        disabled={isLoading}
-        style={styles.button}
-        testID="submit-button"
+    <ImageBackground 
+      source={require('../../assets/instalacion-electrica-industrial-01.webp')} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        Enviar Enlace
-      </Button>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.spacer} />
 
-      <View style={styles.footer}>
-        <Link href="/login" variant="bodyMedium">
-          Volver al inicio de sesión
-        </Link>
-      </View>
-    </View>
+          <View style={[
+            styles.cardContainer, 
+            { 
+              paddingBottom: insets.bottom + 20,
+              paddingHorizontal: paddingHorizontal
+            }
+          ]}>
+            <View style={[styles.formWrapper, { maxWidth: isTablet ? 480 : '100%' }]}>
+              {renderFormContent()}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 100,
+  },
+  cardContainer: {
     backgroundColor: '#fff',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    paddingTop: 32,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    alignItems: 'center',
+  },
+  formWrapper: {
+    width: '100%',
+  },
+  headerContainer: {
+    alignItems: 'center',
+  },
+  logo: {
+    marginBottom: 24,
   },
   title: {
-    textAlign: 'center',
-    marginBottom: 20,
     fontWeight: 'bold',
-  },
-  text: {
+    color: '#1A1A1A',
+    marginBottom: 8,
+    letterSpacing: 1.5,
     textAlign: 'center',
-    marginBottom: 30,
-    color: '#666',
+  },
+  subtitle: {
+    color: '#666666',
+    textAlign: 'center',
+  },
+  formContainer: {
+    width: '100%',
+  },
+  input: {
+    backgroundColor: 'transparent',
+    marginBottom: 4,
+  },
+  buttonContainer: {
+    marginTop: 24,
   },
   button: {
-    marginTop: 10,
+    marginTop: 24,
+    borderRadius: 4,
+    elevation: 0,
+  },
+  buttonContent: {
+    paddingVertical: 8,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 10,
+    flexWrap: 'wrap',
+  },
+  loginLink: {
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  desktopContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  desktopImageSide: {
+    flex: 1.2,
+    height: '100%',
+  },
+  desktopFormSide: {
+    flex: 0.8,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopFormContent: {
+    width: '100%',
+    maxWidth: 420,
+    padding: 48,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    minHeight: '100%',
   },
 });
