@@ -38,6 +38,7 @@ export default function CreateProductScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const [showSubCategoryMenu, setShowSubCategoryMenu] = useState(false);
   const [showUnitMenu, setShowUnitMenu] = useState(false);
 
   useEffect(() => {
@@ -61,8 +62,12 @@ export default function CreateProductScreen() {
   const [barcode, setBarcode] = useState('');
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [parentCategoryId, setParentCategoryId] = useState('');
   const [categoryError, setCategoryError] = useState('');
   const [unitId, setUnitId] = useState('');
   const [unitError, setUnitError] = useState('');
@@ -162,6 +167,9 @@ export default function CreateProductScreen() {
         sku,
         barcode: barcode || undefined,
         name,
+        brand: brand || undefined,
+        model: model || undefined,
+        image_url: imageUrl || undefined,
         description: description || undefined,
         category_id: parseInt(categoryId),
         unit_id: parseInt(unitId),
@@ -256,6 +264,31 @@ export default function CreateProductScreen() {
             />
             {!!nameError && <HelperText type="error">{nameError}</HelperText>}
 
+            <View style={styles.row}>
+              <TextInput
+                label="Marca"
+                value={brand}
+                onChangeText={setBrand}
+                mode="outlined"
+                style={[styles.halfInput, { marginBottom: 15 }]}
+              />
+              <TextInput
+                label="Modelo"
+                value={model}
+                onChangeText={setModel}
+                mode="outlined"
+                style={[styles.halfInput, { marginBottom: 15 }]}
+              />
+            </View>
+
+            <TextInput
+              label="URL Imagen Principal"
+              value={imageUrl}
+              onChangeText={setImageUrl}
+              mode="outlined"
+              style={styles.input}
+            />
+
             <TextInput
               label="Descripción"
               value={description}
@@ -276,7 +309,7 @@ export default function CreateProductScreen() {
                       <View pointerEvents="none">
                         <TextInput
                           label="Categoría *"
-                          value={getCategoryName()}
+                          value={categories.find(c => c.id.toString() === parentCategoryId)?.name || ''}
                           mode="outlined"
                           editable={false}
                           error={!!categoryError}
@@ -287,10 +320,15 @@ export default function CreateProductScreen() {
                     </Pressable>
                   }
                 >
-                  {categories.map((cat) => (
+                  {categories.filter(c => !c.parent_id).map((cat) => (
                     <Menu.Item 
                       key={cat.id} 
-                      onPress={() => { setCategoryId(cat.id.toString()); setCategoryError(''); setShowCategoryMenu(false); }} 
+                      onPress={() => { 
+                          setParentCategoryId(cat.id.toString()); 
+                          setCategoryId(cat.id.toString());
+                          setCategoryError(''); 
+                          setShowCategoryMenu(false); 
+                      }} 
                       title={cat.name} 
                     />
                   ))}
@@ -329,6 +367,61 @@ export default function CreateProductScreen() {
                 {!!unitError && <HelperText type="error">{unitError}</HelperText>}
               </View>
             </View>
+
+            {(() => {
+                const parent = categories.find(c => c.id.toString() === parentCategoryId);
+                const subCats = parent?.subcategories && parent.subcategories.length > 0 
+                    ? parent.subcategories 
+                    : categories.filter(c => c.parent_id === parseInt(parentCategoryId));
+                
+                if (subCats.length > 0) {
+                    return (
+                        <View style={{ marginBottom: 15 }}>
+                            <Menu
+                              visible={showSubCategoryMenu}
+                              onDismiss={() => setShowSubCategoryMenu(false)}
+                              anchor={
+                                <Pressable onPress={() => setShowSubCategoryMenu(true)}>
+                                  <View pointerEvents="none">
+                                    <TextInput
+                                      label="Subcategoría"
+                                      value={
+                                          (categoryId !== parentCategoryId) 
+                                          ? (subCats.find(s => s.id.toString() === categoryId)?.name || categories.find(c => c.id.toString() === categoryId)?.name || '') 
+                                          : ''
+                                      }
+                                      mode="outlined"
+                                      editable={false}
+                                      right={<TextInput.Icon icon="menu-down" />}
+                                      style={{ backgroundColor: 'white' }}
+                                    />
+                                  </View>
+                                </Pressable>
+                              }
+                            >
+                                <Menu.Item 
+                                  onPress={() => { 
+                                      setCategoryId(parentCategoryId); 
+                                      setShowSubCategoryMenu(false); 
+                                  }} 
+                                  title="(Ninguna)" 
+                                />
+                              {subCats.map((cat) => (
+                                <Menu.Item 
+                                  key={cat.id} 
+                                  onPress={() => { 
+                                      setCategoryId(cat.id.toString()); 
+                                      setShowSubCategoryMenu(false); 
+                                  }} 
+                                  title={cat.name} 
+                                />
+                              ))}
+                            </Menu>
+                        </View>
+                    );
+                }
+                return null;
+            })()}
           </View>
         )}
 

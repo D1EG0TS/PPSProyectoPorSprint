@@ -1,26 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
-
-# Location Schemas
-class LocationBase(BaseModel):
-    code: str
-    name: str
-    parent_location_id: Optional[int] = None
-
-class LocationCreate(LocationBase):
-    pass
-
-class LocationUpdate(LocationBase):
-    code: Optional[str] = None
-    name: Optional[str] = None
-
-class Location(LocationBase):
-    id: int
-    warehouse_id: int
-    path: Optional[str] = None
-    children: List['Location'] = []
-
-    model_config = ConfigDict(from_attributes=True)
+from app.schemas.location import StorageLocationResponse
 
 # Warehouse Schemas
 class WarehouseBase(BaseModel):
@@ -40,13 +20,16 @@ class WarehouseUpdate(WarehouseBase):
 class Warehouse(WarehouseBase):
     id: int
     created_by: int
-    locations: List[Location] = []
-
+    # locations removed to avoid performance issues and validation errors in list view
+    
     model_config = ConfigDict(from_attributes=True)
+
+class WarehouseDetail(Warehouse):
+    locations: List[StorageLocationResponse] = []
 
 class WarehouseStockItem(BaseModel):
     product_id: int
     quantity: int
 
-Location.model_rebuild()
 Warehouse.model_rebuild()
+WarehouseDetail.model_rebuild()

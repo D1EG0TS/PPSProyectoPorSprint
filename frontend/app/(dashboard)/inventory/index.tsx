@@ -9,6 +9,8 @@ import { Table, Column } from '../../../components/Table';
 import { LoadingScreen } from '../../../components/LoadingScreen';
 import { warehouseService, WarehouseStockItem } from '../../../services/warehouseService';
 import { getProducts, Product } from '../../../services/productService';
+import { locationService } from '../../../services/locationService';
+import { LocationSelectionDialog } from '../../../components/locations/LocationSelectionDialog';
 import { Colors } from '../../../constants/Colors';
 
 interface InventoryItem extends Product {
@@ -27,6 +29,8 @@ export default function InventoryScreen() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [showLowStock, setShowLowStock] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
 
   const loadWarehouses = async () => {
     try {
@@ -133,15 +137,21 @@ export default function InventoryScreen() {
     {
       key: 'actions',
       label: 'Acciones',
-      width: 100,
+      width: 140,
       renderCell: (item) => (
-        <Button 
-          mode="text" 
-          onPress={() => router.push(`/(dashboard)/inventory/${item.id}`)}
-          compact
-        >
-          Kardex
-        </Button>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <IconButton 
+            icon="file-document-outline" 
+            size={20}
+            onPress={() => router.push(`/(dashboard)/inventory/${item.id}`)}
+          />
+          <IconButton 
+            icon="map-marker-plus" 
+            size={20} 
+            iconColor={Colors.primary}
+            onPress={() => router.push(`/(dashboard)/operator/products/${item.id}/assign-location`)}
+          />
+        </View>
       )
     }
   ];
@@ -181,6 +191,18 @@ export default function InventoryScreen() {
           </View>
         </View>
 
+        <View style={{ marginBottom: 16, alignItems: 'flex-end' }}>
+           {selectedWarehouse && (
+             <Button 
+               mode="outlined" 
+               icon="map"
+               onPress={() => router.push(`/(dashboard)/moderator/warehouses/${selectedWarehouse.id}/map`)}
+             >
+               Ver Ubicaciones
+             </Button>
+           )}
+        </View>
+
         <Card style={styles.filtersCard}>
           <Card.Content style={styles.filtersContent}>
               <TextInput 
@@ -193,8 +215,22 @@ export default function InventoryScreen() {
                   right={<TextInput.Icon icon="magnify" />}
               />
               <View style={styles.filterChips}>
-                  <Chip 
-                      selected={showLowStock} 
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Button 
+                    mode={selectedLocation ? "contained" : "outlined"} 
+                    onPress={() => setShowLocationDialog(true)}
+                    style={{ marginRight: 8 }}
+                    icon="map-marker"
+                  >
+                    {selectedLocation ? `${selectedLocation.code}` : 'Filtrar Ubicación'}
+                  </Button>
+                  {selectedLocation && (
+                    <IconButton icon="close" size={20} onPress={() => setSelectedLocation(null)} />
+                  )}
+              </View>
+
+              <Chip 
+                  selected={showLowStock} 
                       onPress={() => setShowLowStock(!showLowStock)}
                       showSelectedOverlay
                       icon={showLowStock ? "check" : "alert-circle-outline"}
@@ -222,6 +258,16 @@ export default function InventoryScreen() {
         label="Nuevo Movimiento"
         style={styles.fab}
         onPress={() => router.push('/(dashboard)/inventory/movements/create')}
+      />
+
+      <LocationSelectionDialog
+        visible={showLocationDialog}
+        onDismiss={() => setShowLocationDialog(false)}
+        onSelect={(loc) => {
+            setSelectedLocation(loc);
+            setShowLocationDialog(false);
+        }}
+        warehouseId={selectedWarehouse?.id}
       />
     </View>
   );

@@ -1,169 +1,157 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
-import { Text, ActivityIndicator, Button, Divider, useTheme } from 'react-native-paper';
-import { useLocalSearchParams, Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Product, getProductById } from '../../../services/productService';
-import { Colors } from '../../../constants/Colors';
+import { Text, Button, Divider, ActivityIndicator, useTheme, Card } from 'react-native-paper';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { PublicCatalogItem } from '../../../types/catalog';
+import { catalogService } from '../../../services/catalogService';
 
-export default function ProductDetailScreen() {
-  const { id } = useLocalSearchParams();
-  const [product, setProduct] = useState<Product | null>(null);
+export default function PublicProductDetailScreen() {
+  const { id, item } = useLocalSearchParams();
+  const [product, setProduct] = useState<PublicCatalogItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
+  const router = useRouter();
   const theme = useTheme();
 
   useEffect(() => {
     const loadProduct = async () => {
-      try {
-        if (!id) return;
-        setLoading(true);
-        const data = await getProductById(Number(id));
-        setProduct(data);
-      } catch (err) {
-        setError('Error al cargar el producto');
-        console.error(err);
-      } finally {
-        setLoading(false);
+      if (item) {
+        try {
+          setProduct(JSON.parse(item as string));
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error("Error parsing item param", e);
+        }
+      }
+
+      if (id) {
+        try {
+          setLoading(true);
+          const fetchedProduct = await catalogService.getPublicProduct(Number(id));
+          if (fetchedProduct) {
+            setProduct(fetchedProduct);
+          }
+        } catch (error) {
+          console.error('Failed to load product:', error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
     loadProduct();
-  }, [id]);
+  }, [id, item]);
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Cargando producto...</Text>
-      </SafeAreaView>
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <Text variant="headlineSmall" style={styles.errorText}>
-          {error || 'Producto no encontrado'}
-        </Text>
-      </SafeAreaView>
+      <View style={styles.center}>
+        <Text>Product not found.</Text>
+        <Button onPress={() => router.back()}>Go Back</Button>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: product.name }} />
-      <ScrollView contentContainerStyle={styles.content}>
-        <Image 
-          source={{ uri: 'https://via.placeholder.com/400' }} 
-          style={styles.image}
-        />
-        
-        <View style={styles.detailsContainer}>
+    <ScrollView style={styles.container}>
+        <View style={styles.header}>
+            <Button icon="arrow-left" mode="text" onPress={() => router.back()} style={styles.backButton}>
+                Back to Catalog
+            </Button>
+        </View>
+
+      <Card style={styles.card}>
+        <Card.Content>
           <Text variant="headlineMedium" style={styles.title}>{product.name}</Text>
-          <Text variant="titleMedium" style={styles.sku}>SKU: {product.sku}</Text>
+          <Text variant="titleSmall" style={styles.sku}>SKU: {product.sku}</Text>
           
-          {product.price !== undefined && product.price !== null && (
-            <Text variant="headlineSmall" style={styles.price}>
-              ${Number(product.price).toFixed(2)}
-            </Text>
+          <Divider style={styles.divider} />
+          
+          <View style={styles.infoRow}>
+            <Text variant="labelLarge" style={styles.label}>Category:</Text>
+            <Text variant="bodyLarge">{product.category?.name || 'Uncategorized'}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text variant="labelLarge" style={styles.label}>Unit:</Text>
+            <Text variant="bodyLarge">{product.unit?.name} ({product.unit?.abbreviation})</Text>
+          </View>
+
+          {product.barcode && (
+            <View style={styles.infoRow}>
+                <Text variant="labelLarge" style={styles.label}>Barcode:</Text>
+                <Text variant="bodyLarge">{product.barcode}</Text>
+            </View>
           )}
 
           <Divider style={styles.divider} />
 
-          <Text variant="titleMedium" style={styles.sectionTitle}>Descripción</Text>
+          <Text variant="titleMedium" style={styles.sectionTitle}>Description</Text>
           <Text variant="bodyMedium" style={styles.description}>
-            {product.description || 'Sin descripción disponible.'}
+            {product.description || 'No detailed description available.'}
           </Text>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoItem}>
-              <Text variant="labelMedium" style={styles.label}>Categoría ID</Text>
-              <Text variant="bodyLarge">{product.category_id}</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text variant="labelMedium" style={styles.label}>Unidad ID</Text>
-              <Text variant="bodyLarge">{product.unit_id}</Text>
-            </View>
-          </View>
-          
-          {/* Add more details as needed, e.g. stock status if allowed for visitors */}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </Card.Content>
+      </Card>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#f5f5f5',
   },
-  centerContainer: {
+  center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
   },
-  loadingText: {
-    marginTop: 16,
-    color: Colors.textSecondary,
+  header: {
+      padding: 10,
   },
-  errorText: {
-    color: Colors.danger,
+  backButton: {
+      alignSelf: 'flex-start',
   },
-  content: {
-    paddingBottom: 32,
-  },
-  image: {
-    width: '100%',
-    height: 300,
-    backgroundColor: Colors.white,
-  },
-  detailsContainer: {
-    padding: 16,
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
+  card: {
+    margin: 16,
+    marginTop: 0,
+    backgroundColor: 'white',
   },
   title: {
     fontWeight: 'bold',
     marginBottom: 4,
-    color: Colors.text,
   },
   sku: {
-    color: Colors.textSecondary,
-    marginBottom: 16,
-  },
-  price: {
-    fontWeight: 'bold',
-    color: Colors.primary,
+    color: '#666',
     marginBottom: 16,
   },
   divider: {
     marginVertical: 16,
   },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  description: {
-    lineHeight: 24,
-    color: Colors.text,
-    marginBottom: 16,
-  },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  infoItem: {
-    flex: 1,
+    marginBottom: 8,
+    alignItems: 'center',
   },
   label: {
-    color: Colors.textSecondary,
-    marginBottom: 4,
+    width: 100,
+    fontWeight: 'bold',
+    color: '#555',
+  },
+  sectionTitle: {
+    marginBottom: 8,
+    fontWeight: 'bold',
+  },
+  description: {
+    lineHeight: 22,
+    color: '#333',
   },
 });

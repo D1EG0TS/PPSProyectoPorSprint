@@ -99,7 +99,14 @@ export default function WarehouseLocationsScreen() {
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   
   // Form State
-  const [formData, setFormData] = useState({ code: '', name: '' });
+  const [formData, setFormData] = useState({ 
+    code: '', 
+    name: '',
+    aisle: '',
+    rack: '',
+    shelf: '',
+    position: ''
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -133,7 +140,14 @@ export default function WarehouseLocationsScreen() {
     setModalMode('create');
     setSelectedParent(null);
     setEditingLocation(null);
-    setFormData({ code: '', name: '' });
+    setFormData({ 
+      code: '', 
+      name: '',
+      aisle: '',
+      rack: '',
+      shelf: '',
+      position: ''
+    });
     setErrors({});
     setModalVisible(true);
   };
@@ -142,7 +156,14 @@ export default function WarehouseLocationsScreen() {
     setModalMode('create');
     setSelectedParent(parent);
     setEditingLocation(null);
-    setFormData({ code: '', name: '' });
+    setFormData({ 
+      code: '', 
+      name: '',
+      aisle: '',
+      rack: '',
+      shelf: '',
+      position: ''
+    });
     setErrors({});
     setModalVisible(true);
   };
@@ -151,7 +172,14 @@ export default function WarehouseLocationsScreen() {
     setModalMode('edit');
     setSelectedParent(null); // Parent doesn't change on edit
     setEditingLocation(location);
-    setFormData({ code: location.code, name: location.name });
+    setFormData({ 
+      code: location.code, 
+      name: location.name,
+      aisle: location.aisle || '',
+      rack: location.rack || '',
+      shelf: location.shelf || '',
+      position: location.position || ''
+    });
     setErrors({});
     setModalVisible(true);
   };
@@ -169,18 +197,23 @@ export default function WarehouseLocationsScreen() {
     
     try {
       setSaving(true);
+      const commonData = {
+        code: formData.code,
+        name: formData.name,
+        aisle: formData.aisle || undefined,
+        rack: formData.rack || undefined,
+        shelf: formData.shelf || undefined,
+        position: formData.position || undefined,
+      };
+
       if (modalMode === 'create') {
         await warehouseService.createLocation(warehouseId, {
-          code: formData.code,
-          name: formData.name,
+          ...commonData,
           parent_location_id: selectedParent?.id
         });
         Toast.show({ type: 'success', text1: 'Ubicación creada' });
       } else if (modalMode === 'edit' && editingLocation) {
-        await warehouseService.updateLocation(warehouseId, editingLocation.id, {
-          code: formData.code,
-          name: formData.name
-        });
+        await warehouseService.updateLocation(warehouseId, editingLocation.id, commonData);
         Toast.show({ type: 'success', text1: 'Ubicación actualizada' });
       }
       setModalVisible(false);
@@ -297,6 +330,48 @@ export default function WarehouseLocationsScreen() {
           />
         </FormGroup>
 
+        <View style={styles.row}>
+          <View style={styles.col}>
+            <FormGroup label="Pasillo">
+              <Input
+                value={formData.aisle}
+                onChangeText={(text) => setFormData({ ...formData, aisle: text })}
+                placeholder="Ej. A"
+              />
+            </FormGroup>
+          </View>
+          <View style={styles.col}>
+            <FormGroup label="Rack (Estante)">
+              <Input
+                value={formData.rack}
+                onChangeText={(text) => setFormData({ ...formData, rack: text })}
+                placeholder="Ej. 1"
+              />
+            </FormGroup>
+          </View>
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.col}>
+            <FormGroup label="Fila (Nivel)">
+              <Input
+                value={formData.shelf}
+                onChangeText={(text) => setFormData({ ...formData, shelf: text })}
+                placeholder="Ej. 1"
+              />
+            </FormGroup>
+          </View>
+          <View style={styles.col}>
+            <FormGroup label="Posición (Columna)">
+              <Input
+                value={formData.position}
+                onChangeText={(text) => setFormData({ ...formData, position: text })}
+                placeholder="Ej. 1"
+              />
+            </FormGroup>
+          </View>
+        </View>
+
         <View style={styles.modalActions}>
           <Button variant="outline" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 8 }}>
             Cancelar
@@ -378,5 +453,13 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     marginTop: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    marginHorizontal: -8,
+  },
+  col: {
+    flex: 1,
+    paddingHorizontal: 8,
   },
 });

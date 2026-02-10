@@ -29,7 +29,13 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-router"
+      "expo-router",
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow camera access to scan barcodes."
+        }
+      ]
     ]
   }
 }

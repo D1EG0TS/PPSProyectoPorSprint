@@ -1,9 +1,17 @@
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string;
+  module?: string;
+}
+
 export interface User {
   id: number;
   email: string;
   full_name?: string;
   role_id?: number;
   is_active: boolean;
+  permissions?: Permission[];
 }
 
 export interface AuthResponse {

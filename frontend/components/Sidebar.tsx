@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SIDEBAR_ITEMS, NavigationItem } from '../config/navigation';
-import { getRoleName } from '../constants/roles';
+import { getRoleName, USER_ROLES } from '../constants/roles';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -27,11 +27,20 @@ export function Sidebar({ onClose, collapsed = false, onToggleCollapse }: Sideba
   const isActive = (route: string) => pathname === route || pathname.startsWith(route + '/');
 
   // Helper to filter items recursively
-  const filterItems = (items: NavigationItem[], roleId: number): NavigationItem[] => {
+  const filterItems = (items: NavigationItem[], user: any): NavigationItem[] => {
     return items.reduce((acc, item) => {
+      const roleId = user.role_id;
+
+      // Permission Check (skip for Super Admin)
+      if (roleId !== USER_ROLES.SUPER_ADMIN && item.allowedPermissions && item.allowedPermissions.length > 0) {
+         const userPermissions = user.permissions?.map((p: any) => p.name) || [];
+         const hasPermission = item.allowedPermissions.some(p => userPermissions.includes(p));
+         if (!hasPermission) return acc;
+      }
+
       // If item has children, filter them
       if (item.children) {
-        const filteredChildren = filterItems(item.children, roleId);
+        const filteredChildren = filterItems(item.children, user);
         // If there are visible children, show the group
         if (filteredChildren.length > 0) {
           acc.push({ ...item, children: filteredChildren });
@@ -47,8 +56,8 @@ export function Sidebar({ onClose, collapsed = false, onToggleCollapse }: Sideba
 
   const menuItems = useMemo(() => {
     if (!user?.role_id) return [];
-    return filterItems(SIDEBAR_ITEMS, user.role_id);
-  }, [user?.role_id]);
+    return filterItems(SIDEBAR_ITEMS, user);
+  }, [user]);
 
   // State for expanded groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});

@@ -4,7 +4,9 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.crud.movement import movement
 from app.schemas import warehouse as schemas
+from app.schemas import location as location_schemas
 from app.models import warehouse as models
+from app.models import location_models
 from app.models.user import User
 
 router = APIRouter()
@@ -155,7 +157,30 @@ def delete_warehouse(
     db.refresh(db_warehouse)
     return db_warehouse
 
-@router.get("/{warehouse_id}/locations", response_model=List[schemas.Location])
+@router.get("/{warehouse_id}/locations/tree", response_model=List[location_schemas.StorageLocationResponse])
+def read_warehouse_locations_tree(
+    warehouse_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Get locations for a warehouse in tree structure.
+    Roles allowed: 1, 2, 3.
+    """
+    check_read_permissions(current_user)
+    warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+        
+    # Get only root locations (parent_location_id is None)
+    # The response model will handle recursion for children if configured correctly
+    locations = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id,
+        location_models.StorageLocation.parent_location_id == None
+    ).all()
+    return locations
+
+@router.get("/{warehouse_id}/locations", response_model=List[location_schemas.StorageLocationResponse])
 def read_warehouse_locations(
     warehouse_id: int,
     db: Session = Depends(deps.get_db),
@@ -170,24 +195,16 @@ def read_warehouse_locations(
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
         
-    # Return top-level locations (roots) or all? 
-    # Usually tree structures are better fetched as flat list or just roots.
-    # The schema handles nested children if we fetch roots.
-    # Let's return all for now or just roots? 
-    # Schema `Location` has `children`. If we return all, we might get duplicates if we rely on recursion in schema.
-    # But usually API returns flat list or roots. 
-    # Let's return roots (parent_location_id is None) for this warehouse.
-    
-    locations = db.query(models.Location).filter(
-        models.Location.warehouse_id == warehouse_id,
-        models.Location.parent_location_id == None
+    locations = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id,
+        location_models.StorageLocation.parent_location_id == None
     ).all()
     return locations
 
-@router.post("/{warehouse_id}/locations", response_model=schemas.Location)
+@router.post("/{warehouse_id}/locations", response_model=location_schemas.StorageLocationResponse)
 def create_location(
     warehouse_id: int,
-    location: schemas.LocationCreate,
+    location: location_schemas.StorageLocationCreate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
@@ -203,7 +220,7 @@ def create_location(
     # Check if parent exists if provided
     parent_path = ""
     if location.parent_location_id:
-        parent = db.query(models.Location).filter(models.Location.id == location.parent_location_id).first()
+        parent = db.query(location_models.StorageLocation).filter(location_models.StorageLocation.id == location.parent_location_id).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent location not found")
         if parent.warehouse_id != warehouse_id:
@@ -211,9 +228,9 @@ def create_location(
         parent_path = parent.path if parent.path else ""
     
     # Check uniqueness of code within warehouse
-    existing = db.query(models.Location).filter(
-        models.Location.warehouse_id == warehouse_id,
-        models.Location.code == location.code
+    existing = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id,
+        location_models.StorageLocation.code == location.code
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Location code already exists in this warehouse")
@@ -222,8 +239,16 @@ def create_location(
     # Path logic: /CODE or /PARENT/CODE
     path = f"{parent_path}/{location.code}"
     
-    db_location = models.Location(
-        **location.model_dump(),
+    # Check barcode uniqueness
+    if location.barcode:
+        existing_barcode = db.query(location_models.StorageLocation).filter(
+            location_models.StorageLocation.barcode == location.barcode
+        ).first()
+        if existing_barcode:
+            raise HTTPException(status_code=400, detail="Barcode already exists")
+
+    db_location = location_models.StorageLocation(
+        **location.model_dump(exclude={"warehouse_id"}),
         warehouse_id=warehouse_id,
         path=path
     )
@@ -232,11 +257,11 @@ def create_location(
     db.refresh(db_location)
     return db_location
 
-@router.put("/{warehouse_id}/locations/{location_id}", response_model=schemas.Location)
+@router.put("/{warehouse_id}/locations/{location_id}", response_model=location_schemas.StorageLocationResponse)
 def update_location(
     warehouse_id: int,
     location_id: int,
-    location_update: schemas.LocationUpdate,
+    location_update: location_schemas.StorageLocationUpdate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
@@ -247,9 +272,9 @@ def update_location(
     check_write_permissions(current_user)
     
     # Get location ensuring it belongs to the warehouse
-    db_location = db.query(models.Location).filter(
-        models.Location.id == location_id,
-        models.Location.warehouse_id == warehouse_id
+    db_location = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.id == location_id,
+        location_models.StorageLocation.warehouse_id == warehouse_id
     ).first()
     
     if not db_location:
@@ -259,27 +284,14 @@ def update_location(
     
     # If code is being updated, check uniqueness
     if "code" in update_data and update_data["code"] != db_location.code:
-        existing = db.query(models.Location).filter(
-            models.Location.warehouse_id == warehouse_id,
-            models.Location.code == update_data["code"]
+        existing = db.query(location_models.StorageLocation).filter(
+            location_models.StorageLocation.warehouse_id == warehouse_id,
+            location_models.StorageLocation.code == update_data["code"]
         ).first()
         if existing:
             raise HTTPException(status_code=400, detail="Location code already exists in this warehouse")
             
-        # Update path if code changes (and for all children!)
-        # This is complex because path is materialized: /PARENT/OLD_CODE -> /PARENT/NEW_CODE
-        # And children: /PARENT/OLD_CODE/CHILD -> /PARENT/NEW_CODE/CHILD
-        # For now, let's implement simple update. If code changes, we update this location's path.
-        # But we really should update children paths too.
-        # Let's simplify: forbid code update if it has children, or just do it right.
-        # Given the scope, maybe just updating name is safer? 
-        # But users might want to fix a typo in code.
-        # Let's handle path update for current node. Children path update is a "nice to have" or "must" depending on consistency.
-        # If I don't update children paths, they become orphaned or point to non-existent path string.
-        # Let's just update the current node's fields for now and assume no children or accept path inconsistency until refresh? No, path is used for logic.
-        
-        # Simple approach: Update path for this node.
-        # Construct new path.
+        # Update path if code changes
         parent_path = ""
         if db_location.parent_location_id:
              parent = db_location.parent
@@ -289,10 +301,9 @@ def update_location(
         db_location.path = new_path
         db_location.code = update_data["code"]
         
-        # TODO: Update children paths. (Leaving as TODO for now to keep it simple, or warn user).
-        
-    if "name" in update_data:
-        db_location.name = update_data["name"]
+    for key, value in update_data.items():
+        if key != "code": # code already handled
+            setattr(db_location, key, value)
         
     db.add(db_location)
     db.commit()
@@ -312,9 +323,9 @@ def delete_location(
     """
     check_write_permissions(current_user)
     
-    db_location = db.query(models.Location).filter(
-        models.Location.id == location_id,
-        models.Location.warehouse_id == warehouse_id
+    db_location = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.id == location_id,
+        location_models.StorageLocation.warehouse_id == warehouse_id
     ).first()
     
     if not db_location:
@@ -327,4 +338,3 @@ def delete_location(
     db.delete(db_location)
     db.commit()
     return None
-

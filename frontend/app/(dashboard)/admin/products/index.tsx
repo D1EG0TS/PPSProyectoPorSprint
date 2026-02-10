@@ -7,6 +7,8 @@ import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { getProducts, deleteProduct, updateProduct, Product, getCategories, Category } from '../../../../services/productService';
 import { useAuth } from '../../../../hooks/useAuth';
+import { usePermission } from '../../../../hooks/usePermission';
+import { AccessDenied } from '../../../../components/AccessDenied';
 import { Colors } from '../../../../constants/Colors';
 
 export default function ProductsListScreen() {
@@ -21,6 +23,7 @@ export default function ProductsListScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user } = useAuth();
+  const { hasPermission } = usePermission();
 
   const loadData = async () => {
     try {
@@ -41,9 +44,15 @@ export default function ProductsListScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [searchQuery, selectedCategory, showInactive])
+      if (hasPermission('inventory:view')) {
+        loadData();
+      }
+    }, [searchQuery, selectedCategory, showInactive, hasPermission])
   );
+
+  if (!hasPermission('inventory:view')) {
+    return <AccessDenied />;
+  }
 
   const handleDelete = (product: Product) => {
     Alert.alert(
@@ -177,6 +186,12 @@ export default function ProductsListScreen() {
               <Text variant="bodyMedium" style={{ color: Colors.gray }}>{products.length} productos encontrados</Text>
           </View>
           <View style={styles.headerButtons}>
+              <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/categories')} style={{ marginRight: 8 }}>
+                  Categorías
+              </Button>
+              <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/units')} style={{ marginRight: 8 }}>
+                  Unidades
+              </Button>
               <Button variant="outline" icon="download" onPress={handleExportCSV} style={{ marginRight: 8 }}>
                   Exportar
               </Button>

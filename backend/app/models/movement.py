@@ -15,6 +15,7 @@ class MovementStatus(str, enum.Enum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+    APPLIED = "APPLIED"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
 
@@ -58,6 +59,9 @@ class MovementRequestItem(Base):
     
     quantity = Column(Integer, nullable=False)
     notes = Column(Text, nullable=True)
+    
+    source_location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
+    destination_location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
 
     # Relationships
     request = relationship("MovementRequest", back_populates="items")

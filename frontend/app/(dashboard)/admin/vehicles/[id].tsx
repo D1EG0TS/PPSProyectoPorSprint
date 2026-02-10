@@ -181,15 +181,51 @@ const DocumentsTab = ({ vehicle, onRefresh }: { vehicle: Vehicle, onRefresh: () 
 
 const MaintenancesTab = ({ vehicle, onRefresh }: { vehicle: Vehicle, onRefresh: () => void }) => {
     const [visible, setVisible] = useState(false);
-    const { control, handleSubmit, reset } = useForm();
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const { control, handleSubmit, reset, setValue } = useForm();
     
+    const handleEdit = (m: VehicleMaintenance) => {
+        setEditingId(m.id);
+        setValue('maintenance_type', m.maintenance_type);
+        setValue('date', m.date);
+        setValue('provider', m.provider);
+        setValue('cost', m.cost?.toString());
+        setValue('odometer', m.odometer?.toString());
+        setValue('description', m.description);
+        setValue('evidence_id', m.evidence_id);
+        setVisible(true);
+    };
+
+    const handleCreate = () => {
+        setEditingId(null);
+        reset();
+        setValue('maintenance_type', MaintenanceType.PREVENTIVE);
+        setVisible(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await vehicleService.deleteMaintenance(id);
+            onRefresh();
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const onSubmit = async (data: any) => {
       try {
-          await vehicleService.addMaintenance(vehicle.id, {
+          const payload = {
               ...data,
               cost: Number(data.cost),
               odometer: Number(data.odometer),
-          });
+          };
+
+          if (editingId) {
+              await vehicleService.updateMaintenance(editingId, payload);
+          } else {
+              await vehicleService.addMaintenance(vehicle.id, payload);
+          }
+          
           setVisible(false);
           reset();
           onRefresh();
@@ -200,23 +236,33 @@ const MaintenancesTab = ({ vehicle, onRefresh }: { vehicle: Vehicle, onRefresh: 
   
     return (
       <View>
-        <Button mode="contained" icon="plus" onPress={() => setVisible(true)} style={{ marginBottom: 10 }}>
+        <Button mode="contained" icon="plus" onPress={handleCreate} style={{ marginBottom: 10 }}>
           Log Maintenance
         </Button>
         
         {(vehicle.maintenances || []).map((m) => (
           <Card key={m.id} style={{ marginBottom: 8 }}>
-              <Card.Title title={m.maintenance_type} subtitle={m.date} />
+              <Card.Title 
+                  title={m.maintenance_type} 
+                  subtitle={m.date} 
+                  right={(props) => (
+                      <View style={{flexDirection: 'row'}}>
+                          <Button compact onPress={() => handleEdit(m)}>Edit</Button>
+                          <Button compact color="red" onPress={() => handleDelete(m.id)}>Del</Button>
+                      </View>
+                  )}
+              />
               <Card.Content>
                   <Text>{m.description}</Text>
                   <Text style={{marginTop: 5, fontWeight: 'bold'}}>{m.provider} - ${m.cost}</Text>
+                  {m.evidence_id && <Text style={{fontSize: 12, color: 'blue'}}>Has Evidence</Text>}
               </Card.Content>
           </Card>
         ))}
   
         <Portal>
           <Modal visible={visible} onDismiss={() => setVisible(false)} contentContainerStyle={styles.modal}>
-            <Text variant="titleLarge" style={{marginBottom: 10}}>Log Maintenance</Text>
+            <Text variant="titleLarge" style={{marginBottom: 10}}>{editingId ? 'Edit Maintenance' : 'Log Maintenance'}</Text>
             
             <Text style={{marginBottom: 5}}>Type</Text>
             <Controller
@@ -233,13 +279,24 @@ const MaintenancesTab = ({ vehicle, onRefresh }: { vehicle: Vehicle, onRefresh: 
             />
   
             <Input control={control} name="date" label="Date (YYYY-MM-DD)" placeholder="2025-01-01" />
-            <Input control={control} name="provider" label="Provider" />
+            <Input control={control} name="provider" label="Provider" placeholder="Workshop Name" />
             <Input control={control} name="cost" label="Cost" keyboardType="numeric" />
             <Input control={control} name="odometer" label="Odometer" keyboardType="numeric" />
             <Input control={control} name="description" label="Description" multiline />
             
+            <Controller
+                control={control}
+                name="evidence_id"
+                render={({ field: { onChange, value } }) => (
+                    <EvidenceUpload 
+                        onUploadComplete={onChange} 
+                        initialValue={value}
+                    />
+                )}
+            />
+
             <Button mode="contained" onPress={handleSubmit(onSubmit)} style={{ marginTop: 10 }}>
-              Save Log
+              {editingId ? 'Update Log' : 'Save Log'}
             </Button>
           </Modal>
         </Portal>

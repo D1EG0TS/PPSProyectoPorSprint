@@ -21,6 +21,8 @@ export interface MovementRequestItemCreate {
   batch_id?: number;
   quantity: number;
   notes?: string;
+  source_location_id?: number;
+  destination_location_id?: number;
 }
 
 export interface MovementRequestCreate {
@@ -39,6 +41,8 @@ export interface MovementRequestItem {
   batch_id?: number;
   quantity: number;
   notes?: string;
+  source_location_id?: number;
+  destination_location_id?: number;
   product?: {
     id: number;
     sku: string;

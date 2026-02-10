@@ -10,8 +10,14 @@ from app.api.endpoints.movements import router as movements_router
 from app.api.endpoints.tools import router as tools_router
 from app.api.endpoints.epp import router as epp_router
 from app.api.endpoints.vehicles import router as vehicles_router
+from app.api.endpoints.vehicle_maintenance import router as vehicle_maintenance_router
 from app.api.endpoints.reports import router as reports_router
 from app.api.endpoints.users import router as users_router
+from app.api.endpoints.permissions import router as permissions_router
+from app.api.endpoints.locations import router as locations_router
+from app.api.endpoints.catalog import router as catalog_router
+from app.api.endpoints.stock import router as stock_router
+from app.api.endpoints.websockets import router as websockets_router
 from app.core.config import settings
 from app.core.middleware import ActiveSessionMiddleware
 
@@ -45,6 +51,12 @@ app.include_router(epp_router, prefix="/epp", tags=["EPP"])
 app.include_router(vehicles_router, prefix="/vehicles", tags=["Vehicles"])
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
 app.include_router(users_router, prefix="/users", tags=["Users"])
+app.include_router(permissions_router, prefix="/permissions", tags=["Permissions"])
+app.include_router(locations_router, prefix="/locations", tags=["Locations"])
+app.include_router(catalog_router, prefix="/catalog", tags=["Catalog"])
+app.include_router(stock_router, prefix="/stock", tags=["Stock"])
+app.include_router(websockets_router, tags=["WebSockets"])
+app.include_router(vehicle_maintenance_router, prefix="/vehicles/maintenance", tags=["Vehicle Maintenance"])
 
 @app.get("/")
 def read_root():

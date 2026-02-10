@@ -5,6 +5,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { ScrollableContent } from '../../../../components/ScrollableContent';
 import { Table } from '../../../../components/Table';
 import vehicleService, { Vehicle, VehicleStatus } from '../../../../services/vehicleService';
+import { usePermission } from '../../../../hooks/usePermission';
+import { AccessDenied } from '../../../../components/AccessDenied';
 
 const VehicleListScreen = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -12,6 +14,7 @@ const VehicleListScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const theme = useTheme();
+  const { hasPermission } = usePermission();
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -27,9 +30,15 @@ const VehicleListScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchVehicles();
-    }, [])
+      if (hasPermission('vehicles:view')) {
+        fetchVehicles();
+      }
+    }, [hasPermission])
   );
+
+  if (!hasPermission('vehicles:view')) {
+    return <AccessDenied />;
+  }
 
   const getStatusColor = (vehicle: Vehicle) => {
     // Red: Inactive or Expired Insurance
@@ -116,22 +125,31 @@ const VehicleListScreen = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <Text variant="headlineMedium">Vehicle Management</Text>
-          <Button mode="contained" onPress={() => router.push('/admin/vehicles/create')}>
-            + New Vehicle
-          </Button>
-        </View>
-
+    <View style={{flex: 1}}>
+      <View style={{padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
         <Searchbar
-          placeholder="Search by VIN, Plate, Brand..."
+          placeholder="Search vehicles..."
           onChangeText={setSearchQuery}
           value={searchQuery}
-          style={styles.searchBar}
+          style={{flex: 1, marginRight: 10}}
         />
-
+        <Button 
+            mode="outlined" 
+            icon="calendar" 
+            onPress={() => router.push('/(dashboard)/admin/vehicles/calendar')}
+            style={{ marginRight: 8 }}
+        >
+            Calendar
+        </Button>
+        <Button 
+            mode="contained" 
+            icon="chart-bar" 
+            onPress={() => router.push('/(dashboard)/admin/vehicles/dashboard')}
+        >
+            Stats
+        </Button>
+      </View>
+      <ScrollableContent>
         <Table
           columns={columns}
           data={filteredVehicles}
@@ -140,6 +158,12 @@ const VehicleListScreen = () => {
           emptyMessage="No vehicles found"
         />
       </ScrollableContent>
+      <FAB
+        icon="plus"
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        onPress={() => router.push('/(dashboard)/admin/vehicles/create')}
+        visible={hasPermission('vehicles:manage')}
+      />
     </View>
   );
 };

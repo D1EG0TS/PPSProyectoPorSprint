@@ -16,6 +16,19 @@ class RoleResponse(RoleBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+# --- Permission Schemas ---
+class PermissionBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    module: Optional[str] = None
+
+class PermissionCreate(PermissionBase):
+    pass
+
+class PermissionResponse(PermissionBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
 # --- User Schemas ---
 class UserBase(BaseModel):
     email: EmailStr
@@ -38,6 +51,7 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
     role: Optional[RoleResponse] = None
+    permissions: List[PermissionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
 

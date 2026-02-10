@@ -2,8 +2,11 @@ import { Stack } from 'expo-router';
 
 export default function VisitorLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="catalog" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="catalog/index" />
+      <Stack.Screen name="catalog/public" />
+      <Stack.Screen name="catalog/[id]" />
+      <Stack.Screen name="categories/index" />
     </Stack>
   );
 }

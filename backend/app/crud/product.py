@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, asc, desc
 from app.models.product import Product, ProductBatch
 from app.models.inventory_refs import Category, Unit
+from app.models.product_location_models import ProductLocationAssignment
 from app.schemas.product import ProductCreate, ProductUpdate, ProductBatchCreate, ProductBatchUpdate
+from app.schemas.inventory_refs import CategoryCreate, CategoryUpdate, UnitCreate, UnitUpdate
 
 def get_product(db: Session, product_id: int) -> Optional[Product]:
     return db.query(Product).filter(Product.id == product_id).first()
@@ -22,6 +24,8 @@ def get_products(
     limit: int = 100, 
     search: Optional[str] = None,
     category_id: Optional[int] = None,
+    location_id: Optional[int] = None,
+    brand: Optional[str] = None,
     order_by: Optional[str] = None,
     active_only: bool = False
 ) -> List[Product]:
@@ -30,8 +34,25 @@ def get_products(
     if active_only:
         query = query.filter(Product.is_active == True)
     
+    if location_id:
+        query = query.join(ProductLocationAssignment, Product.id == ProductLocationAssignment.product_id)\
+                     .filter(ProductLocationAssignment.location_id == location_id)\
+                     .filter(ProductLocationAssignment.quantity > 0)
+
     if category_id:
-        query = query.filter(Product.category_id == category_id)
+        # Check for subcategories to include products from children categories
+        subcategories = db.query(Category.id).filter(Category.parent_id == category_id).all()
+        subcategory_ids = [s[0] for s in subcategories]
+        
+        if subcategory_ids:
+            # Include parent + all children
+            all_ids = [category_id] + subcategory_ids
+            query = query.filter(Product.category_id.in_(all_ids))
+        else:
+            query = query.filter(Product.category_id == category_id)
+
+    if brand:
+        query = query.filter(Product.brand == brand)
         
     if search:
         search_filter = or_(
@@ -77,6 +98,20 @@ def update_product(db: Session, product_id: int, product_in: ProductUpdate) -> O
     db.refresh(db_product)
     return db_product
 
+def get_brands(db: Session, category_id: Optional[int] = None) -> List[str]:
+    query = db.query(Product.brand).distinct().filter(Product.brand != None)
+    
+    if category_id:
+        subcategories = db.query(Category.id).filter(Category.parent_id == category_id).all()
+        subcategory_ids = [s[0] for s in subcategories]
+        if subcategory_ids:
+             all_ids = [category_id] + subcategory_ids
+             query = query.filter(Product.category_id.in_(all_ids))
+        else:
+             query = query.filter(Product.category_id == category_id)
+             
+    return [r[0] for r in query.all() if r[0]]
+
 def delete_product(db: Session, product_id: int) -> Optional[Product]:
     db_product = get_product(db, product_id)
     if not db_product:
@@ -119,8 +154,78 @@ def update_batch(db: Session, batch_id: int, batch_in: ProductBatchUpdate) -> Op
     return db_batch
 
 
+# --- Category CRUD Operations ---
+
+def get_category(db: Session, category_id: int) -> Optional[Category]:
+    return db.query(Category).filter(Category.id == category_id).first()
+
 def get_categories(db: Session, skip: int = 0, limit: int = 100) -> List[Category]:
     return db.query(Category).offset(skip).limit(limit).all()
 
+def create_category(db: Session, category: CategoryCreate) -> Category:
+    db_category = Category(**category.model_dump())
+    db.add(db_category)
+    db.commit()
+    db.refresh(db_category)
+    return db_category
+
+def update_category(db: Session, category_id: int, category_in: CategoryUpdate) -> Optional[Category]:
+    db_category = get_category(db, category_id)
+    if not db_category:
+        return None
+    
+    update_data = category_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_category, field, value)
+        
+    db.add(db_category)
+    db.commit()
+    db.refresh(db_category)
+    return db_category
+
+def delete_category(db: Session, category_id: int) -> Optional[Category]:
+    db_category = get_category(db, category_id)
+    if not db_category:
+        return None
+    
+    db.delete(db_category)
+    db.commit()
+    return db_category
+
+# --- Unit CRUD Operations ---
+
+def get_unit(db: Session, unit_id: int) -> Optional[Unit]:
+    return db.query(Unit).filter(Unit.id == unit_id).first()
+
 def get_units(db: Session, skip: int = 0, limit: int = 100) -> List[Unit]:
     return db.query(Unit).offset(skip).limit(limit).all()
+
+def create_unit(db: Session, unit: UnitCreate) -> Unit:
+    db_unit = Unit(**unit.model_dump())
+    db.add(db_unit)
+    db.commit()
+    db.refresh(db_unit)
+    return db_unit
+
+def update_unit(db: Session, unit_id: int, unit_in: UnitUpdate) -> Optional[Unit]:
+    db_unit = get_unit(db, unit_id)
+    if not db_unit:
+        return None
+    
+    update_data = unit_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_unit, field, value)
+        
+    db.add(db_unit)
+    db.commit()
+    db.refresh(db_unit)
+    return db_unit
+
+def delete_unit(db: Session, unit_id: int) -> Optional[Unit]:
+    db_unit = get_unit(db, unit_id)
+    if not db_unit:
+        return None
+    
+    db.delete(db_unit)
+    db.commit()
+    return db_unit

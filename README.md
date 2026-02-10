@@ -63,21 +63,32 @@ Este proyecto consiste en un sistema de gestión de inventarios y almacenes (War
 
 ### Backend
 ```bash
-cd backnd
+cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
 alembic upgrade head
 python db/seed_database.py
-uvicorn main:app --reload
+.\venv\Scripts\python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Frontend
 ```bash
 cd frontend
 npm install
-npx expo start
+npx expo start -c
 ```
+### Subir cambios a GIT
+```bash
+git add .
+git commit -m "Descripción de los cambios"
+git push origin main
+```
+### BAJAR CAMBIOS DE GIT
+```bash
+git pull origin main
+```
+
 ### Sprint 9.2: Dashboards de Inventario y Kardex (Frontend)
 
 **Estado:** Completado

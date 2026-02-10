@@ -5,6 +5,7 @@ export interface NavigationItem {
   path?: string;
   icon: string;
   allowedRoles: number[];
+  allowedPermissions?: string[]; // New: permissions required to see this item
   children?: NavigationItem[];
 }
 
@@ -14,6 +15,30 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
     path: '/(dashboard)',
     icon: 'view-dashboard',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER, USER_ROLES.GUEST],
+  },
+  {
+    label: 'Catálogo Público',
+    path: '/(visitor)/catalog/public',
+    icon: 'store',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER, USER_ROLES.GUEST],
+  },
+  {
+    label: 'Catálogo Operativo',
+    path: '/(dashboard)/operator/catalog/operational',
+    icon: 'cart-outline',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+  },
+  {
+    label: 'Catálogo Interno',
+    path: '/(dashboard)/moderator/catalog/internal',
+    icon: 'table-large',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+  },
+  {
+    label: 'Dashboard Stock',
+    path: '/(dashboard)/moderator/catalog/dashboard',
+    icon: 'chart-box-outline',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
   },
   {
     label: 'Inventario',
@@ -30,19 +55,22 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
         label: 'Gestión Productos',
         path: '/(dashboard)/admin/products',
         icon: 'archive-edit',
-        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['inventory:view'],
       },
       {
         label: 'Herramientas',
         path: '/(dashboard)/admin/tools',
         icon: 'tools',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['inventory:view'],
       },
       {
         label: 'Almacenes',
         path: '/(dashboard)/admin/warehouses',
         icon: 'warehouse',
-        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['warehouses:view'],
       },
     ]
   },
@@ -74,13 +102,15 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
         label: 'Lista Vehículos',
         path: '/(dashboard)/admin/vehicles',
         icon: 'car-side',
-        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['vehicles:view'],
       },
       {
         label: 'Validación Docs',
         path: '/(dashboard)/moderator/vehicles/pending-validation',
         icon: 'file-document-check',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['vehicles:manage'],
       },
     ]
   },

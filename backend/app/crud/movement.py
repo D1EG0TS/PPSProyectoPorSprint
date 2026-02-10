@@ -26,7 +26,9 @@ class CRUDMovementRequest:
                 product_id=item_in.product_id,
                 batch_id=item_in.batch_id,
                 quantity=item_in.quantity,
-                notes=item_in.notes
+                notes=item_in.notes,
+                source_location_id=item_in.source_location_id,
+                destination_location_id=item_in.destination_location_id
             )
             db.add(item)
         

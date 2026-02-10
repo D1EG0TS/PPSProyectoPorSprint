@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions, PanResponder, Platform } from 'r
 import { Slot } from 'expo-router';
 import { Sidebar } from '../../components/Sidebar';
 import { Topbar } from '../../components/Topbar';
+import { StockNotifications } from '../../components/notifications/StockNotifications';
 
 export default function DashboardLayout() {
   
@@ -67,6 +68,7 @@ export default function DashboardLayout() {
       {/* Main Content Area */}
       <View style={styles.contentContainer}>
         <Topbar onMenuPress={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <StockNotifications />
         
         {/* Overlay Sidebar for small screens */}
         {!isLargeScreen && isSidebarOpen && (

@@ -8,6 +8,9 @@ from app.schemas import product as product_schemas
 from app.schemas.movement import Movement as MovementSchema
 from app.schemas import inventory_refs as ref_schemas
 from app.models.user import User
+from app.models import product_location_models, location_models, location_audit_models
+from app.schemas import product_location as assignment_schemas
+
 
 router = APIRouter()
 
@@ -41,6 +44,17 @@ def check_permissions(user: User, min_level: int = 30):
             detail="Not enough permissions"
         )
 
+@router.get("/brands", response_model=List[str])
+def read_brands(
+    category_id: Optional[int] = None,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Retrieve unique brands, optionally filtered by category.
+    """
+    return crud_product.get_brands(db, category_id=category_id)
+
 @router.get("/", response_model=List[product_schemas.Product])
 def read_products(
     db: Session = Depends(deps.get_db),
@@ -48,6 +62,8 @@ def read_products(
     limit: int = 100,
     search: Optional[str] = None,
     category_id: Optional[int] = None,
+    location_id: Optional[int] = None,
+    brand: Optional[str] = None,
     order_by: Optional[str] = None,
     include_inactive: bool = False,
     current_user: User = Depends(deps.get_current_user),
@@ -60,7 +76,7 @@ def read_products(
         include_inactive = False
 
     products = crud_product.get_products(
-        db, skip=skip, limit=limit, search=search, category_id=category_id, order_by=order_by, active_only=not include_inactive
+        db, skip=skip, limit=limit, search=search, category_id=category_id, location_id=location_id, brand=brand, order_by=order_by, active_only=not include_inactive
     )
     return filter_sensitive_data(products, current_user)
 
@@ -68,13 +84,12 @@ def read_products(
 def create_product(
     product_in: product_schemas.ProductCreate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.check_permission("inventory:create")),
 ):
     """
     Create new product.
+    Requires 'inventory:create' permission.
     """
-    check_permissions(current_user)
-    
     # Validations
     if crud_product.get_product_by_sku(db, sku=product_in.sku):
         raise HTTPException(status_code=400, detail="The product with this SKU already exists")
@@ -227,6 +242,49 @@ def read_categories(
     """
     return crud_product.get_categories(db, skip=skip, limit=limit)
 
+@router.post("/categories/", response_model=ref_schemas.Category)
+def create_category(
+    category_in: ref_schemas.CategoryCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Create a new category.
+    """
+    check_permissions(current_user)
+    return crud_product.create_category(db, category=category_in)
+
+@router.put("/categories/{id}", response_model=ref_schemas.Category)
+def update_category(
+    id: int,
+    category_in: ref_schemas.CategoryUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Update a category.
+    """
+    check_permissions(current_user)
+    category = crud_product.get_category(db, category_id=id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return crud_product.update_category(db, category_id=id, category_in=category_in)
+
+@router.delete("/categories/{id}", response_model=ref_schemas.Category)
+def delete_category(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Delete a category.
+    """
+    check_permissions(current_user)
+    category = crud_product.get_category(db, category_id=id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return crud_product.delete_category(db, category_id=id)
+
 @router.get("/units/", response_model=List[ref_schemas.Unit])
 def read_units(
     skip: int = 0,
@@ -238,6 +296,49 @@ def read_units(
     Retrieve product units.
     """
     return crud_product.get_units(db, skip=skip, limit=limit)
+
+@router.post("/units/", response_model=ref_schemas.Unit)
+def create_unit(
+    unit_in: ref_schemas.UnitCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Create a new unit.
+    """
+    check_permissions(current_user)
+    return crud_product.create_unit(db, unit=unit_in)
+
+@router.put("/units/{id}", response_model=ref_schemas.Unit)
+def update_unit(
+    id: int,
+    unit_in: ref_schemas.UnitUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Update a unit.
+    """
+    check_permissions(current_user)
+    unit = crud_product.get_unit(db, unit_id=id)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return crud_product.update_unit(db, unit_id=id, unit_in=unit_in)
+
+@router.delete("/units/{id}", response_model=ref_schemas.Unit)
+def delete_unit(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Delete a unit.
+    """
+    check_permissions(current_user)
+    unit = crud_product.get_unit(db, unit_id=id)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    return crud_product.delete_unit(db, unit_id=id)
 
 @router.get("/{id}", response_model=product_schemas.Product)
 def read_product(
@@ -270,3 +371,190 @@ def read_product_ledger(
         
     ledger = movement.get_ledger(db, product_id=id, skip=skip, limit=limit)
     return ledger
+
+@router.post("/{product_id}/locations", response_model=assignment_schemas.ProductLocationAssignmentResponse)
+def assign_product_location(
+    product_id: int,
+    assignment: assignment_schemas.ProductLocationAssignmentCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Assign product to a specific location.
+    """
+    check_permissions(current_user) # Ensure write access
+    
+    # Verify product
+    product = crud_product.get_product(db, product_id=product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    # Verify location
+    location = db.query(location_models.StorageLocation).filter(location_models.StorageLocation.id == assignment.location_id).first()
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+        
+    # Create assignment
+    db_assignment = product_location_models.ProductLocationAssignment(
+        **assignment.model_dump(exclude={"product_id", "assigned_by"}),
+        product_id=product_id,
+        assigned_by=current_user.id
+    )
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+@router.put("/{product_id}/locations/{assignment_id}", response_model=assignment_schemas.ProductLocationAssignmentResponse)
+def update_product_location_assignment(
+    product_id: int,
+    assignment_id: int,
+    assignment_update: assignment_schemas.ProductLocationAssignmentUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Update product location assignment (e.g., quantity).
+    """
+    check_permissions(current_user)
+    
+    db_assignment = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.id == assignment_id,
+        product_location_models.ProductLocationAssignment.product_id == product_id
+    ).first()
+    
+    if not db_assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+        
+    update_data = assignment_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_assignment, key, value)
+        
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+@router.delete("/{product_id}/locations/{assignment_id}")
+def delete_product_location_assignment(
+    product_id: int,
+    assignment_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Remove product location assignment.
+    """
+    check_permissions(current_user)
+    
+    db_assignment = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.id == assignment_id,
+        product_location_models.ProductLocationAssignment.product_id == product_id
+    ).first()
+    
+    if not db_assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+        
+    db.delete(db_assignment)
+    db.commit()
+    return {"ok": True}
+
+@router.get("/{product_id}/locations/all", response_model=List[assignment_schemas.ProductLocationAssignmentResponse])
+def get_product_locations(
+    product_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Get all location assignments for a product.
+    """
+    # Verify product
+    product = crud_product.get_product(db, product_id=product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    assignments = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.product_id == product_id
+    ).all()
+    return assignments
+
+@router.post("/{product_id}/relocate")
+def relocate_product(
+    product_id: int,
+    relocation: assignment_schemas.ProductRelocationRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Relocate product from one location to another.
+    """
+    check_permissions(current_user)
+    
+    # 1. Check source assignment
+    source = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.location_id == relocation.from_location_id,
+        product_location_models.ProductLocationAssignment.product_id == product_id
+    ).first()
+    
+    if not source or source.quantity < relocation.quantity:
+        raise HTTPException(status_code=400, detail="Insufficient quantity in source location")
+        
+    # 2. Check destination location
+    dest_loc = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.id == relocation.to_location_id
+    ).first()
+    
+    if not dest_loc:
+        raise HTTPException(status_code=404, detail="Destination location not found")
+        
+    # 3. Update Source
+    source.quantity -= relocation.quantity
+    if source.quantity == 0:
+        db.delete(source) # Optional: keep with 0 or delete
+    else:
+        db.add(source)
+        
+    # 4. Update/Create Destination
+    dest = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.location_id == relocation.to_location_id,
+        product_location_models.ProductLocationAssignment.product_id == product_id,
+        # Match batch if applicable, assuming None for now or handle in schema
+    ).first()
+    
+    if dest:
+        dest.quantity += relocation.quantity
+        db.add(dest)
+    else:
+        dest = product_location_models.ProductLocationAssignment(
+            product_id=product_id,
+            location_id=relocation.to_location_id,
+            warehouse_id=dest_loc.warehouse_id,
+            quantity=relocation.quantity,
+            assigned_by=current_user.id,
+            assignment_type="movement" # or manual
+        )
+        db.add(dest)
+        
+    # 5. Log Audit
+    audit = location_audit_models.LocationAuditLog(
+        location_id=relocation.from_location_id,
+        product_id=product_id,
+        action="relocation_out",
+        previous_quantity=source.quantity + relocation.quantity,
+        new_quantity=source.quantity,
+        user_id=current_user.id
+    )
+    db.add(audit)
+    
+    audit_in = location_audit_models.LocationAuditLog(
+        location_id=relocation.to_location_id,
+        product_id=product_id,
+        action="relocation_in",
+        previous_quantity=dest.quantity - relocation.quantity if dest.id else 0, # roughly
+        new_quantity=dest.quantity,
+        user_id=current_user.id
+    )
+    db.add(audit_in)
+    
+    db.commit()
+    return {"message": "Relocation successful"}

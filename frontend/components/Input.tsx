@@ -9,6 +9,7 @@ interface InputProps<T extends FieldValues> extends Omit<TextInputProps, 'theme'
   rules?: RegisterOptions<T, Path<T>>;
   label?: string;
   error?: string;
+  helperText?: string;
   containerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -18,6 +19,7 @@ export function Input<T extends FieldValues>({
   rules,
   label,
   error: propError,
+  helperText,
   containerStyle,
   ...props
 }: InputProps<T>) {
@@ -61,6 +63,11 @@ export function Input<T extends FieldValues>({
                 <HelperText type="error" visible={!!errorMessage}>
                   {errorMessage}
                 </HelperText>
+                {helperText && !errorMessage && (
+                  <HelperText type="info" visible={true}>
+                    {helperText}
+                  </HelperText>
+                )}
               </>
             );
           }}
@@ -83,6 +90,11 @@ export function Input<T extends FieldValues>({
       <HelperText type="error" visible={!!propError}>
         {propError}
       </HelperText>
+      {helperText && !propError && (
+        <HelperText type="info" visible={true}>
+          {helperText}
+        </HelperText>
+      )}
     </View>
   );
 }

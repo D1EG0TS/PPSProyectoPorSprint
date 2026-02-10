@@ -8,12 +8,15 @@ import userService, { User, CreateUserData, UpdateUserData } from '../../../../s
 import { getRoleName } from '../../../../constants/roles';
 import { Colors } from '../../../../constants/Colors';
 import { UserDialog } from './UserDialog';
+import { UserPermissionsDialog } from './UserPermissionsDialog';
+import { USER_ROLES } from '../../../../constants/roles';
 
 export default function UsersListScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [permissionsDialogVisible, setPermissionsDialogVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
   
   const router = useRouter();
@@ -77,6 +80,16 @@ export default function UsersListScreen() {
     setSelectedUser(undefined);
   };
 
+  const handleOpenPermissions = (user: User) => {
+    setSelectedUser(user);
+    setPermissionsDialogVisible(true);
+  };
+
+  const handleDismissPermissions = () => {
+    setPermissionsDialogVisible(false);
+    setSelectedUser(undefined);
+  };
+
   const handleSubmit = async (data: any) => {
     try {
       if (selectedUser) {
@@ -125,6 +138,14 @@ export default function UsersListScreen() {
       width: 100,
       renderCell: (item: User) => (
         <View style={styles.actions}>
+          {item.role_id !== USER_ROLES.SUPER_ADMIN && (
+             <IconButton 
+                icon="shield-account" 
+                size={20} 
+                iconColor={Colors.primary}
+                onPress={() => handleOpenPermissions(item)} 
+             />
+          )}
           <IconButton icon="pencil" size={20} onPress={() => handleOpenEdit(item)} />
           <IconButton 
             icon="delete" 
@@ -172,6 +193,13 @@ export default function UsersListScreen() {
         onDismiss={handleDismiss}
         onSubmit={handleSubmit}
         user={selectedUser}
+      />
+
+      <UserPermissionsDialog
+        visible={permissionsDialogVisible}
+        onDismiss={handleDismissPermissions}
+        user={selectedUser}
+        onSuccess={loadUsers}
       />
     </View>
   );

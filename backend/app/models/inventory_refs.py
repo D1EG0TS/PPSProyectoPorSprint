@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship
 
 # Reutilizamos Base si ya está importada en otro lugar, pero para mantener coherencia en este archivo
 # asumiremos que se importará desde un módulo común o se usará la misma instancia.
@@ -26,3 +26,6 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True, nullable=False)
     description = Column(Text, nullable=True)
+    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    
+    parent = relationship("Category", remote_side=[id], backref="subcategories")

@@ -135,6 +135,15 @@ const vehicleService = {
     return response.data;
   },
 
+  updateMaintenance: async (maintenanceId: number, data: MaintenanceCreate) => {
+    const response = await api.put<VehicleMaintenance>(`/vehicles/maintenances/${maintenanceId}`, data);
+    return response.data;
+  },
+
+  deleteMaintenance: async (maintenanceId: number) => {
+    await api.delete(`/vehicles/maintenances/${maintenanceId}`);
+  },
+
   addDocument: async (vehicleId: number, data: DocumentCreate) => {
     const response = await api.post<VehicleDocument>(`/vehicles/${vehicleId}/documents`, data);
     return response.data;

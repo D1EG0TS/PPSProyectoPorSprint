@@ -15,6 +15,9 @@ export interface Product {
   barcode?: string;
   name: string;
   description?: string;
+  brand?: string;
+  model?: string;
+  image_url?: string;
   category_id: number;
   unit_id: number;
   cost?: number;
@@ -32,6 +35,9 @@ export interface ProductCreate {
   barcode?: string;
   name: string;
   description?: string;
+  brand?: string;
+  model?: string;
+  image_url?: string;
   category_id: number;
   unit_id: number;
   cost?: number;
@@ -48,6 +54,9 @@ export interface ProductUpdate {
   barcode?: string;
   name?: string;
   description?: string;
+  brand?: string;
+  model?: string;
+  image_url?: string;
   category_id?: number;
   unit_id?: number;
   cost?: number;
@@ -75,6 +84,8 @@ export interface Category {
   id: number;
   name: string;
   description?: string;
+  parent_id?: number;
+  subcategories?: Category[];
 }
 
 export interface Unit {
@@ -87,7 +98,9 @@ export const getProducts = async (params?: {
   skip?: number;
   limit?: number;
   search?: string;
+  location_id?: number;
   category_id?: number;
+  brand?: string;
   order_by?: 'name_asc' | 'name_desc' | 'price_asc' | 'price_desc';
   include_inactive?: boolean;
 }) => {
@@ -97,6 +110,94 @@ export const getProducts = async (params?: {
 
 export const getProductById = async (id: number) => {
   const response = await api.get<Product>(`/products/${id}`);
+  return response.data;
+};
+
+export const createProduct = async (product: ProductCreate) => {
+  const response = await api.post<Product>('/products/', product);
+  return response.data;
+};
+
+export const updateProduct = async (id: number, product: ProductUpdate) => {
+  const response = await api.put<Product>(`/products/${id}`, product);
+  return response.data;
+};
+
+export const deleteProduct = async (id: number) => {
+  const response = await api.delete<Product>(`/products/${id}`);
+  return response.data;
+};
+
+export interface CategoryCreate {
+  name: string;
+  description?: string;
+  parent_id?: number;
+}
+
+export interface CategoryUpdate {
+  name?: string;
+  description?: string;
+  parent_id?: number;
+}
+
+export interface UnitCreate {
+  name: string;
+  abbreviation: string;
+}
+
+export interface UnitUpdate {
+  name?: string;
+  abbreviation?: string;
+}
+
+export const getCategories = async () => {
+  const response = await api.get<Category[]>('/products/categories/');
+  return response.data;
+};
+
+export const createCategory = async (category: CategoryCreate) => {
+  const response = await api.post<Category>('/products/categories/', category);
+  return response.data;
+};
+
+export const updateCategory = async (id: number, category: CategoryUpdate) => {
+  const response = await api.put<Category>(`/products/categories/${id}`, category);
+  return response.data;
+};
+
+export const deleteCategory = async (id: number) => {
+  const response = await api.delete<Category>(`/products/categories/${id}`);
+  return response.data;
+};
+
+export const getUnits = async () => {
+  const response = await api.get<Unit[]>('/products/units/');
+  return response.data;
+};
+
+export const createUnit = async (unit: UnitCreate) => {
+  const response = await api.post<Unit>('/products/units/', unit);
+  return response.data;
+};
+
+export const updateUnit = async (id: number, unit: UnitUpdate) => {
+  const response = await api.put<Unit>(`/products/units/${id}`, unit);
+  return response.data;
+};
+
+export const deleteUnit = async (id: number) => {
+  const response = await api.delete<Unit>(`/products/units/${id}`);
+  return response.data;
+};
+
+export const getBrands = async (category_id?: number) => {
+  const params = category_id ? { category_id } : {};
+  const response = await api.get<string[]>('/products/brands', { params });
+  return response.data;
+};
+
+export const createProductBatch = async (productId: number, batch: ProductBatchCreate) => {
+  const response = await api.post<ProductBatch>(`/products/${productId}/batches`, batch);
   return response.data;
 };
 
@@ -110,54 +211,4 @@ export const getProductByCode = async (code: string) => {
     }
     throw error;
   }
-};
-
-export const createProduct = async (data: ProductCreate) => {
-  const response = await api.post<Product>('/products/', data);
-  return response.data;
-};
-
-export const updateProduct = async (id: number, data: ProductUpdate) => {
-  const response = await api.put<Product>(`/products/${id}`, data);
-  return response.data;
-};
-
-export const deleteProduct = async (id: number) => {
-  const response = await api.delete<Product>(`/products/${id}`);
-  return response.data;
-};
-
-export const getProductBatches = async (id: number) => {
-  const response = await api.get<ProductBatch[]>(`/products/${id}/batches`);
-  return response.data;
-};
-
-export const createProductBatch = async (id: number, data: ProductBatchCreate) => {
-  const response = await api.post<ProductBatch>(`/products/${id}/batches`, data);
-  return response.data;
-};
-
-export const updateProductBatch = async (batchId: number, data: ProductBatchUpdate) => {
-  const response = await api.put<ProductBatch>(`/products/batches/${batchId}`, data);
-  return response.data;
-};
-
-export const scanProduct = async (code: string) => {
-  const response = await api.get<Product>(`/products/scan/${code}`);
-  return response.data;
-};
-
-export const getCategories = async () => {
-  const response = await api.get<Category[]>('/products/categories/');
-  return response.data;
-};
-
-export const getUnits = async () => {
-  const response = await api.get<Unit[]>('/products/units/');
-  return response.data;
-};
-
-export const getProductLedger = async (id: number, params?: { skip?: number; limit?: number }) => {
-  const response = await api.get<any[]>(`/products/${id}/ledger`, { params });
-  return response.data;
 };

@@ -31,6 +31,9 @@ class ProductBase(BaseModel):
     barcode: Optional[str] = None
     name: str
     description: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    image_url: Optional[str] = None
     category_id: int
     unit_id: int
     cost: Decimal = Decimal('0.00')
@@ -49,6 +52,9 @@ class ProductUpdate(BaseModel):
     barcode: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    image_url: Optional[str] = None
     category_id: Optional[int] = None
     unit_id: Optional[int] = None
     cost: Optional[Decimal] = None

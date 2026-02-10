@@ -1,4 +1,5 @@
 import api from './api';
+import { StorageLocation } from '../types/location';
 
 export interface Warehouse {
   id: number;
@@ -29,18 +30,36 @@ export interface Location {
   name: string;
   path?: string;
   children?: Location[];
+  
+  // Coordinate fields
+  aisle?: string;
+  rack?: string;
+  shelf?: string;
+  position?: string;
 }
 
 export interface LocationCreate {
   code: string;
   name: string;
   parent_location_id?: number | null;
+  
+  // Coordinate fields
+  aisle?: string;
+  rack?: string;
+  shelf?: string;
+  position?: string;
 }
 
 export interface LocationUpdate {
   code?: string;
   name?: string;
   parent_location_id?: number | null;
+  
+  // Coordinate fields
+  aisle?: string;
+  rack?: string;
+  shelf?: string;
+  position?: string;
 }
 
 export interface WarehouseStockItem {
@@ -82,17 +101,22 @@ export const warehouseService = {
   },
 
   getLocations: async (warehouseId: number) => {
-    const response = await api.get<Location[]>(`/warehouses/${warehouseId}/locations`);
+    const response = await api.get<StorageLocation[]>(`/warehouses/${warehouseId}/locations`);
+    return response.data;
+  },
+
+  getLocationsTree: async (warehouseId: number) => {
+    const response = await api.get<StorageLocation[]>(`/warehouses/${warehouseId}/locations/tree`);
     return response.data;
   },
 
   createLocation: async (warehouseId: number, data: LocationCreate) => {
-    const response = await api.post<Location>(`/warehouses/${warehouseId}/locations`, data);
+    const response = await api.post<StorageLocation>(`/warehouses/${warehouseId}/locations`, data);
     return response.data;
   },
   
   updateLocation: async (warehouseId: number, locationId: number, data: LocationUpdate) => {
-    const response = await api.put<Location>(`/warehouses/${warehouseId}/locations/${locationId}`, data);
+    const response = await api.put<StorageLocation>(`/warehouses/${warehouseId}/locations/${locationId}`, data);
     return response.data;
   },
 

@@ -13,6 +13,7 @@ import { LoadingScreen } from '../../../../components/LoadingScreen';
 import { warehouseService, Warehouse } from '../../../../services/warehouseService';
 import { getProducts, Product } from '../../../../services/productService';
 import { createMovementRequest, submitMovementRequest, MovementType } from '../../../../services/movementService';
+import { LocationSelectionDialog } from '../../../../components/locations/LocationSelectionDialog';
 import { Colors } from '../../../../constants/Colors';
 
 // Schema Definition
@@ -21,6 +22,8 @@ const itemSchema = z.object({
   product_name: z.string(), // Helper for UI
   quantity: z.number().min(1, 'Cantidad debe ser mayor a 0'),
   notes: z.string().optional(),
+  source_location_id: z.number().optional(),
+  destination_location_id: z.number().optional(),
 });
 
 const movementSchema = z.object({
@@ -59,6 +62,9 @@ export default function CreateMovementScreen() {
   const [productSearch, setProductSearch] = useState('');
   const [showProductDialog, setShowProductDialog] = useState(false);
   const [searchingProducts, setSearchingProducts] = useState(false);
+  
+  // Location Selection State
+  const [locationDialog, setLocationDialog] = useState({ visible: false, index: -1, type: 'source' as 'source' | 'destination' });
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<MovementFormData>({
     resolver: zodResolver(movementSchema),
@@ -75,6 +81,8 @@ export default function CreateMovementScreen() {
   });
 
   const selectedType = watch('type');
+  const sourceWarehouseId = watch('source_warehouse_id');
+  const destinationWarehouseId = watch('destination_warehouse_id');
 
   useEffect(() => {
     loadWarehouses();
@@ -85,6 +93,18 @@ export default function CreateMovementScreen() {
       searchProducts('');
     }
   }, [showProductDialog]);
+
+  const openLocationDialog = (index: number, type: 'source' | 'destination') => {
+    setLocationDialog({ visible: true, index, type });
+  };
+
+  const handleLocationSelect = (location: any) => {
+    if (locationDialog.index >= 0) {
+      // @ts-ignore
+      setValue(`items.${locationDialog.index}.${locationDialog.type === 'source' ? 'source_location_id' : 'destination_location_id'}`, location.id);
+    }
+    setLocationDialog({ ...locationDialog, visible: false });
+  };
 
   const loadWarehouses = async () => {
     try {
@@ -287,6 +307,47 @@ export default function CreateMovementScreen() {
               <View key={field.id} style={styles.itemRow}>
                 <View style={styles.itemInfo}>
                   <Text style={{ fontWeight: 'bold' }}>{field.product_name}</Text>
+                  
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                     {selectedType !== MovementType.IN && (
+                       <Controller
+                         control={control}
+                         name={`items.${index}.source_location_id`}
+                         render={({ field: { onChange, value } }) => (
+                            <TextInput
+                             label="Loc. Origen"
+                             value={value ? String(value) : ''}
+                             onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                             mode="outlined"
+                             dense
+                             style={{ flex: 1 }}
+                             keyboardType="numeric"
+                             right={<TextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'source')} />}
+                           />
+                         )}
+                       />
+                     )}
+                     
+                     {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
+                        <Controller
+                         control={control}
+                         name={`items.${index}.destination_location_id`}
+                         render={({ field: { onChange, value } }) => (
+                            <TextInput
+                             label="Loc. Destino"
+                             value={value ? String(value) : ''}
+                             onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                             mode="outlined"
+                             dense
+                             style={{ flex: 1 }}
+                             keyboardType="numeric"
+                             right={<TextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'destination')} />}
+                           />
+                         )}
+                       />
+                     )}
+                   </View>
+
                   <Controller
                     control={control}
                     name={`items.${index}.notes`}
@@ -370,6 +431,14 @@ export default function CreateMovementScreen() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <LocationSelectionDialog
+        visible={locationDialog.visible}
+        onDismiss={() => setLocationDialog({ ...locationDialog, visible: false })}
+        onSelect={handleLocationSelect}
+        warehouseId={locationDialog.type === 'source' ? sourceWarehouseId : destinationWarehouseId}
+        title={`Seleccionar ${locationDialog.type === 'source' ? 'Origen' : 'Destino'}`}
+      />
     </View>
   );
 }

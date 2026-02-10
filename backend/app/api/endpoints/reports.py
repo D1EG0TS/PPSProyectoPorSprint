@@ -9,9 +9,139 @@ from app.models.product import Product
 from app.models.inventory_refs import Category
 from app.models.vehicle import Vehicle, VehicleDocument, VehicleStatus
 from app.models.epp import EPP, EPPStatus
+from app.models import location_models, product_location_models
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
+
+@router.get("/inventory/by-location")
+def get_inventory_by_location(
+    warehouse_id: Optional[int] = Query(None, description="Filter by warehouse"),
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_user),
+) -> List[Dict[str, Any]]:
+    """
+    Get inventory grouped by location.
+    """
+    query = db.query(
+        location_models.StorageLocation,
+        product_location_models.ProductLocationAssignment,
+        Product
+    ).join(
+        product_location_models.ProductLocationAssignment,
+        location_models.StorageLocation.id == product_location_models.ProductLocationAssignment.location_id
+    ).join(
+        Product,
+        product_location_models.ProductLocationAssignment.product_id == Product.id
+    )
+
+    if warehouse_id:
+        query = query.filter(location_models.StorageLocation.warehouse_id == warehouse_id)
+
+    results = query.all()
+
+    # Group by location manually or return flat list?
+    # A flat list with location details is versatile.
+    # Let's return a flat list of assignments with expanded details.
+    
+    output = []
+    for loc, assign, prod in results:
+        output.append({
+            "location_id": loc.id,
+            "location_code": loc.code,
+            "location_name": loc.name,
+            "warehouse_id": loc.warehouse_id,
+            "product_id": prod.id,
+            "product_name": prod.name,
+            "sku": prod.sku,
+            "quantity": assign.quantity,
+            "batch_id": assign.batch_id,
+            "assignment_type": assign.assignment_type
+        })
+    
+    return output
+
+@router.get("/location-utilization")
+def get_location_utilization(
+    warehouse_id: Optional[int] = Query(None, description="Filter by warehouse"),
+    threshold_percent: Optional[float] = Query(None, description="Filter by minimum utilization percentage"),
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_user),
+) -> List[Dict[str, Any]]:
+    """
+    Get location utilization statistics.
+    Only considers locations with capacity > 0.
+    """
+    query = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.capacity > 0
+    )
+    
+    if warehouse_id:
+        query = query.filter(location_models.StorageLocation.warehouse_id == warehouse_id)
+        
+    locations = query.all()
+    
+    report = []
+    for loc in locations:
+        # Calculate occupancy if not relying on current_occupancy field
+        # For now, let's trust current_occupancy but also allow for re-calculation if needed.
+        # User prompt said current_occupancy is "calculated automatically".
+        # Assuming it is maintained. 
+        occupied = loc.current_occupancy or 0
+        capacity = loc.capacity
+        utilization = (occupied / capacity) * 100 if capacity > 0 else 0
+        
+        if threshold_percent is not None and utilization < threshold_percent:
+            continue
+            
+        report.append({
+            "location_id": loc.id,
+            "code": loc.code,
+            "type": loc.location_type,
+            "capacity": capacity,
+            "occupied": occupied,
+            "utilization_percent": round(utilization, 2),
+            "warehouse_id": loc.warehouse_id
+        })
+        
+    return sorted(report, key=lambda x: x["utilization_percent"], reverse=True)
+
+@router.get("/empty-locations")
+def get_empty_locations(
+    warehouse_id: Optional[int] = Query(None, description="Filter by warehouse"),
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_user),
+) -> List[Dict[str, Any]]:
+    """
+    Get list of empty locations (no assignments or 0 quantity).
+    """
+    # Find locations that are NOT in the list of locations with quantity > 0
+    
+    # Subquery for occupied locations
+    occupied_loc_ids = db.query(product_location_models.ProductLocationAssignment.location_id).filter(
+        product_location_models.ProductLocationAssignment.quantity > 0
+    ).distinct()
+    
+    query = db.query(location_models.StorageLocation).filter(
+        ~location_models.StorageLocation.id.in_(occupied_loc_ids)
+    )
+    
+    if warehouse_id:
+        query = query.filter(location_models.StorageLocation.warehouse_id == warehouse_id)
+        
+    locations = query.all()
+    
+    return [
+        {
+            "location_id": loc.id,
+            "code": loc.code,
+            "name": loc.name,
+            "type": loc.location_type,
+            "warehouse_id": loc.warehouse_id,
+            "capacity": loc.capacity
+        }
+        for loc in locations
+    ]
 
 @router.get("/inventory/summary")
 def get_inventory_summary(

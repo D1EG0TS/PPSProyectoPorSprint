@@ -7,7 +7,8 @@ import { Table } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { warehouseService, Warehouse } from '../../../../services/warehouseService';
 import { useAuth } from '../../../../hooks/useAuth';
-import { USER_ROLES } from '../../../../constants/roles';
+import { usePermission } from '../../../../hooks/usePermission';
+import { AccessDenied } from '../../../../components/AccessDenied';
 
 export default function WarehousesListScreen() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -15,6 +16,7 @@ export default function WarehousesListScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user } = useAuth();
+  const { hasPermission } = usePermission();
 
   const loadWarehouses = async () => {
     try {
@@ -31,9 +33,15 @@ export default function WarehousesListScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadWarehouses();
-    }, [])
+      if (hasPermission('warehouses:view')) {
+        loadWarehouses();
+      }
+    }, [hasPermission])
   );
+
+  if (!hasPermission('warehouses:view')) {
+    return <AccessDenied />;
+  }
 
   const handleDelete = (warehouse: Warehouse) => {
     Alert.alert(
@@ -63,13 +71,15 @@ export default function WarehousesListScreen() {
       <ScrollableContent>
         <View style={styles.header}>
           <Text variant="headlineMedium">Gestión de Almacenes</Text>
-          <Button 
-            variant="primary" 
-            icon="plus" 
-            onPress={() => router.push('/(dashboard)/admin/warehouses/create')}
-          >
-            Crear Almacén
-          </Button>
+          {hasPermission('warehouses:manage') && (
+            <Button 
+              variant="primary" 
+              icon="plus" 
+              onPress={() => router.push('/(dashboard)/admin/warehouses/create')}
+            >
+              Crear Almacén
+            </Button>
+          )}
         </View>
 
         {loading ? (

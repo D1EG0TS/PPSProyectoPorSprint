@@ -108,6 +108,30 @@ def create_maintenance(id: int, maintenance: VehicleMaintenanceCreate, db: Sessi
     db.refresh(db_maintenance)
     return db_maintenance
 
+@router.put("/maintenances/{id}", response_model=VehicleMaintenanceResponse)
+def update_maintenance(id: int, maintenance_update: VehicleMaintenanceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    maintenance = db.query(VehicleMaintenance).filter(VehicleMaintenance.id == id).first()
+    if not maintenance:
+        raise HTTPException(status_code=404, detail="Maintenance record not found")
+        
+    update_data = maintenance_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(maintenance, key, value)
+        
+    db.commit()
+    db.refresh(maintenance)
+    return maintenance
+
+@router.delete("/maintenances/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_maintenance(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    maintenance = db.query(VehicleMaintenance).filter(VehicleMaintenance.id == id).first()
+    if not maintenance:
+        raise HTTPException(status_code=404, detail="Maintenance record not found")
+        
+    db.delete(maintenance)
+    db.commit()
+    return None
+
 # --- Documents ---
 
 @router.post("/{id}/documents", response_model=VehicleDocumentResponse)

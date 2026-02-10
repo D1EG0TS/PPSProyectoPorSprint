@@ -236,3 +236,40 @@ def read_user_audit(
             audit.actor_name = "System"
 
     return audits
+
+@router.put("/{user_id}/permissions", response_model=schemas.UserResponse)
+def update_user_permissions(
+    user_id: int,
+    permission_ids: List[int],
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Update permissions for a user.
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # RBAC protection
+    if current_user.role_id == 2 and user.role_id == 1:
+        raise HTTPException(status_code=403, detail="Admins cannot modify Super Admins")
+
+    # Get permission objects
+    from app.models.user import Permission
+    permissions = db.query(Permission).filter(Permission.id.in_(permission_ids)).all()
+    
+    # Update relationship
+    user.permissions = permissions
+    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    log_audit(db, user.id, "UPDATE_PERMISSIONS", current_user.id, details={"permission_ids": permission_ids})
+    db.commit()
+    
+    return user

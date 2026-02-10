@@ -10,13 +10,15 @@ interface ProductSearchProps {
   label?: string;
   placeholder?: string;
   error?: string;
+  locationId?: number;
 }
 
 export const ProductSearch: React.FC<ProductSearchProps> = ({
   onSelect,
   label = 'Buscar Producto',
   placeholder = 'SKU, Nombre o Código de Barras',
-  error
+  error,
+  locationId
 }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
@@ -28,7 +30,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
       if (query.length >= 2) {
         setLoading(true);
         try {
-          const data = await getProducts({ search: query, limit: 5 });
+          const data = await getProducts({ search: query, limit: 5, location_id: locationId });
           setResults(data);
           setShowResults(true);
         } catch (err) {

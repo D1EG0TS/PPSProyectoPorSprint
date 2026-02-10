@@ -19,7 +19,7 @@ class Tool(Base):
     serial_number = Column(String(100), unique=True, index=True, nullable=False)
     condition_id = Column(Integer, ForeignKey("conditions.id"), nullable=False)
     assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)
-    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
+    location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
     status = Column(Enum(ToolStatus), default=ToolStatus.AVAILABLE, nullable=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -29,7 +29,7 @@ class Tool(Base):
     product = relationship("Product", backref="tools")
     condition = relationship("Condition")
     assignee = relationship("User", foreign_keys=[assigned_to], backref="assigned_tools")
-    location = relationship("Location", backref="tools")
+    location = relationship("StorageLocation", backref="tools")
     history = relationship("ToolHistory", back_populates="tool", cascade="all, delete-orphan")
 
 class ToolHistory(Base):
@@ -46,8 +46,8 @@ class ToolHistory(Base):
     from_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     to_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
-    from_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
-    to_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
+    from_location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
+    to_location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
     
     changed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     notes = Column(String(255), nullable=True)

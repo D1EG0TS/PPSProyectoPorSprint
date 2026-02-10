@@ -1,9 +1,27 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Table
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime, timezone
 import json
 
 Base = declarative_base()
+
+# Association table for User-Permission (Many-to-Many)
+user_permissions = Table(
+    "user_permissions",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("permission_id", Integer, ForeignKey("permissions.id"), primary_key=True),
+)
+
+class Permission(Base):
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True, nullable=False) # e.g., "inventory:read", "users:manage"
+    description = Column(String(255), nullable=True)
+    module = Column(String(50), nullable=True) # e.g., "Inventory", "Users"
+
+    users = relationship("User", secondary=user_permissions, back_populates="permissions")
 
 class Role(Base):
     __tablename__ = "roles"
@@ -29,6 +47,7 @@ class User(Base):
     permissions_version = Column(Integer, default=1)
 
     role = relationship("Role", back_populates="users")
+    permissions = relationship("Permission", secondary=user_permissions, back_populates="users")
     sessions = relationship("Session", back_populates="user")
     # Audit logs where this user is the target
     audit_logs = relationship("UserAudit", foreign_keys="UserAudit.user_id", back_populates="target_user")

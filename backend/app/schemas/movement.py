@@ -9,6 +9,8 @@ class MovementRequestItemBase(BaseModel):
     batch_id: Optional[int] = None
     quantity: int
     notes: Optional[str] = None
+    source_location_id: Optional[int] = None
+    destination_location_id: Optional[int] = None
 
 class MovementRequestItemCreate(MovementRequestItemBase):
     pass
