@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Searchbar, Button, Chip } from 'react-native-paper';
 import { InternalCatalogTable } from '@/components/catalog/internal/InternalCatalogTable';
@@ -6,6 +6,7 @@ import { useInternalCatalog } from '@/hooks/useInternalCatalog';
 import { catalogService } from '@/services/catalogService';
 import { CatalogPermissions } from '@/types/catalog';
 import { Colors } from '@/constants/Colors';
+import { useFocusEffect } from 'expo-router';
 
 export default function InternalCatalogScreen() {
   const { 
@@ -27,9 +28,12 @@ export default function InternalCatalogScreen() {
     can_export_data: false
   });
 
-  useEffect(() => {
-    loadPermissions();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+      loadPermissions();
+    }, [refresh])
+  );
 
   const loadPermissions = async () => {
     try {

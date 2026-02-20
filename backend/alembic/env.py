@@ -28,6 +28,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
+    print(f"DEBUG: settings.DATABASE_URL = {settings.DATABASE_URL}")
     return settings.DATABASE_URL
 
 def run_migrations_offline() -> None:

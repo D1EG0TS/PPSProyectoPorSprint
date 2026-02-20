@@ -46,6 +46,18 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
     children: [
       {
+        label: 'Dashboard Activos',
+        path: '/(dashboard)/assets/dashboard',
+        icon: 'chart-bar',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+      },
+      {
+        label: 'Inventario Activos',
+        path: '/(dashboard)/assets/inventory',
+        icon: 'format-list-bulleted',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+      },
+      {
         label: 'Movimientos',
         path: '/(dashboard)/inventory',
         icon: 'dolly',

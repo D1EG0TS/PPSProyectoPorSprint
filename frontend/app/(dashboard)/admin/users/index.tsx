@@ -7,8 +7,8 @@ import { Table } from '../../../../components/Table';
 import userService, { User, CreateUserData, UpdateUserData } from '../../../../services/userService';
 import { getRoleName } from '../../../../constants/roles';
 import { Colors } from '../../../../constants/Colors';
-import { UserDialog } from './UserDialog';
-import { UserPermissionsDialog } from './UserPermissionsDialog';
+import { UserDialog } from '../../../../components/admin/users/UserDialog';
+import { UserPermissionsDialog } from '../../../../components/admin/users/UserPermissionsDialog';
 import { USER_ROLES } from '../../../../constants/roles';
 
 export default function UsersListScreen() {

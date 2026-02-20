@@ -6,7 +6,7 @@ import sys
 DB_HOST = "localhost"
 DB_USER = "root"
 DB_PASS = ""
-DB_NAME = "appexproof"
+DB_NAME = "diegoexproof"
 
 print("Connecting to database...")
 try:

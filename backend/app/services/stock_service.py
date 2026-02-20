@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 from app.services.websocket_service import manager
+from app.services.purchase_service import PurchaseService
 
 class StockService:
     
@@ -238,6 +239,10 @@ class StockService:
                 
                 assignment.quantity -= quantity
         
+        # Check Low Stock
+        if entry_type == LedgerEntryType.DECREMENT:
+            PurchaseService.check_low_stock(db, item.product_id, new_balance)
+
         # Emit real-time stock update
         await manager.broadcast({
             "type": "stock_updated",

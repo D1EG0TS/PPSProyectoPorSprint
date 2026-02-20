@@ -4,19 +4,35 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 const getBaseUrl = () => {
+  // Prefer localhost on web to avoid Windows firewall blocking host IP
+  if (Platform.OS === 'web') {
+    const hostname =
+      (typeof window !== 'undefined' && window.location?.hostname) || 'localhost';
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+    if (process.env.EXPO_PUBLIC_API_URL) {
+      return process.env.EXPO_PUBLIC_API_URL;
+    }
+    const protocol =
+      (typeof window !== 'undefined' && window.location?.protocol) || 'http:';
+    return `${protocol}//${hostname}:8000`;
+  }
+
+  // Native (Android/iOS): use env var if set (e.g., tunnel or LAN IP)
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
   
   // Use hostUri for dev environment on mobile devices
   const debuggerHost = Constants.expoConfig?.hostUri;
-  const localhost = debuggerHost?.split(":")[0];
+  const devHost = debuggerHost?.split(':')[0];
 
-  if (localhost && Platform.OS !== 'web') {
-    return `http://${localhost}:8000`;
+  if (devHost) {
+    return `http://${devHost}:8000`;
   }
 
-  // Fallback for web or if hostUri is missing
+  // Fallback
   return 'http://localhost:8000';
 }
 
@@ -25,6 +41,7 @@ console.log('API URL configured as:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,9 +61,12 @@ export const setLogoutCallback = (callback: () => void) => {
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
+    // Bypass localtunnel reminder
+    config.headers['bypass-tunnel-reminder'] = 'true';
     return config;
   },
   (error) => {
@@ -56,8 +76,18 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[API Response] ${response.status} ${response.config.url}`);
+    return response;
+  },
   async (error) => {
+    console.error('[API Error]', {
+        message: error.message,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        status: error.response?.status,
+        data: error.response?.data
+    });
     const originalRequest = error.config;
 
     // If error is 401 and we haven't tried to refresh yet

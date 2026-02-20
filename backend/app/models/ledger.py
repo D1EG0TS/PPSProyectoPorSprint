@@ -19,7 +19,7 @@ class LedgerEntry(Base):
     warehouse_id = Column(Integer, ForeignKey("warehouses.id"), nullable=False, index=True)
     location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
     
-    entry_type = Column(Enum(LedgerEntryType), nullable=False)
+    entry_type = Column(Enum(LedgerEntryType, native_enum=False), nullable=False)
     quantity = Column(Integer, nullable=False) # Always positive, direction determined by entry_type
     
     previous_balance = Column(Integer, nullable=False)

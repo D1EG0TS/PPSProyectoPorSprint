@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import { Modal, Portal, Button, IconButton } from 'react-native-paper';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors } from '../../../constants/Colors';
 
 interface BarcodeScannerProps {
@@ -11,24 +11,22 @@ interface BarcodeScannerProps {
 }
 
 export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ visible, onDismiss, onScan }) => {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
 
   useEffect(() => {
+    if (visible && permission && !permission.granted) {
+      requestPermission();
+    }
     if (visible) {
       setScanned(false);
-      (async () => {
-        const { status } = await BarCodeScanner.requestPermissionsAsync();
-        setHasPermission(status === 'granted');
-      })();
     }
-  }, [visible]);
+  }, [visible, permission]);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    if (scanned) return;
     setScanned(true);
     onScan(data);
-    // Optional: wait a bit before closing or let parent close
-    // onDismiss(); // Usually parent handles this or we wait for confirmation
   };
 
   if (!visible) return null;
@@ -37,15 +35,21 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ visible, onDismi
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.container}>
         <View style={styles.scannerContainer}>
-          {hasPermission === null ? (
+          {!permission ? (
             <Text style={styles.text}>Requesting for camera permission</Text>
-          ) : hasPermission === false ? (
-            <Text style={styles.text}>No access to camera</Text>
+          ) : !permission.granted ? (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={styles.text}>No access to camera</Text>
+              <Button mode="contained" onPress={requestPermission} style={{ marginTop: 20 }}>
+                Grant Permission
+              </Button>
+            </View>
           ) : (
             <View style={styles.cameraWrapper}>
-              <BarCodeScanner
-                onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+              <CameraView
                 style={StyleSheet.absoluteFillObject}
+                facing="back"
+                onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
               />
               <View style={styles.overlay}>
                 <View style={styles.scanArea} />

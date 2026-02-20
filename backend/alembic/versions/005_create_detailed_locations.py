@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. Rename locations -> storage_locations
-    # op.rename_table('locations', 'storage_locations')
+    op.rename_table('locations', 'storage_locations')
 
     # 2. Add columns to storage_locations
     # Use generic Enum for broader compatibility or native if PG

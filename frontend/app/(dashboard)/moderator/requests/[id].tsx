@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { ScrollableContent } from '../../../../components/ScrollableContent';
-import { Text, Button, Card, Divider, TextInput, Chip, HelperText } from 'react-native-paper';
+import { Text, Button, Card, Divider, TextInput, Chip, HelperText, Portal, Dialog, Paragraph, Snackbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
@@ -28,11 +28,23 @@ export default function RequestDetailScreen() {
   const [processing, setProcessing] = useState(false);
   const [notes, setNotes] = useState('');
 
+  // UI Feedback State
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarType, setSnackbarType] = useState<'success' | 'error' | 'info'>('info');
+
   useEffect(() => {
     if (id) {
         loadRequest(Number(id));
     }
   }, [id]);
+
+  const showSnackbar = (message: string, type: 'success' | 'error' | 'info') => {
+      setSnackbarMessage(message);
+      setSnackbarType(type);
+      setSnackbarVisible(true);
+  };
 
   const loadRequest = async (requestId: number) => {
     setLoading(true);
@@ -41,7 +53,8 @@ export default function RequestDetailScreen() {
       setRequest(data);
     } catch (error) {
       console.error(error);
-      Toast.show({ type: 'error', text1: 'Error cargando solicitud' });
+      showSnackbar('Error cargando solicitud', 'error');
+      // Toast.show({ type: 'error', text1: 'Error cargando solicitud' });
       router.back();
     } finally {
       setLoading(false);
@@ -53,12 +66,12 @@ export default function RequestDetailScreen() {
     setProcessing(true);
     try {
         await approveMovementRequest(request.id, notes);
-        Toast.show({ type: 'success', text1: 'Solicitud aprobada' });
+        showSnackbar('Solicitud aprobada', 'success');
         loadRequest(request.id); // Reload to show new status
     } catch (error: any) {
         console.error(error);
         const msg = error.response?.data?.detail || "Error al aprobar";
-        Toast.show({ type: 'error', text1: 'Error', text2: msg });
+        showSnackbar(msg, 'error');
     } finally {
         setProcessing(false);
     }
@@ -67,50 +80,43 @@ export default function RequestDetailScreen() {
   const handleReject = async () => {
     if (!request) return;
     if (!notes) {
-        Toast.show({ type: 'error', text1: 'Debe agregar una nota para rechazar' });
+        showSnackbar('Debe agregar una nota para rechazar', 'error');
         return;
     }
     setProcessing(true);
     try {
         await rejectMovementRequest(request.id, notes);
-        Toast.show({ type: 'success', text1: 'Solicitud rechazada' });
+        showSnackbar('Solicitud rechazada', 'success');
         loadRequest(request.id);
     } catch (error: any) {
         console.error(error);
         const msg = error.response?.data?.detail || "Error al rechazar";
-        Toast.show({ type: 'error', text1: 'Error', text2: msg });
+        showSnackbar(msg, 'error');
     } finally {
         setProcessing(false);
     }
   };
 
-  const handleApply = async () => {
+  const handleApply = () => {
     if (!request) return;
-    
-    Alert.alert(
-        "Confirmar Aplicación",
-        "Esta acción afectará el inventario real. ¿Continuar?",
-        [
-            { text: "Cancelar", style: "cancel" },
-            { 
-                text: "Aplicar", 
-                onPress: async () => {
-                    setProcessing(true);
-                    try {
-                        await applyMovementRequest(request.id);
-                        Toast.show({ type: 'success', text1: 'Movimiento aplicado correctamente' });
-                        loadRequest(request.id);
-                    } catch (error: any) {
-                        console.error(error);
-                        const msg = error.response?.data?.detail || "Error al aplicar";
-                        Toast.show({ type: 'error', text1: 'Error', text2: msg });
-                    } finally {
-                        setProcessing(false);
-                    }
-                }
-            }
-        ]
-    );
+    setConfirmVisible(true);
+  };
+
+  const executeApply = async () => {
+    if (!request) return;
+    setConfirmVisible(false);
+    setProcessing(true);
+    try {
+        await applyMovementRequest(request.id);
+        showSnackbar(`Movimiento aplicado correctamente. ${request.items.length} items procesados.`, 'success');
+        loadRequest(request.id);
+    } catch (error: any) {
+        console.error("Apply Error:", error);
+        const msg = error.response?.data?.detail || error.message || "Error al aplicar";
+        showSnackbar(`Error: ${msg}`, 'error');
+    } finally {
+        setProcessing(false);
+    }
   };
 
   const getTypeColor = (type: MovementType) => {
@@ -128,6 +134,7 @@ export default function RequestDetailScreen() {
           case MovementStatus.PENDING: return Colors.warning;
           case MovementStatus.APPROVED: return Colors.success;
           case MovementStatus.REJECTED: return Colors.error;
+          case MovementStatus.APPLIED:
           case MovementStatus.COMPLETED: return Colors.info;
           default: return Colors.text;
       }
@@ -139,7 +146,7 @@ export default function RequestDetailScreen() {
 
   const isPending = request.status === MovementStatus.PENDING;
   const isApproved = request.status === MovementStatus.APPROVED;
-  const isCompleted = request.status === MovementStatus.COMPLETED;
+  const isCompleted = request.status === MovementStatus.COMPLETED || request.status === MovementStatus.APPLIED;
 
   return (
     <ScrollableContent containerStyle={styles.container}>
@@ -292,6 +299,42 @@ export default function RequestDetailScreen() {
       )}
 
       <View style={{ height: 40 }} />
+
+      {/* Confirmation Dialog */}
+      <Portal>
+        <Dialog visible={confirmVisible} onDismiss={() => setConfirmVisible(false)}>
+            <Dialog.Title>Confirmar Aplicación</Dialog.Title>
+            <Dialog.Content>
+                <Paragraph>
+                    Se aplicará un movimiento de tipo {request.type} con {request.items.length} items.
+                    {"\n"}
+                    Esta acción afectará el inventario real. ¿Continuar?
+                </Paragraph>
+            </Dialog.Content>
+            <Dialog.Actions>
+                <Button onPress={() => setConfirmVisible(false)}>Cancelar</Button>
+                <Button onPress={executeApply} loading={processing}>Aplicar</Button>
+            </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      {/* Feedback Snackbar */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={4000}
+        style={{
+            backgroundColor: snackbarType === 'error' ? Colors.error : 
+                             snackbarType === 'success' ? Colors.success : '#323232'
+        }}
+        action={{
+            label: 'Cerrar',
+            onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        {snackbarMessage}
+      </Snackbar>
+
     </ScrollableContent>
   );
 }

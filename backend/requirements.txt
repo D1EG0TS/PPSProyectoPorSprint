@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 alembic
 pymysql
@@ -9,3 +9,5 @@ python-multipart
 pydantic-settings
 email-validator
 bcrypt==4.0.1
+websockets
+httpx

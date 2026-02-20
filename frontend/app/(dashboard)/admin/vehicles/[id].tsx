@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Button, Card, Divider, Chip, Portal, Modal, TextInput, useTheme, SegmentedButtons } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import vehicleService, { Vehicle, VehicleDocument, VehicleMaintenance, DocumentType, MaintenanceType } from '../../../../services/vehicleService';
@@ -36,6 +36,37 @@ const VehicleDetailScreen = () => {
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Eliminar Vehículo",
+      "¿Estás seguro de que deseas eliminar este vehículo? Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Eliminar", 
+          style: "destructive", 
+          onPress: async () => {
+            try {
+              if (vehicle) {
+                await vehicleService.delete(vehicle.id);
+                router.replace('/admin/vehicles');
+              }
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Error", "No se pudo eliminar el vehículo");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleEdit = () => {
+    if (vehicle) {
+        router.push(`/admin/vehicles/${vehicle.id}/edit`);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
         fetchVehicle();
@@ -54,6 +85,15 @@ const VehicleDetailScreen = () => {
             <Text variant="titleMedium" style={{color: '#666'}}>VIN: {vehicle.vin} | Plate: {vehicle.license_plate}</Text>
         </View>
         <Chip mode="outlined" style={styles.statusChip}>{vehicle.status}</Chip>
+      </View>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, marginBottom: 10, gap: 10 }}>
+        <Button mode="contained-tonal" icon="pencil" onPress={handleEdit}>
+            Editar
+        </Button>
+        <Button mode="contained-tonal" icon="delete" buttonColor={theme.colors.errorContainer} textColor={theme.colors.onErrorContainer} onPress={handleDelete}>
+            Eliminar
+        </Button>
       </View>
 
       <SegmentedButtons

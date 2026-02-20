@@ -10,3 +10,19 @@ from app.models.movement import MovementRequest, MovementRequestItem, Movement, 
 from app.models.tool import Tool, ToolHistory, ToolStatus
 from app.models.epp import EPP, EPPInspection, EPPStatus
 from app.models.system import SystemConfig
+from app.models.vehicle import Vehicle, VehicleStatus, VehicleDocument, VehicleMaintenance
+from app.models.vehicle_maintenance import VehicleMaintenanceType, VehicleMaintenanceRecord, VehicleMaintenanceAttachment, VehicleMaintenancePart
+from app.models.ledger import LedgerEntry, LedgerEntryType
+from app.models.integrated_request import (
+    IntegratedRequest, RequestItem, RequestTool, RequestEPP, RequestVehicle, RequestTracking
+)
+from app.models.tracking import ItemTracking, Penalization, PenalizationReason, PenalizationStatus
+from app.models.purchase import PurchaseAlert
+from app.models.notification import Notification, NotificationType
+from app.models.assets import (
+    AssetCategory, Asset, AssetAttribute, AssetDepreciation, 
+    AssetMaintenance, AssetCalibration, AssetAssignment, AssetAuditLog,
+    AssetType, DepreciationMethod, AssetStatus, AssetCondition, 
+    AttributeType, MaintenanceType, MaintenanceStatus, CalibrationStatus, 
+    AssetAction, AssignmentStatus
+)

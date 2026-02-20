@@ -22,8 +22,15 @@ export const StockIndicator: React.FC<StockIndicatorProps> = ({
   style,
   onPress
 }) => {
-  const { user } = useAuth();
-  const { stock, loading, error } = useRealTimeStock(productId, warehouseId, undefined, 0, user?.id);
+  const { user, isAuthenticated } = useAuth();
+  const { stock, loading, error } = useRealTimeStock(
+    productId, 
+    warehouseId, 
+    undefined, 
+    0, 
+    user?.id,
+    { enabled: isAuthenticated }
+  );
 
   const statusColor = useMemo(() => {
     if (stock === null) return '#757575'; // Gray for unknown

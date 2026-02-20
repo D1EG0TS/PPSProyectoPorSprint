@@ -56,7 +56,7 @@ export interface InspectionCreate {
   evidence_id?: string;
 }
 
-export const getEPPs = async (params?: { assigned_to?: number; status?: EPPStatus }) => {
+export const getEPPs = async (params?: { assigned_to?: number; status?: EPPStatus; search?: string; limit?: number }) => {
   const response = await api.get<EPP[]>('/epp/', { params });
   return response.data;
 };

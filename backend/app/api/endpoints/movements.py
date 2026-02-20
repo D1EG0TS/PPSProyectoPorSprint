@@ -41,7 +41,9 @@ def update_movement_request(
     
     # Permission check: Only creator can update (or admin, but requirement focuses on creator/rol 4)
     # Using Tier system: 1=Super, 2=Admin, >2=User/Guest. So Admins are level <= 2.
-    if request.requested_by != current_user.id and current_user.role.level > 2:
+    # Updated to use Role Level system: 100=Super, 50=Admin, 30=Manager.
+    # Admins (>=50) can update any request.
+    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     if request.status != MovementStatus.DRAFT:
@@ -64,7 +66,7 @@ def submit_movement_request(
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    if request.requested_by != current_user.id and current_user.role.level > 2:
+    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     if request.status != MovementStatus.DRAFT:
@@ -94,9 +96,9 @@ def read_pending_requests(
     Restricted to approvers (Roles 1-3).
     Supports filtering by type, warehouse, and date range.
     """
-    # Using Tier system: 1=Super, 2=Admin/Manager. Allow <= 3 (if 3 is User/Operator with approval rights?)
-    # Requirement says "Roles 1-3".
-    if current_user.role.level > 3:
+    # Using Role Level system: 100=Super, 50=Admin, 30=Manager.
+    # Requirement says "Roles 1-3", which corresponds to Level >= 30.
+    if not current_user.role or current_user.role.level < 30:
          raise HTTPException(status_code=403, detail="Not authorized to view pending requests")
     
     requests = movement_request.get_multi_pending(
@@ -106,11 +108,33 @@ def read_pending_requests(
     )
     return requests
 
+@router.get("/requests/{id}", response_model=MovementRequest)
+def read_movement_request(
+    *,
+    db: Session = Depends(get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Get movement request by ID.
+    """
+    request = movement_request.get(db=db, id=id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    # Permission check: Owner or Manager+ (Level >= 30)
+    is_manager = current_user.role and current_user.role.level >= 30
+    if request.requested_by != current_user.id and not is_manager:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+        
+    return request
+
 @router.post("/requests/{id}/approve", response_model=MovementRequest)
 def approve_movement_request(
     *,
     db: Session = Depends(get_db),
     id: int,
+    review_in: Optional[MovementRequestReview] = None,
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
@@ -118,8 +142,8 @@ def approve_movement_request(
     Only for Roles 1-3 (SuperAdmin, Admin, Manager).
     """
     # Permission check
-    # Using Tier system: 1=Super, 2=Admin/Manager. Allow <= 3.
-    if current_user.role.level > 3:
+    # Using Role Level system: 100=Super, 50=Admin, 30=Manager.
+    if not current_user.role or current_user.role.level < 30:
          raise HTTPException(status_code=403, detail="Not authorized to approve requests")
     
     request = movement_request.get(db=db, id=id)
@@ -131,6 +155,10 @@ def approve_movement_request(
 
     request.status = MovementStatus.APPROVED
     request.approved_by = current_user.id
+    
+    if review_in and review_in.notes:
+        request.approval_notes = review_in.notes
+        
     db.add(request)
     db.commit()
     db.refresh(request)

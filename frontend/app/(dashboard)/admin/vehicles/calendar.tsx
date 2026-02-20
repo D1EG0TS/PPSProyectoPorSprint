@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, SectionList } from 'react-native';
 import { Text, Card, Chip, useTheme, FAB, SegmentedButtons } from 'react-native-paper';
 import { useRouter, Stack } from 'expo-router';
-import { maintenanceService } from '../../../services/maintenanceService';
-import { UpcomingMaintenance } from '../../../types/maintenance';
-import { LoadingScreen } from '../../../components/LoadingScreen';
+import { maintenanceService } from '../../../../services/maintenanceService';
+import { UpcomingMaintenance } from '../../../../types/maintenance';
+import { LoadingScreen } from '../../../../components/LoadingScreen';
 import { format, parseISO, isSameDay, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -25,7 +25,16 @@ export default function MaintenanceCalendarScreen() {
       setLoading(true);
       // Currently getUpcoming returns maintenances due soon
       const data = await maintenanceService.getUpcoming();
-      setItems(data);
+      // Map backend response to match UI expectations if needed
+      const mappedData = data.map(item => ({
+        ...item,
+        next_date: item.next_date || item.due_date || new Date().toISOString(), // Fallback
+        is_overdue: item.is_overdue || (item.days_remaining ? item.days_remaining < 0 : false),
+        license_plate: item.license_plate || item.vehicle_name, // Fallback if backend sends name
+        brand: item.brand || '',
+        model: item.model || ''
+      }));
+      setItems(mappedData);
     } catch (error) {
       console.error(error);
     } finally {
@@ -81,13 +90,24 @@ export default function MaintenanceCalendarScreen() {
         renderItem={({ item }) => (
           <Card 
             style={styles.card}
-            onPress={() => router.push(`/(dashboard)/admin/vehicles/${item.vehicle_id}/maintenance/new?type=${item.maintenance_type_name}`)}
+            onPress={() => {
+                if (item.id) {
+                    // If it has an ID, it's a scheduled record -> Edit/Complete it
+                    router.push(`/(dashboard)/admin/vehicles/${item.vehicle_id}/maintenance/${item.id}`);
+                } else {
+                    // It's a suggestion -> Create new
+                    router.push(`/(dashboard)/admin/vehicles/${item.vehicle_id}/maintenance/new?type=${item.maintenance_type_name}`);
+                }
+            }}
           >
             <Card.Content>
               <View style={styles.row}>
                 <View>
                     <Text variant="titleMedium">{item.license_plate} - {item.brand} {item.model}</Text>
-                    <Text variant="bodyMedium">{item.maintenance_type_name}</Text>
+                    <Text variant="bodyMedium">
+                        {item.maintenance_type_name}
+                        {item.id ? ' (Programado)' : ' (Sugerido)'}
+                    </Text>
                 </View>
                 <Chip mode="outlined" style={{borderColor: item.is_overdue ? theme.colors.error : theme.colors.primary}}>
                     {item.is_overdue ? 'Vencido' : 'Pendiente'}

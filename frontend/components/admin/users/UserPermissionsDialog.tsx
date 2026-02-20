@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import { Portal, Modal, Text, Button, Checkbox, List, ActivityIndicator, Divider } from 'react-native-paper';
-import { User, Permission } from '../../../../types/auth';
-import { getPermissions, updateUserPermissions } from '../../../../services/permissionService';
-import { Colors } from '../../../../constants/Colors';
+import { User, Permission } from '../../../types/auth';
+import { getPermissions, updateUserPermissions } from '../../../services/permissionService';
+import { Colors } from '../../../constants/Colors';
 
 interface UserPermissionsDialogProps {
   visible: boolean;

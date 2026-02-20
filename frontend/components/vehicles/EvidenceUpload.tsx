@@ -5,14 +5,21 @@ import * as ImagePicker from 'expo-image-picker';
 
 interface EvidenceUploadProps {
   onUploadComplete: (evidenceId: string) => void;
+  initialValue?: string;
   label?: string;
   error?: string;
 }
 
-const EvidenceUpload: React.FC<EvidenceUploadProps> = ({ onUploadComplete, label = "Evidence (Photo/PDF)", error }) => {
+const EvidenceUpload: React.FC<EvidenceUploadProps> = ({ onUploadComplete, initialValue, label = "Evidence (Photo/PDF)", error }) => {
   const [loading, setLoading] = useState(false);
-  const [uploadedId, setUploadedId] = useState<string | null>(null);
+  const [uploadedId, setUploadedId] = useState<string | null>(initialValue || null);
   const [imageUri, setImageUri] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (initialValue) {
+        setUploadedId(initialValue);
+    }
+  }, [initialValue]);
 
   const pickImage = async () => {
     try {

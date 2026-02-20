@@ -11,32 +11,58 @@ const CreateVehicleScreen = () => {
   const { control, handleSubmit, formState: { errors } } = useForm();
   const router = useRouter();
 
+  const statusLabels: Record<VehicleStatus, string> = {
+    [VehicleStatus.AVAILABLE]: 'DISPONIBLE',
+    [VehicleStatus.ASSIGNED]: 'ASIGNADO',
+    [VehicleStatus.MAINTENANCE]: 'EN MANTENIMIENTO',
+    [VehicleStatus.INACTIVE]: 'INACTIVO',
+  };
+
   const onSubmit = async (data: any) => {
     try {
-      await vehicleService.create({
+      const payload = {
         ...data,
         year: Number(data.year),
         odometer: Number(data.odometer || 0),
-      });
+        // Handle optional empty strings as null/undefined to avoid backend validation errors
+        insurance_policy: data.insurance_policy || null,
+        insurance_expiration: data.insurance_expiration || null,
+      };
+
+      await vehicleService.create(payload);
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Failed to create vehicle');
+      let errorMessage = 'Error al crear el vehículo';
+      
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          // Handle Pydantic validation errors (array of objects)
+          errorMessage = detail.map((err: any) => `${err.loc?.join('.')} : ${err.msg}`).join('\n');
+        } else if (typeof detail === 'object') {
+             errorMessage = JSON.stringify(detail);
+        } else {
+          errorMessage = String(detail);
+        }
+      }
+      
+      alert(errorMessage);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>Register New Vehicle</Text>
+      <Text variant="headlineMedium" style={styles.title}>Registrar Nuevo Vehículo</Text>
       
-      <Input control={control} name="vin" label="VIN" rules={{ required: "VIN is required" }} />
-      <Input control={control} name="license_plate" label="License Plate" rules={{ required: "Plate is required" }} />
-      <Input control={control} name="brand" label="Brand" rules={{ required: "Brand is required" }} />
-      <Input control={control} name="model" label="Model" rules={{ required: "Model is required" }} />
-      <Input control={control} name="year" label="Year" keyboardType="numeric" rules={{ required: "Year is required" }} />
-      <Input control={control} name="odometer" label="Odometer (km)" keyboardType="numeric" />
+      <Input control={control} name="vin" label="VIN" rules={{ required: "El VIN es requerido" }} />
+      <Input control={control} name="license_plate" label="Placa" rules={{ required: "La placa es requerida" }} />
+      <Input control={control} name="brand" label="Marca" rules={{ required: "La marca es requerida" }} />
+      <Input control={control} name="model" label="Modelo" rules={{ required: "El modelo es requerido" }} />
+      <Input control={control} name="year" label="Año" keyboardType="numeric" rules={{ required: "El año es requerido" }} />
+      <Input control={control} name="odometer" label="Kilometraje (km)" keyboardType="numeric" />
       
-      <Text style={styles.label}>Status</Text>
+      <Text style={styles.label}>Estado</Text>
       <Controller
         control={control}
         name="status"
@@ -44,17 +70,17 @@ const CreateVehicleScreen = () => {
         render={({ field: { onChange, value } }) => (
             <View style={styles.pickerContainer}>
                 <Picker selectedValue={value} onValueChange={onChange}>
-                    {Object.values(VehicleStatus).map(s => <Picker.Item key={s} label={s} value={s} />)}
+                    {Object.values(VehicleStatus).map(s => <Picker.Item key={s} label={statusLabels[s] || s} value={s} />)}
                 </Picker>
             </View>
         )}
       />
 
-      <Input control={control} name="insurance_policy" label="Insurance Policy (Optional)" />
-      <Input control={control} name="insurance_expiration" label="Insurance Expiration (YYYY-MM-DD)" placeholder="2025-12-31" />
+      <Input control={control} name="insurance_policy" label="Póliza de Seguro (Opcional)" />
+      <Input control={control} name="insurance_expiration" label="Vencimiento Seguro (AAAA-MM-DD)" placeholder="2025-12-31" />
 
       <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>
-        Create Vehicle
+        Registrar Vehículo
       </Button>
     </ScrollView>
   );

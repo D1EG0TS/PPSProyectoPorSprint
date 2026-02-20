@@ -106,7 +106,7 @@ export interface DocumentValidate {
 }
 
 const vehicleService = {
-  getAll: async (params?: { status?: VehicleStatus; assigned_to?: number }) => {
+  getAll: async (params?: { status?: VehicleStatus; assigned_to?: number; search?: string; limit?: number }) => {
     const response = await api.get<Vehicle[]>('/vehicles/', { params });
     return response.data;
   },

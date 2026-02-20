@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 import { getWebSocketClient, ConnectionStatus } from '../services/websocketClient';
-
-declare const process: any;
-
-// Temporary fallback API URL if needed, but we rely on existing config
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
 
 export interface StockData {
   product_id: number;
@@ -28,7 +24,8 @@ export const useRealTimeStock = (
     warehouseId?: number, 
     locationId?: number, 
     pollingInterval: number = 0, // Default 0 means disable polling if WS is active
-    userId?: number // Pass user ID for WS connection
+    userId?: number, // Pass user ID for WS connection
+    options: { enabled?: boolean } = { enabled: true }
 ): UseRealTimeStockResult => {
   const [data, setData] = useState<StockData | null>(null);
   const [stock, setStock] = useState<number | null>(null);
@@ -41,17 +38,18 @@ export const useRealTimeStock = (
   }, [productId, warehouseId, locationId]);
 
   const fetchStock = useCallback(async () => {
-    if (!productId) return;
+    if (!productId || !options.enabled) return;
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (warehouseId) params.append('warehouse_id', warehouseId.toString());
-      if (locationId) params.append('location_id', locationId.toString());
       
-      const response = await fetch(`${API_URL}/api/v1/stock/current/${productId}?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch stock');
+      const response = await api.get<StockData>(`/stock/current/${productId}`, {
+        params: {
+          warehouse_id: warehouseId,
+          location_id: locationId
+        }
+      });
       
-      const result: StockData = await response.json();
+      const result = response.data;
       setData(result);
       setStock(result.quantity);
       setError(null);
@@ -81,9 +79,11 @@ export const useRealTimeStock = (
         }
     };
     
-    loadCache();
-    fetchStock();
-  }, [fetchStock, getCacheKey, productId]);
+    if (options.enabled) {
+      loadCache();
+      fetchStock();
+    }
+  }, [fetchStock, getCacheKey, productId, options.enabled]);
 
   // WebSocket Subscription
   useEffect(() => {
@@ -106,21 +106,38 @@ export const useRealTimeStock = (
             const matchesLocation = !locationId || updateData.location_id === locationId;
             
             if (matchesWarehouse && matchesLocation) {
+                 const change = Number(updateData.change);
+                 const newWarehouseBalance = Number(updateData.new_balance);
+
                  // Update state directly
-                 setStock(updateData.new_balance);
-                setData((prev: StockData | null) => {
-                    const newQuantity = Number(updateData.new_balance);
-                    const prodId = Number(updateData.product_id);
+                 setStock(prev => {
+                     if (prev === null) {
+                         fetchStock();
+                         return null;
+                     }
+                     
+                     // If we are tracking strictly the warehouse (and not a specific location), 
+                     // and the update is for this warehouse, we can use the absolute balance
+                     if (warehouseId && !locationId && updateData.warehouse_id === warehouseId) {
+                         return newWarehouseBalance;
+                     }
+                     
+                     // Otherwise (Global or Specific Location), we must apply the delta
+                     // Global: prev + change (accumulates changes from all warehouses)
+                     // Location: prev + change (accumulates changes for this location)
+                     return prev + change;
+                 });
+
+                 setData((prev: StockData | null) => {
+                    if (!prev) return null;
                     
-                    if (!prev) {
-                        const newData: StockData = {
-                            product_id: prodId,
-                            quantity: newQuantity
-                        };
-                        // Cache update for fresh data
-                        AsyncStorage.setItem(getCacheKey(), JSON.stringify(newData)).catch(console.warn);
-                        return newData;
+                    let newQuantity = prev.quantity;
+                    if (warehouseId && !locationId && updateData.warehouse_id === warehouseId) {
+                         newQuantity = newWarehouseBalance;
+                    } else {
+                         newQuantity = prev.quantity + change;
                     }
+                    
                     const updated = { ...prev, quantity: newQuantity };
                     // Cache update
                     AsyncStorage.setItem(getCacheKey(), JSON.stringify(updated)).catch(console.warn);

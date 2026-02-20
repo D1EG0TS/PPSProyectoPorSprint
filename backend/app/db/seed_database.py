@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import Role, User, Condition, Unit, Category
+from app.models import Role, User, Condition, Unit, Category, SystemConfig
 from app.core.config import settings
 from app.db.connection import SessionLocal
 from app.core.security import get_password_hash
@@ -82,6 +82,25 @@ def seed_categories(db: Session):
             print(f"ℹ️ Categoría ya existe: {cat_data['name']}")
     db.commit()
 
+def seed_system_config(db: Session):
+    configs = [
+        {"key": "PENALTY_LATE_RETURN_DAILY_AMOUNT", "value": "10.0", "description": "Monto diario de penalización por retraso"},
+        {"key": "PENALTY_LATE_RETURN_DAILY_POINTS", "value": "1", "description": "Puntos descontados por día de retraso"},
+        {"key": "MAX_LOAN_DAYS_TOOL", "value": "7", "description": "Días máximos de préstamo para herramientas"},
+        {"key": "MAX_LOAN_DAYS_VEHICLE", "value": "3", "description": "Días máximos de préstamo para vehículos"},
+        {"key": "MAX_LOAN_DAYS_EPP", "value": "30", "description": "Días máximos de préstamo para EPP"},
+    ]
+    
+    for conf in configs:
+        existing = db.query(SystemConfig).filter(SystemConfig.key == conf["key"]).first()
+        if not existing:
+            new_conf = SystemConfig(**conf)
+            db.add(new_conf)
+            print(f"✅ Configuración creada: {conf['key']}")
+        else:
+            print(f"ℹ️ Configuración ya existe: {conf['key']}")
+    db.commit()
+
 def seed_super_admin(db: Session):
     admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
@@ -131,6 +150,7 @@ def main():
         seed_conditions(db)
         seed_units(db)
         seed_categories(db)
+        seed_system_config(db)
         seed_super_admin(db)
         print("✨ Seed completado exitosamente.")
     except Exception as e:

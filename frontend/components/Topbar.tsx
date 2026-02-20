@@ -4,10 +4,12 @@ import { Appbar } from 'react-native-paper';
 import { usePathname } from 'expo-router';
 
 interface TopbarProps {
-  onMenuPress: () => void;
+  title?: string;
+  onMenuPress?: () => void;
+  onBack?: () => void;
 }
 
-export function Topbar({ onMenuPress }: TopbarProps) {
+export function Topbar({ title: customTitle, onMenuPress, onBack }: TopbarProps) {
   const pathname = usePathname();
 
   // Generate breadcrumbs from pathname
@@ -25,11 +27,15 @@ export function Topbar({ onMenuPress }: TopbarProps) {
     return ['Inicio', ...breadcrumbs].join(' > ');
   };
 
-  const title = getBreadcrumbs();
+  const title = customTitle || getBreadcrumbs();
 
   return (
     <Appbar.Header style={styles.header} elevated>
-      <Appbar.Action icon="menu" onPress={onMenuPress} />
+      {onBack ? (
+        <Appbar.BackAction onPress={onBack} />
+      ) : (
+        onMenuPress && <Appbar.Action icon="menu" onPress={onMenuPress} />
+      )}
       <Appbar.Content title={title} titleStyle={styles.title} />
     </Appbar.Header>
   );

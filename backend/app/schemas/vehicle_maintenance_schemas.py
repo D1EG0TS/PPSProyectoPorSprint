@@ -153,6 +153,7 @@ class MaintenanceStatsResponse(BaseModel):
     status_breakdown: dict
 
 class UpcomingMaintenanceResponse(BaseModel):
+    id: Optional[int] = None # Maintenance Record ID if it exists (Scheduled)
     vehicle_id: int
     vehicle_name: str
     maintenance_type_name: str
@@ -161,6 +162,9 @@ class UpcomingMaintenanceResponse(BaseModel):
     days_remaining: Optional[int] = None
     km_remaining: Optional[int] = None
     priority: str
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    license_plate: Optional[str] = None
 
 class DashboardStats(BaseModel):
     total_cost_month: Decimal

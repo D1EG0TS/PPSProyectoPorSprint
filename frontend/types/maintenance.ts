@@ -114,14 +114,20 @@ export interface MaintenanceRecordUpdate {
 }
 
 export interface UpcomingMaintenance {
+  id?: number; // Record ID if scheduled
   vehicle_id: number;
-  vehicle_name: string;
+  vehicle_name: string; // Used for "license_plate"
   maintenance_type_name: string;
-  due_date?: string;
+  next_date: string; // Standardized from due_date
+  due_date?: string; // Legacy field from backend
   due_odometer?: number;
   days_remaining?: number;
   km_remaining?: number;
   priority: string;
+  is_overdue?: boolean;
+  brand?: string;
+  model?: string;
+  license_plate?: string;
 }
 
 export interface MaintenanceStats {

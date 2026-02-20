@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import { useAuth } from '../../hooks/useAuth';
-import { USER_ROLES } from '../../constants/roles';
+import { useAuth } from '../hooks/useAuth';
+import { USER_ROLES } from '../constants/roles';
 
 /**
  * Hook to enforce role-based access control.

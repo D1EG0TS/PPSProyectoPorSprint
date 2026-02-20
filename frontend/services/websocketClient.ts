@@ -45,7 +45,13 @@ export class StockWebSocketClient {
   }
 
   private getWsUrl(userId: number) {
-    // In a real app, use env variables
+    // Use env variable if available
+    if (process.env.EXPO_PUBLIC_API_URL) {
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+      const wsUrl = apiUrl.replace(/^http/, 'ws');
+      return `${wsUrl}/ws/${userId}`;
+    }
+
     const host = Platform.OS === 'android' ? '10.0.2.2:8000' : 'localhost:8000';
     return `ws://${host}/ws/${userId}`;
   }

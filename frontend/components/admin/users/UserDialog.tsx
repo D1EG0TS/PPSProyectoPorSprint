@@ -4,11 +4,11 @@ import { Button, Switch, Text, useTheme } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Modal } from '../../../../components/Modal';
-import { Input } from '../../../../components/Input';
-import { User } from '../../../../services/userService';
-import { USER_ROLES, getRoleName } from '../../../../constants/roles';
-import { useAuth } from '../../../../hooks/useAuth';
+import { Modal } from '../../Modal';
+import { Input } from '../../Input';
+import { User } from '../../../services/userService';
+import { USER_ROLES, getRoleName } from '../../../constants/roles';
+import { useAuth } from '../../../hooks/useAuth';
 import { Picker } from '@react-native-picker/picker';
 
 const userSchema = z.object({

@@ -53,6 +53,7 @@ class User(Base):
     audit_logs = relationship("UserAudit", foreign_keys="UserAudit.user_id", back_populates="target_user")
     # Audit logs where this user is the actor
     actions_performed = relationship("UserAudit", foreign_keys="UserAudit.changed_by", back_populates="actor")
+    notifications = relationship("Notification", back_populates="user")
 
 class UserAudit(Base):
     __tablename__ = "user_audits"

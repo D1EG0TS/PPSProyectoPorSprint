@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case, inspect
 from app.models.product import Product
-from app.models.movement import Movement
+from app.models.ledger import LedgerEntry, LedgerEntryType
 from app.models.warehouse import Warehouse
 from app.models.product_location_models import ProductLocationAssignment
 from app.models.location_models import StorageLocation
@@ -101,7 +101,7 @@ class CatalogService:
                 locs = locations_map.get(p.id, [])
                 
                 # Check for last movement
-                last_movement = self.db.query(func.max(Movement.created_at)).filter(Movement.product_id == p.id).scalar()
+                last_movement = self.db.query(func.max(LedgerEntry.applied_at)).filter(LedgerEntry.product_id == p.id).scalar()
                 
                 results.append(catalog_schemas.AdminCatalogItem(
                     **item_data,
@@ -123,28 +123,34 @@ class CatalogService:
             return [catalog_schemas.PublicCatalogItem.model_validate(p) for p in products]
 
     def _get_total_stock_map(self, product_ids: List[int]) -> Dict[int, int]:
-        # Using SUM of movements as requested
+        # Using SUM of LedgerEntry records
         results = self.db.query(
-            Movement.product_id, 
-            func.sum(Movement.quantity)
+            LedgerEntry.product_id, 
+            func.sum(case(
+                (LedgerEntry.entry_type == LedgerEntryType.INCREMENT, LedgerEntry.quantity),
+                else_=-LedgerEntry.quantity
+            ))
         ).filter(
-            Movement.product_id.in_(product_ids)
-        ).group_by(Movement.product_id).all()
+            LedgerEntry.product_id.in_(product_ids)
+        ).group_by(LedgerEntry.product_id).all()
         
         return {r[0]: (int(r[1]) if r[1] else 0) for r in results}
 
     def _get_warehouse_stock_map(self, product_ids: List[int]) -> Dict[int, List[catalog_schemas.StockByWarehouse]]:
         results = self.db.query(
-            Movement.product_id,
-            Movement.warehouse_id,
+            LedgerEntry.product_id,
+            LedgerEntry.warehouse_id,
             Warehouse.name,
-            func.sum(Movement.quantity)
+            func.sum(case(
+                (LedgerEntry.entry_type == LedgerEntryType.INCREMENT, LedgerEntry.quantity),
+                else_=-LedgerEntry.quantity
+            ))
         ).join(
-            Warehouse, Movement.warehouse_id == Warehouse.id
+            Warehouse, LedgerEntry.warehouse_id == Warehouse.id
         ).filter(
-            Movement.product_id.in_(product_ids)
+            LedgerEntry.product_id.in_(product_ids)
         ).group_by(
-            Movement.product_id, Movement.warehouse_id, Warehouse.name
+            LedgerEntry.product_id, LedgerEntry.warehouse_id, Warehouse.name
         ).all()
         
         data = {}
@@ -152,11 +158,17 @@ class CatalogService:
             pid = r[0]
             if pid not in data:
                 data[pid] = []
-            data[pid].append(catalog_schemas.StockByWarehouse(
-                warehouse_id=r[1],
-                warehouse_name=r[2],
-                quantity=int(r[3]) if r[3] else 0
-            ))
+            
+            qty = int(r[3]) if r[3] else 0
+            # Only include if quantity is relevant (e.g. non-zero)? 
+            # Original logic included everything found in movements. 
+            # We keep it consistent but usually we care about non-zero.
+            if qty != 0:
+                data[pid].append(catalog_schemas.StockByWarehouse(
+                    warehouse_id=r[1],
+                    warehouse_name=r[2],
+                    quantity=qty
+                ))
         return data
 
     def _get_locations_map(self, product_ids: List[int]) -> Dict[int, List[catalog_schemas.CatalogLocation]]:
