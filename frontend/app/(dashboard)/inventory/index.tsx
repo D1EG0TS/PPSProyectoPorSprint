@@ -1,17 +1,21 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Card, Button, Chip, Menu, Portal, Modal, TextInput, ActivityIndicator, IconButton, FAB } from 'react-native-paper';
+import { Text, Chip, Menu, Portal, Modal, ActivityIndicator, IconButton, FAB, TextInput, useTheme } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
-import { ScrollableContent } from '../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../components/ScreenContainer';
 import { Table, Column } from '../../../components/Table';
+import { Button } from '../../../components/Button';
+import { Card } from '../../../components/Card';
+import { Input } from '../../../components/Input';
 import { LoadingScreen } from '../../../components/LoadingScreen';
 import { warehouseService, WarehouseStockItem } from '../../../services/warehouseService';
 import { getProducts, Product } from '../../../services/productService';
 import { locationService } from '../../../services/locationService';
 import { LocationSelectionDialog } from '../../../components/locations/LocationSelectionDialog';
-import { Colors } from '../../../constants/Colors';
+import { Layout } from '../../../constants/Layout';
 
 interface InventoryItem extends Product {
   current_stock: number;
@@ -19,6 +23,8 @@ interface InventoryItem extends Product {
 
 export default function InventoryScreen() {
   const router = useRouter();
+  const theme = useTheme();
+  
   const [products, setProducts] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -50,7 +56,6 @@ export default function InventoryScreen() {
     
     setLoading(true);
     try {
-      // 1. Load Stock for selected warehouse
       const stockData = await warehouseService.getWarehouseStock(selectedWarehouse.id);
       const stockMapObj: Record<number, number> = {};
       stockData.forEach(item => {
@@ -58,9 +63,6 @@ export default function InventoryScreen() {
       });
       setStockMap(stockMapObj);
 
-      // 2. Load Products (fetching all or large limit for now)
-      // In a real app, we would paginate or search on backend. 
-      // For this sprint, we fetch a batch and map stock.
       const productsData = await getProducts({ limit: 100, search: searchQuery });
       
       const inventoryItems: InventoryItem[] = productsData.map((p: Product) => ({
@@ -68,8 +70,6 @@ export default function InventoryScreen() {
         current_stock: stockMapObj[p.id] || 0
       }));
 
-      // Client-side filter for Low Stock if enabled
-      // (Ideally backend should handle this)
       let finalItems = inventoryItems;
       if (showLowStock) {
         finalItems = finalItems.filter(p => p.current_stock < (p.min_stock || 0));
@@ -96,6 +96,50 @@ export default function InventoryScreen() {
     }, [selectedWarehouse, searchQuery, showLowStock])
   );
 
+  const renderInventoryCard = (item: InventoryItem) => {
+    const isLow = item.current_stock < (item.min_stock || 0);
+    return (
+      <Card
+        title={item.name}
+        subtitle={item.sku}
+        footer={
+            <View style={styles.cardActions}>
+              <IconButton 
+                icon="file-document-outline" 
+                size={20}
+                onPress={() => router.push(`/(dashboard)/inventory/${item.id}`)}
+              />
+              <IconButton 
+                icon="map-marker-plus" 
+                size={20} 
+                iconColor={theme.colors.primary}
+                onPress={() => router.push(`/(dashboard)/operator/products/${item.id}/assign-location`)}
+              />
+            </View>
+        }
+      >
+        <View style={styles.cardContent}>
+            <View style={styles.stockRow}>
+                <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>Stock: </Text>
+                <Text variant="bodyLarge" style={{ fontWeight: 'bold', color: isLow ? theme.colors.error : theme.colors.onSurface }}>
+                {item.current_stock}
+                </Text>
+                {isLow && (
+                <Chip 
+                    icon="alert-circle" 
+                    style={{ marginLeft: 8, backgroundColor: theme.colors.errorContainer }} 
+                    textStyle={{ color: theme.colors.onErrorContainer, fontSize: 10 }}
+                    compact
+                >
+                    Bajo
+                </Chip>
+                )}
+            </View>
+        </View>
+      </Card>
+    );
+  };
+
   const columns: Column<InventoryItem>[] = [
     {
       key: 'name',
@@ -103,8 +147,8 @@ export default function InventoryScreen() {
       flex: 2,
       renderCell: (item) => (
         <View>
-          <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>{item.name}</Text>
-          <Text variant="bodySmall" style={{ color: 'gray' }}>{item.sku}</Text>
+          <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: theme.colors.onSurface }}>{item.name}</Text>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>{item.sku}</Text>
         </View>
       )
     },
@@ -117,14 +161,14 @@ export default function InventoryScreen() {
         const isLow = item.current_stock < (item.min_stock || 0);
         return (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-             <Text variant="bodyLarge" style={{ fontWeight: 'bold', color: isLow ? Colors.error : 'black' }}>
+             <Text variant="bodyLarge" style={{ fontWeight: 'bold', color: isLow ? theme.colors.error : theme.colors.onSurface }}>
                {item.current_stock}
              </Text>
              {isLow && (
                <Chip 
                  icon="alert-circle" 
-                 style={{ marginLeft: 8, backgroundColor: '#ffebee' }} 
-                 textStyle={{ color: Colors.error, fontSize: 10 }}
+                 style={{ marginLeft: 8, backgroundColor: theme.colors.errorContainer }} 
+                 textStyle={{ color: theme.colors.onErrorContainer, fontSize: 10 }}
                  compact
                >
                  Bajo
@@ -148,7 +192,7 @@ export default function InventoryScreen() {
           <IconButton 
             icon="map-marker-plus" 
             size={20} 
-            iconColor={Colors.primary}
+            iconColor={theme.colors.primary}
             onPress={() => router.push(`/(dashboard)/operator/products/${item.id}/assign-location`)}
           />
         </View>
@@ -157,108 +201,106 @@ export default function InventoryScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <Text variant="headlineMedium" style={styles.title}>Inventario</Text>
-          <View style={styles.headerActions}>
-             <Menu
-              visible={showWarehouseMenu}
-              onDismiss={() => setShowWarehouseMenu(false)}
-              anchor={
-                <Button 
-                  mode="outlined" 
-                  onPress={() => setShowWarehouseMenu(true)} 
-                  icon="warehouse"
-                  style={{ marginRight: 8 }}
-                >
-                  {selectedWarehouse ? selectedWarehouse.name : 'Seleccionar Almacén'}
-                </Button>
-              }
-            >
-              {warehouses.map(w => (
-                <Menu.Item 
-                  key={w.id} 
-                  onPress={() => {
-                    setSelectedWarehouse(w);
-                    setShowWarehouseMenu(false);
-                  }} 
-                  title={w.name} 
-                />
-              ))}
-            </Menu>
-            <Button mode="outlined" onPress={loadData} icon="refresh">Actualizar</Button>
-          </View>
-        </View>
-
-        <View style={{ marginBottom: 16, alignItems: 'flex-end' }}>
-           {selectedWarehouse && (
-             <Button 
-               mode="outlined" 
-               icon="map"
-               onPress={() => router.push(`/(dashboard)/moderator/warehouses/${selectedWarehouse.id}/map`)}
-             >
-               Ver Ubicaciones
-             </Button>
-           )}
-        </View>
-
-        <Card style={styles.filtersCard}>
-          <Card.Content style={styles.filtersContent}>
-              <TextInput 
-                  label="Buscar producto (Nombre/SKU)"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  style={styles.searchInput}
-                  mode="outlined"
-                  dense
-                  right={<TextInput.Icon icon="magnify" />}
+    <ScreenContainer>
+      <View style={styles.header}>
+        <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>Inventario</Text>
+        <View style={styles.headerActions}>
+            <Menu
+            visible={showWarehouseMenu}
+            onDismiss={() => setShowWarehouseMenu(false)}
+            anchor={
+              <Button 
+                variant="outline"
+                onPress={() => setShowWarehouseMenu(true)} 
+                icon="warehouse"
+                style={{ marginRight: 8 }}
+              >
+                {selectedWarehouse ? selectedWarehouse.name : 'Seleccionar Almacén'}
+              </Button>
+            }
+          >
+            {warehouses.map(w => (
+              <Menu.Item 
+                key={w.id} 
+                onPress={() => {
+                  setSelectedWarehouse(w);
+                  setShowWarehouseMenu(false);
+                }} 
+                title={w.name} 
               />
-              <View style={styles.filterChips}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Button 
-                    mode={selectedLocation ? "contained" : "outlined"} 
-                    onPress={() => setShowLocationDialog(true)}
-                    style={{ marginRight: 8 }}
-                    icon="map-marker"
+            ))}
+          </Menu>
+          <Button variant="outline" onPress={loadData} icon="refresh">Actualizar</Button>
+        </View>
+      </View>
+
+      <View style={{ marginBottom: Layout.spacing.md, alignItems: 'flex-end' }}>
+          {selectedWarehouse && (
+            <Button 
+              variant="outline"
+              icon="map"
+              onPress={() => router.push(`/(dashboard)/moderator/warehouses/${selectedWarehouse.id}/map`)}
+            >
+              Ver Ubicaciones
+            </Button>
+          )}
+      </View>
+
+      <Card style={styles.filtersCard}>
+        <View style={styles.filtersContent}>
+            <Input 
+                label="Buscar producto (Nombre/SKU)"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                containerStyle={[styles.searchInput, { backgroundColor: theme.colors.surface }]}
+                right={<TextInput.Icon icon="magnify" />}
+            />
+            <View style={styles.filterChips}>
+                <Button 
+                  variant={selectedLocation ? "primary" : "outline"}
+                  onPress={() => setShowLocationDialog(true)}
+                  style={{ marginRight: 8 }}
+                  icon="map-marker"
                   >
-                    {selectedLocation ? `${selectedLocation.code}` : 'Filtrar Ubicación'}
-                  </Button>
-                  {selectedLocation && (
-                    <IconButton icon="close" size={20} onPress={() => setSelectedLocation(null)} />
-                  )}
-              </View>
+                  {selectedLocation ? `${selectedLocation.code}` : 'Filtrar Ubicación'}
+                </Button>
+                {selectedLocation && (
+                  <IconButton icon="close" size={20} onPress={() => setSelectedLocation(null)} />
+                )}
 
-              <Chip 
-                  selected={showLowStock} 
-                      onPress={() => setShowLowStock(!showLowStock)}
-                      showSelectedOverlay
-                      icon={showLowStock ? "check" : "alert-circle-outline"}
-                      style={showLowStock ? { backgroundColor: '#ffebee' } : {}}
-                      textStyle={showLowStock ? { color: Colors.error } : {}}
-                  >
-                      Solo Stock Bajo
-                  </Chip>
-              </View>
-          </Card.Content>
-        </Card>
+                <Chip 
+                    selected={showLowStock} 
+                    onPress={() => setShowLowStock(!showLowStock)}
+                    showSelectedOverlay
+                    icon={showLowStock ? "check" : "alert-circle-outline"}
+                    style={showLowStock ? { backgroundColor: theme.colors.errorContainer } : {}}
+                    textStyle={showLowStock ? { color: theme.colors.onErrorContainer } : {}}
+                >
+                    Solo Stock Bajo
+                </Chip>
+            </View>
+        </View>
+      </Card>
 
-        <Table
-          data={products}
-          columns={columns}
-          keyExtractor={(item) => item.id.toString()}
-          emptyMessage="No hay productos en inventario"
-          loading={loading}
-          itemsPerPage={10}
-        />
-      </ScrollableContent>
-
-      <FAB
-        icon="plus"
-        label="Nuevo Movimiento"
-        style={styles.fab}
-        onPress={() => router.push('/(dashboard)/inventory/movements/create')}
+      <Table
+        data={products}
+        columns={columns}
+        keyExtractor={(item) => item.id.toString()}
+        emptyMessage="No hay productos en inventario"
+        loading={loading}
+        itemsPerPage={10}
+        renderCard={renderInventoryCard}
       />
+
+      <Portal>
+        <FAB
+          icon="plus"
+          label="Nuevo Movimiento"
+          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          color={theme.colors.onPrimary}
+          onPress={() => router.push('/(dashboard)/inventory/movements/create')}
+        />
+      </Portal>
 
       <LocationSelectionDialog
         visible={showLocationDialog}
@@ -269,19 +311,14 @@ export default function InventoryScreen() {
         }}
         warehouseId={selectedWarehouse?.id}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: Layout.spacing.md,
     right: 0,
     bottom: 0,
   },
@@ -289,9 +326,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
     flexWrap: 'wrap',
-    gap: 8,
+    gap: Layout.spacing.sm,
   },
   title: {
     fontWeight: 'bold',
@@ -300,25 +337,30 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
   },
   filtersCard: {
-      marginBottom: 16,
+      marginBottom: Layout.spacing.md,
   },
   filtersContent: {
       flexDirection: 'column',
-      gap: 12,
+      gap: Layout.spacing.sm,
   },
   searchInput: {
-      backgroundColor: 'white',
+      // Background handled dynamically
   },
   filterChips: {
       flexDirection: 'row',
-      gap: 8,
+      gap: Layout.spacing.sm,
+      alignItems: 'center',
+      flexWrap: 'wrap',
   },
-  card: {
-    flex: 1,
+  stockRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
   },
-  emptyText: {
-      textAlign: 'center',
-      marginTop: 20,
-      color: 'gray',
+  cardActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+  },
+  cardContent: {
+      gap: 4,
   },
 });

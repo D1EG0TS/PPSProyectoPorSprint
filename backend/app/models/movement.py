@@ -23,8 +23,8 @@ class MovementRequest(Base):
     __tablename__ = "movement_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(Enum(MovementType), nullable=False)
-    status = Column(Enum(MovementStatus), default=MovementStatus.DRAFT, nullable=False)
+    type = Column(String, nullable=False) # Changed from Enum to String for flexibility, or keep Enum but ensure it matches MovementType
+    status = Column(String, default=MovementStatus.DRAFT, nullable=False)
     
     requested_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -40,14 +40,13 @@ class MovementRequest(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    requester = relationship("User", foreign_keys=[requested_by], backref="requested_movements")
-    approver = relationship("User", foreign_keys=[approved_by], backref="approved_movements")
-    source_warehouse = relationship("Warehouse", foreign_keys=[source_warehouse_id], backref="outgoing_requests")
-    destination_warehouse = relationship("Warehouse", foreign_keys=[destination_warehouse_id], backref="incoming_requests")
+    requester = relationship("User", foreign_keys=[requested_by])
+    approver = relationship("User", foreign_keys=[approved_by])
+    source_warehouse = relationship("Warehouse", foreign_keys=[source_warehouse_id])
+    destination_warehouse = relationship("Warehouse", foreign_keys=[destination_warehouse_id])
     
     items = relationship("MovementRequestItem", back_populates="request", cascade="all, delete-orphan")
     movements = relationship("Movement", back_populates="request")
-
 
 class MovementRequestItem(Base):
     __tablename__ = "movement_request_items"
@@ -66,7 +65,8 @@ class MovementRequestItem(Base):
     # Relationships
     request = relationship("MovementRequest", back_populates="items")
     product = relationship("Product")
-    batch = relationship("ProductBatch")
+    # batch = relationship("ProductBatch") # Add if needed
+
 
 
 class Movement(Base):

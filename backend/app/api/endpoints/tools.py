@@ -10,8 +10,9 @@ from app.schemas import tool as schemas
 
 router = APIRouter()
 
-def check_permissions(user: User):
-    if user.role_id not in [1, 2]:
+def check_permissions(user: User, required_level: int = 50):
+    # Default level 50 (Admin) for modification
+    if not user.role or user.role.level < required_level:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
@@ -51,7 +52,8 @@ def get_tools(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    # Role 4 (Operative) and up can view tools
+    check_permissions(current_user, required_level=10)
     tools = db.query(Tool).offset(skip).limit(limit).all()
     return tools
 
@@ -61,14 +63,9 @@ def get_user_tools(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    # Any user can see their own tools? Or only admins?
-    # Prompt says: "Asignar herramienta a usuario -> ver en perfil del usuario."
-    # So probably the user can see their own tools.
-    if current_user.id != user_id and current_user.role_id not in [1, 2]:
-         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
+    # Users can see their own tools, or Admins/Moderators can see others
+    if current_user.id != user_id:
+         check_permissions(current_user, required_level=30)
     
     tools = db.query(Tool).filter(Tool.assigned_to == user_id).all()
     return tools
@@ -79,7 +76,7 @@ def create_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=50) # Admin only
     
     existing = db.query(Tool).filter(Tool.serial_number == tool.serial_number).first()
     if existing:
@@ -107,7 +104,7 @@ def get_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=10)
     tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -120,7 +117,7 @@ def update_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=50)
     db_tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not db_tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -154,7 +151,7 @@ def delete_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=50)
     db_tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not db_tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -170,7 +167,7 @@ def assign_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=30)
     tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -213,7 +210,7 @@ def check_out_tool(
 ):
     # Check-out is functionally similar to assign in this context
     # unless it implies something else. I'll treat it as ASSIGN but with CHECK_OUT action.
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=30)
     tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -253,7 +250,7 @@ def check_in_tool(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=30)
     tool = db.query(Tool).filter(Tool.id == tool_id).first()
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -292,6 +289,6 @@ def get_tool_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(deps.get_current_user)
 ):
-    check_permissions(current_user)
+    check_permissions(current_user, required_level=30)
     history = db.query(ToolHistory).filter(ToolHistory.tool_id == tool_id).order_by(ToolHistory.created_at.desc()).all()
     return history

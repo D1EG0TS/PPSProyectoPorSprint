@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
-import { Portal, Modal, Text, Button, Checkbox, List, ActivityIndicator, Divider } from 'react-native-paper';
+import { Text, Checkbox, List, ActivityIndicator, Divider } from 'react-native-paper';
 import { User, Permission } from '../../../types/auth';
 import { getPermissions, updateUserPermissions } from '../../../services/permissionService';
 import { Colors } from '../../../constants/Colors';
+import { Layout } from '../../../constants/Layout';
+import { Button } from '../../Button';
+import { Modal } from '../../Modal';
 
 interface UserPermissionsDialogProps {
   visible: boolean;
@@ -84,79 +87,67 @@ export const UserPermissionsDialog: React.FC<UserPermissionsDialogProps> = ({
   };
 
   return (
-    <Portal>
-      <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Text variant="headlineSmall">Permisos: {user?.full_name || user?.email}</Text>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator style={styles.loader} size="large" />
-        ) : (
-          <ScrollView style={styles.content}>
-            {Object.entries(groupedPermissions).map(([module, permissions]) => (
-              <List.Section key={module}>
-                <List.Subheader style={styles.subheader}>{module}</List.Subheader>
-                {permissions.map((permission) => (
-                  <View key={permission.id} style={styles.permissionItem}>
-                    <Checkbox
-                      status={selectedPermissions.includes(permission.id) ? 'checked' : 'unchecked'}
-                      onPress={() => handleTogglePermission(permission.id)}
-                      color={Colors.primary}
-                    />
-                    <View style={styles.permissionText}>
-                      <Text variant="bodyLarge">{permission.name}</Text>
-                      {permission.description && (
-                        <Text variant="bodySmall" style={{ color: Colors.textSecondary }}>
-                          {permission.description}
-                        </Text>
-                      )}
-                    </View>
+    <Modal
+      visible={visible}
+      onDismiss={onDismiss}
+      title={`Permisos: ${user?.full_name || user?.email}`}
+    >
+      {loading ? (
+        <ActivityIndicator style={styles.loader} size="large" />
+      ) : (
+        <ScrollView style={styles.content}>
+          {Object.entries(groupedPermissions).map(([module, permissions]) => (
+            <List.Section key={module}>
+              <List.Subheader style={styles.subheader}>{module}</List.Subheader>
+              {permissions.map((permission) => (
+                <View key={permission.id} style={styles.permissionItem}>
+                  <Checkbox
+                    status={selectedPermissions.includes(permission.id) ? 'checked' : 'unchecked'}
+                    onPress={() => handleTogglePermission(permission.id)}
+                    color={Colors.primary}
+                  />
+                  <View style={styles.permissionText}>
+                    <Text variant="bodyLarge">{permission.name}</Text>
+                    {permission.description && (
+                      <Text variant="bodySmall" style={{ color: Colors.textSecondary }}>
+                        {permission.description}
+                      </Text>
+                    )}
                   </View>
-                ))}
-                <Divider />
-              </List.Section>
-            ))}
-            
-            {allPermissions.length === 0 && (
-              <Text style={styles.emptyText}>No hay permisos definidos en el sistema.</Text>
-            )}
-          </ScrollView>
-        )}
+                </View>
+              ))}
+              <Divider />
+            </List.Section>
+          ))}
+          
+          {allPermissions.length === 0 && (
+            <Text style={styles.emptyText}>No hay permisos definidos en el sistema.</Text>
+          )}
+        </ScrollView>
+      )}
 
-        <View style={styles.footer}>
-          <Button mode="outlined" onPress={onDismiss} style={styles.button}>
-            Cancelar
-          </Button>
-          <Button 
-            mode="contained" 
-            onPress={handleSave} 
-            loading={saving} 
-            disabled={saving}
-            style={styles.button}
-            buttonColor={Colors.primary}
-          >
-            Guardar
-          </Button>
-        </View>
-      </Modal>
-    </Portal>
+      <View style={styles.footer}>
+        <Button variant="outline" onPress={onDismiss} style={styles.button}>
+          Cancelar
+        </Button>
+        <Button 
+          variant="primary"
+          onPress={handleSave} 
+          loading={saving} 
+          disabled={saving}
+          style={styles.button}
+        >
+          Guardar
+        </Button>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    padding: 20,
-    margin: 20,
-    borderRadius: 8,
-    maxHeight: '80%',
-  },
-  header: {
-    marginBottom: 16,
-  },
   content: {
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
+    maxHeight: 400,
   },
   loader: {
     padding: 40,
@@ -168,22 +159,22 @@ const styles = StyleSheet.create({
   permissionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: Layout.spacing.xs,
   },
   permissionText: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: Layout.spacing.sm,
   },
   emptyText: {
     textAlign: 'center',
-    padding: 20,
+    padding: Layout.spacing.lg,
     color: Colors.textSecondary,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 8,
-    paddingTop: 16,
+    gap: Layout.spacing.sm,
+    paddingTop: Layout.spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },

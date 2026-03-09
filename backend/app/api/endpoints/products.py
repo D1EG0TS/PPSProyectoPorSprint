@@ -1,8 +1,10 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.api import deps
 from app.crud import product as crud_product
+from app.utils.file_storage import save_product_image
 from app.crud.movement import movement
 from app.schemas import product as product_schemas
 from app.schemas.movement import Movement as MovementSchema
@@ -136,8 +138,9 @@ def delete_product(
 ):
     """
     Delete (deactivate) a product.
+    Only Admin (Level 50+) can delete.
     """
-    check_permissions(current_user) # Only Admin/Manager
+    check_permissions(current_user, min_level=50) # Only Admin/SuperAdmin
     
     product = crud_product.get_product(db, product_id=id)
     if not product:
@@ -354,6 +357,36 @@ def read_product(
         raise HTTPException(status_code=404, detail="Product not found")
     return filter_sensitive_data_single(product, current_user)
 
+@router.post("/{id}/image", response_model=product_schemas.Product)
+def upload_product_image(
+    id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Upload product image.
+    Only Admin/Manager (Level 30+) can upload images.
+    """
+    check_permissions(current_user, min_level=30)
+    
+    product = crud_product.get_product(db, product_id=id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    try:
+        # Save file
+        file_path = save_product_image(file)
+        
+        # Update product
+        product.image_url = file_path
+        db.add(product)
+        db.commit()
+        db.refresh(product)
+        return product
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
 @router.get("/{id}/ledger", response_model=List[MovementSchema])
 def read_product_ledger(
     id: int,
@@ -381,6 +414,7 @@ def assign_product_location(
 ):
     """
     Assign product to a specific location.
+    Checks for capacity and primary location logic.
     """
     check_permissions(current_user) # Ensure write access
     
@@ -393,14 +427,47 @@ def assign_product_location(
     location = db.query(location_models.StorageLocation).filter(location_models.StorageLocation.id == assignment.location_id).first()
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
+
+    # Check capacity if defined
+    if location.capacity is not None:
+        # Calculate current usage
+        current_usage = db.query(func.sum(product_location_models.ProductLocationAssignment.quantity)).filter(
+            product_location_models.ProductLocationAssignment.location_id == assignment.location_id
+        ).scalar() or 0
         
-    # Create assignment
-    db_assignment = product_location_models.ProductLocationAssignment(
-        **assignment.model_dump(exclude={"product_id", "assigned_by"}),
-        product_id=product_id,
-        assigned_by=current_user.id
-    )
-    db.add(db_assignment)
+        if current_usage + assignment.quantity > location.capacity:
+             raise HTTPException(status_code=400, detail=f"Location capacity exceeded. Available: {location.capacity - current_usage}")
+
+    # Check/Set Primary Location
+    if assignment.is_primary:
+        # Unset other primary locations for this product
+        existing_primary = db.query(product_location_models.ProductLocationAssignment).filter(
+            product_location_models.ProductLocationAssignment.product_id == product_id,
+            product_location_models.ProductLocationAssignment.is_primary == True
+        ).update({"is_primary": False})
+        
+    # Check if assignment exists
+    existing_assignment = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.product_id == product_id,
+        product_location_models.ProductLocationAssignment.location_id == assignment.location_id,
+    ).first()
+
+    if existing_assignment:
+        existing_assignment.quantity += assignment.quantity
+        if assignment.is_primary:
+            existing_assignment.is_primary = True
+        db.add(existing_assignment)
+        db_assignment = existing_assignment
+    else:
+        # Create assignment
+        db_assignment = product_location_models.ProductLocationAssignment(
+            **assignment.model_dump(exclude={"product_id", "assigned_by"}),
+            product_id=product_id,
+            warehouse_id=location.warehouse_id,
+            assigned_by=current_user.id
+        )
+        db.add(db_assignment)
+    
     db.commit()
     db.refresh(db_assignment)
     return db_assignment
@@ -506,9 +573,29 @@ def relocate_product(
     
     if not dest_loc:
         raise HTTPException(status_code=404, detail="Destination location not found")
+
+    # Check capacity at destination
+    if dest_loc.capacity is not None:
+         current_usage = db.query(func.sum(product_location_models.ProductLocationAssignment.quantity)).filter(
+            product_location_models.ProductLocationAssignment.location_id == relocation.to_location_id
+         ).scalar() or 0
+         if current_usage + relocation.quantity > dest_loc.capacity:
+              raise HTTPException(status_code=400, detail=f"Destination capacity exceeded. Available: {dest_loc.capacity - current_usage}")
         
     # 3. Update Source
     source.quantity -= relocation.quantity
+    
+    # Audit for source
+    audit = location_audit_models.LocationAuditLog(
+        location_id=relocation.from_location_id,
+        product_id=product_id,
+        action="relocation_out",
+        previous_quantity=source.quantity + relocation.quantity,
+        new_quantity=source.quantity,
+        user_id=current_user.id
+    )
+    db.add(audit)
+
     if source.quantity == 0:
         db.delete(source) # Optional: keep with 0 or delete
     else:
@@ -521,7 +608,9 @@ def relocate_product(
         # Match batch if applicable, assuming None for now or handle in schema
     ).first()
     
+    prev_qty = 0
     if dest:
+        prev_qty = dest.quantity
         dest.quantity += relocation.quantity
         db.add(dest)
     else:
@@ -534,24 +623,14 @@ def relocate_product(
             assignment_type="movement" # or manual
         )
         db.add(dest)
-        
-    # 5. Log Audit
-    audit = location_audit_models.LocationAuditLog(
-        location_id=relocation.from_location_id,
-        product_id=product_id,
-        action="relocation_out",
-        previous_quantity=source.quantity + relocation.quantity,
-        new_quantity=source.quantity,
-        user_id=current_user.id
-    )
-    db.add(audit)
     
+    # Audit for destination
     audit_in = location_audit_models.LocationAuditLog(
         location_id=relocation.to_location_id,
         product_id=product_id,
         action="relocation_in",
-        previous_quantity=dest.quantity - relocation.quantity if dest.id else 0, # roughly
-        new_quantity=dest.quantity,
+        previous_quantity=prev_qty,
+        new_quantity=prev_qty + relocation.quantity,
         user_id=current_user.id
     )
     db.add(audit_in)

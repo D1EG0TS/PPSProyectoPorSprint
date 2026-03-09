@@ -65,6 +65,8 @@ class CatalogService:
             stock_map = self._get_total_stock_map(product_ids)
             # Fetch stock by warehouse
             warehouse_stock_map = self._get_warehouse_stock_map(product_ids)
+            # Fetch locations
+            locations_map = self._get_locations_map(product_ids)
             
             results = []
             for p in products:
@@ -72,6 +74,7 @@ class CatalogService:
                 total_stock = stock_map.get(p.id, 0)
                 
                 wh_stocks = warehouse_stock_map.get(p.id, [])
+                locs = locations_map.get(p.id, [])
                 
                 results.append(catalog_schemas.InternalCatalogItem(
                     **item_data,
@@ -79,6 +82,7 @@ class CatalogService:
                     available_stock=total_stock,
                     can_add_to_request=True,
                     stock_by_warehouse=wh_stocks,
+                    locations=locs,
                     min_stock=p.min_stock,
                     needs_reorder=(total_stock < p.min_stock)
                 ))

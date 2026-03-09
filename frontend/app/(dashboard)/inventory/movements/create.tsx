@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
-import { Text, Card, Button, TextInput, Menu, IconButton, HelperText, useTheme, Portal, Dialog, List, Divider, ActivityIndicator } from 'react-native-paper';
+import { Text, TextInput as PaperTextInput, Menu, IconButton, HelperText, useTheme, Portal, Dialog, List, Divider, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,13 +8,17 @@ import * as z from 'zod';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
 
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { LoadingScreen } from '../../../../components/LoadingScreen';
 import { warehouseService, Warehouse } from '../../../../services/warehouseService';
 import { getProducts, Product } from '../../../../services/productService';
 import { createMovementRequest, submitMovementRequest, MovementType } from '../../../../services/movementService';
 import { LocationSelectionDialog } from '../../../../components/locations/LocationSelectionDialog';
 import { Colors } from '../../../../constants/Colors';
+import { Input } from '../../../../components/Input';
+import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
+import { Layout } from '../../../../constants/Layout';
 
 // Schema Definition
 const itemSchema = z.object({
@@ -177,240 +181,231 @@ export default function CreateMovementScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <Text variant="headlineMedium" style={styles.title}>Nuevo Movimiento</Text>
-        
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            {/* Movement Type */}
+    <ScreenContainer>
+      <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>Nuevo Movimiento</Text>
+      
+      <Card style={styles.card}>
+        <View style={styles.cardContent}>
+          {/* Movement Type */}
+          <View style={styles.field}>
+            <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Tipo de Movimiento</Text>
+            <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
+              <Controller
+                control={control}
+                name="type"
+                render={({ field: { onChange, value } }) => (
+                  <Picker
+                    selectedValue={value}
+                    onValueChange={onChange}
+                    style={[styles.picker, { color: theme.colors.onSurface }]}
+                    dropdownIconColor={theme.colors.onSurface}
+                  >
+                    <Picker.Item label="Entrada (Compra/Devolución)" value={MovementType.IN} />
+                    <Picker.Item label="Salida (Venta/Merma)" value={MovementType.OUT} />
+                    <Picker.Item label="Transferencia" value={MovementType.TRANSFER} />
+                    <Picker.Item label="Ajuste de Inventario" value={MovementType.ADJUSTMENT} />
+                  </Picker>
+                )}
+              />
+            </View>
+          </View>
+
+          {/* Warehouses Logic */}
+          {(selectedType !== MovementType.IN) && (
             <View style={styles.field}>
-              <Text variant="labelLarge">Tipo de Movimiento</Text>
-              <View style={styles.pickerContainer}>
+              <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Almacén Origen</Text>
+              <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
                 <Controller
                   control={control}
-                  name="type"
+                  name="source_warehouse_id"
                   render={({ field: { onChange, value } }) => (
                     <Picker
                       selectedValue={value}
-                      onValueChange={onChange}
-                      style={styles.picker}
+                      onValueChange={(v) => onChange(Number(v))}
+                      style={[styles.picker, { color: theme.colors.onSurface }]}
+                      dropdownIconColor={theme.colors.onSurface}
                     >
-                      <Picker.Item label="Entrada (Compra/Devolución)" value={MovementType.IN} />
-                      <Picker.Item label="Salida (Venta/Merma)" value={MovementType.OUT} />
-                      <Picker.Item label="Transferencia" value={MovementType.TRANSFER} />
-                      <Picker.Item label="Ajuste de Inventario" value={MovementType.ADJUSTMENT} />
+                      <Picker.Item label="Seleccionar origen..." value={0} />
+                      {warehouses.map(w => (
+                        <Picker.Item key={w.id} label={w.name} value={w.id} />
+                      ))}
                     </Picker>
                   )}
                 />
               </View>
+              {errors.source_warehouse_id && <HelperText type="error">{errors.source_warehouse_id.message}</HelperText>}
             </View>
+          )}
 
-            {/* Warehouses Logic */}
-            {(selectedType !== MovementType.IN) && (
-              <View style={styles.field}>
-                <Text variant="labelLarge">Almacén Origen</Text>
-                <View style={styles.pickerContainer}>
-                  <Controller
-                    control={control}
-                    name="source_warehouse_id"
-                    render={({ field: { onChange, value } }) => (
-                      <Picker
-                        selectedValue={value}
-                        onValueChange={(v) => onChange(Number(v))}
-                        style={styles.picker}
-                      >
-                        <Picker.Item label="Seleccionar origen..." value={0} />
-                        {warehouses.map(w => (
-                          <Picker.Item key={w.id} label={w.name} value={w.id} />
-                        ))}
-                      </Picker>
-                    )}
-                  />
-                </View>
-                {errors.source_warehouse_id && <HelperText type="error">{errors.source_warehouse_id.message}</HelperText>}
-              </View>
-            )}
-
-            {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
-               <View style={styles.field}>
-               <Text variant="labelLarge">Almacén Destino</Text>
-               <View style={styles.pickerContainer}>
-                 <Controller
-                   control={control}
-                   name="destination_warehouse_id"
-                   render={({ field: { onChange, value } }) => (
-                     <Picker
-                       selectedValue={value}
-                       onValueChange={(v) => onChange(Number(v))}
-                       style={styles.picker}
-                     >
-                       <Picker.Item label="Seleccionar destino..." value={0} />
-                       {warehouses.map(w => (
-                         <Picker.Item key={w.id} label={w.name} value={w.id} />
-                       ))}
-                     </Picker>
-                   )}
-                 />
-               </View>
-               {errors.destination_warehouse_id && <HelperText type="error">{errors.destination_warehouse_id.message}</HelperText>}
+          {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
+             <View style={styles.field}>
+             <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Almacén Destino</Text>
+             <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
+               <Controller
+                 control={control}
+                 name="destination_warehouse_id"
+                 render={({ field: { onChange, value } }) => (
+                   <Picker
+                     selectedValue={value}
+                     onValueChange={(v) => onChange(Number(v))}
+                     style={[styles.picker, { color: theme.colors.onSurface }]}
+                     dropdownIconColor={theme.colors.onSurface}
+                   >
+                     <Picker.Item label="Seleccionar destino..." value={0} />
+                     {warehouses.map(w => (
+                       <Picker.Item key={w.id} label={w.name} value={w.id} />
+                     ))}
+                   </Picker>
+                 )}
+               />
              </View>
+             {errors.destination_warehouse_id && <HelperText type="error">{errors.destination_warehouse_id.message}</HelperText>}
+           </View>
+          )}
+
+          {/* Reason & Reference */}
+          <Controller
+            control={control}
+            name="reason"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Razón / Justificación"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                containerStyle={styles.input}
+                error={errors.reason ? errors.reason.message : undefined}
+              />
             )}
+          />
 
-            {/* Reason & Reference */}
-            <Controller
-              control={control}
-              name="reason"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  label="Razón / Justificación"
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  mode="outlined"
-                  style={styles.input}
-                  error={!!errors.reason}
-                />
-              )}
-            />
-             {errors.reason && <HelperText type="error">{errors.reason.message}</HelperText>}
+          <Controller
+            control={control}
+            name="reference"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input
+                label="Referencia (Opcional)"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                containerStyle={styles.input}
+                placeholder="Ej. Orden de Compra #123"
+              />
+            )}
+          />
 
-            <Controller
-              control={control}
-              name="reference"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  label="Referencia (Opcional)"
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  mode="outlined"
-                  style={styles.input}
-                  placeholder="Ej. Orden de Compra #123"
-                />
-              )}
-            />
-
-            <Divider style={styles.divider} />
-            
-            {/* Items Section */}
-            <View style={styles.itemsHeader}>
-              <Text variant="titleMedium">Ítems ({fields.length})</Text>
-              <Button mode="outlined" onPress={() => setShowProductDialog(true)} icon="plus">
-                Agregar Producto
-              </Button>
-            </View>
-            
-            {errors.items && <HelperText type="error">{errors.items.message}</HelperText>}
-
-            {fields.map((field, index) => (
-              <View key={field.id} style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <Text style={{ fontWeight: 'bold' }}>{field.product_name}</Text>
-                  
-                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                     {selectedType !== MovementType.IN && (
-                       <Controller
-                         control={control}
-                         name={`items.${index}.source_location_id`}
-                         render={({ field: { onChange, value } }) => (
-                            <TextInput
-                             label="Loc. Origen"
-                             value={value ? String(value) : ''}
-                             onChangeText={(t) => onChange(t ? Number(t) : undefined)}
-                             mode="outlined"
-                             dense
-                             style={{ flex: 1 }}
-                             keyboardType="numeric"
-                             right={<TextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'source')} />}
-                           />
-                         )}
-                       />
-                     )}
-                     
-                     {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
-                        <Controller
-                         control={control}
-                         name={`items.${index}.destination_location_id`}
-                         render={({ field: { onChange, value } }) => (
-                            <TextInput
-                             label="Loc. Destino"
-                             value={value ? String(value) : ''}
-                             onChangeText={(t) => onChange(t ? Number(t) : undefined)}
-                             mode="outlined"
-                             dense
-                             style={{ flex: 1 }}
-                             keyboardType="numeric"
-                             right={<TextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'destination')} />}
-                           />
-                         )}
-                       />
-                     )}
-                   </View>
-
-                  <Controller
-                    control={control}
-                    name={`items.${index}.notes`}
-                    render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        label="Notas"
-                        value={value}
-                        onChangeText={onChange}
-                        mode="flat"
-                        dense
-                        style={{ backgroundColor: 'transparent', height: 40 }}
-                      />
-                    )}
-                  />
-                </View>
-                <View style={styles.itemActions}>
-                   <Controller
-                    control={control}
-                    name={`items.${index}.quantity`}
-                    render={({ field: { onChange, value } }) => (
-                      <TextInput
-                        label="Cant."
-                        value={String(value)}
-                        onChangeText={v => onChange(Number(v))}
-                        keyboardType="numeric"
-                        mode="outlined"
-                        dense
-                        style={{ width: 80, textAlign: 'center' }}
-                      />
-                    )}
-                  />
-                  <IconButton icon="delete" iconColor={Colors.error} onPress={() => remove(index)} />
-                </View>
-              </View>
-            ))}
-
-          </Card.Content>
-          <Card.Actions>
-            <Button onPress={() => router.back()}>Cancelar</Button>
-            <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={loading} disabled={loading}>
-              Crear Solicitud
+          <Divider style={styles.divider} />
+          
+          {/* Items Section */}
+          <View style={styles.itemsHeader}>
+            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>Ítems ({fields.length})</Text>
+            <Button variant="outline" onPress={() => setShowProductDialog(true)} icon="plus">
+              Agregar Producto
             </Button>
-          </Card.Actions>
-        </Card>
-      </ScrollableContent>
+          </View>
+          
+          {errors.items && <HelperText type="error">{errors.items.message}</HelperText>}
+
+          {fields.map((field, index) => (
+            <View key={field.id} style={[styles.itemRow, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <View style={styles.itemInfo}>
+                <Text style={{ fontWeight: 'bold', color: theme.colors.onSurfaceVariant }}>{field.product_name}</Text>
+                
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                   {/* We need PaperTextInput here because Input doesn't support right icon click easily without refactoring or passing prop */}
+                   {/* Actually Input supports `right` prop */}
+                   {selectedType !== MovementType.IN && (
+                     <Controller
+                       control={control}
+                       name={`items.${index}.source_location_id`}
+                       render={({ field: { onChange, value } }) => (
+                          <Input
+                           label="Loc. Origen"
+                           value={value ? String(value) : ''}
+                           onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                           containerStyle={{ flex: 1 }}
+                           keyboardType="numeric"
+                           right={<PaperTextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'source')} />}
+                         />
+                       )}
+                     />
+                   )}
+                   
+                   {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
+                      <Controller
+                       control={control}
+                       name={`items.${index}.destination_location_id`}
+                       render={({ field: { onChange, value } }) => (
+                          <Input
+                           label="Loc. Destino"
+                           value={value ? String(value) : ''}
+                           onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                           containerStyle={{ flex: 1 }}
+                           keyboardType="numeric"
+                           right={<PaperTextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'destination')} />}
+                         />
+                       )}
+                     />
+                   )}
+                 </View>
+
+                <Controller
+                  control={control}
+                  name={`items.${index}.notes`}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      label="Notas"
+                      value={value || ''}
+                      onChangeText={onChange}
+                      containerStyle={{ marginTop: 8 }}
+                    />
+                  )}
+                />
+              </View>
+              <View style={styles.itemActions}>
+                 <Controller
+                  control={control}
+                  name={`items.${index}.quantity`}
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      label="Cant."
+                      value={String(value)}
+                      onChangeText={v => onChange(Number(v))}
+                      keyboardType="numeric"
+                      containerStyle={{ width: 80 }}
+                    />
+                  )}
+                />
+                <IconButton icon="delete" iconColor={theme.colors.error} onPress={() => remove(index)} />
+              </View>
+            </View>
+          ))}
+
+        </View>
+        <View style={[styles.cardFooter, { borderTopColor: theme.colors.outline }]}>
+          <Button variant="text" onPress={() => router.back()} style={{ marginRight: 8 }}>Cancelar</Button>
+          <Button variant="primary" onPress={handleSubmit(onSubmit)} loading={loading} disabled={loading}>
+            Crear Solicitud
+          </Button>
+        </View>
+      </Card>
 
       {/* Product Selection Dialog */}
       <Portal>
-        <Dialog visible={showProductDialog} onDismiss={() => setShowProductDialog(false)} style={{ maxHeight: '80%' }}>
-          <Dialog.Title>Seleccionar Producto</Dialog.Title>
+        <Dialog visible={showProductDialog} onDismiss={() => setShowProductDialog(false)} style={{ maxHeight: '80%', backgroundColor: theme.colors.surface }}>
+          <Dialog.Title style={{ color: theme.colors.onSurface }}>Seleccionar Producto</Dialog.Title>
           <Dialog.Content>
-            <TextInput
+            <Input
               label="Buscar..."
               value={productSearch}
               onChangeText={(text) => {
                 setProductSearch(text);
                 searchProducts(text);
               }}
-              mode="outlined"
               style={{ marginBottom: 10 }}
             />
             {searchingProducts ? (
-              <ActivityIndicator style={{ margin: 20 }} />
+              <ActivityIndicator style={{ margin: 20 }} color={theme.colors.primary} />
             ) : (
               <ScrollView style={{ maxHeight: 300 }}>
                 {products.map(product => (
@@ -418,16 +413,18 @@ export default function CreateMovementScreen() {
                     key={product.id}
                     title={product.name}
                     description={`SKU: ${product.sku}`}
+                    titleStyle={{ color: theme.colors.onSurface }}
+                    descriptionStyle={{ color: theme.colors.onSurfaceVariant }}
                     onPress={() => onAddProduct(product)}
-                    left={props => <List.Icon {...props} icon="package-variant" />}
+                    left={props => <List.Icon {...props} icon="package-variant" color={theme.colors.primary} />}
                   />
                 ))}
-                {products.length === 0 && <Text style={{ textAlign: 'center', marginTop: 20 }}>No se encontraron productos</Text>}
+                {products.length === 0 && <Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.onSurfaceVariant }}>No se encontraron productos</Text>}
               </ScrollView>
             )}
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setShowProductDialog(false)}>Cerrar</Button>
+            <Button variant="text" onPress={() => setShowProductDialog(false)}>Cerrar</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -439,16 +436,13 @@ export default function CreateMovementScreen() {
         warehouseId={locationDialog.type === 'source' ? sourceWarehouseId : destinationWarehouseId}
         title={`Seleccionar ${locationDialog.type === 'source' ? 'Origen' : 'Destino'}`}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   title: {
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
     fontWeight: 'bold',
   },
   card: {
@@ -456,21 +450,31 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     gap: 16,
+    padding: 16,
+  },
+  cardFooter: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginTop: 16,
+      borderTopWidth: 1,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
   },
   field: {
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'white',
+    // backgroundColor: 'white', // Removed to let Input handle theme
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 4,
     marginTop: 4,
   },
   picker: {
     height: Platform.OS === 'web' ? 40 : 50,
+    backgroundColor: 'transparent',
   },
   divider: {
     marginVertical: 16,
@@ -483,8 +487,7 @@ const styles = StyleSheet.create({
   },
   itemRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    alignItems: 'flex-start',
     padding: 8,
     borderRadius: 8,
     marginBottom: 8,

@@ -77,8 +77,16 @@ def get_products(
         
     return query.offset(skip).limit(limit).all()
 
+import time
+
 def create_product(db: Session, product: ProductCreate) -> Product:
-    db_product = Product(**product.model_dump())
+    product_data = product.model_dump()
+    if not product_data.get("sku"):
+        # Auto-generate SKU: SKU-{TIMESTAMP}-{RANDOM_SUFFIX} or just timestamp
+        # Using timestamp for simplicity and basic uniqueness
+        product_data["sku"] = f"SKU-{int(time.time() * 1000)}"
+        
+    db_product = Product(**product_data)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)

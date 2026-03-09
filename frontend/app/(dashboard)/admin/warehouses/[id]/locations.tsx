@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import { Text, ActivityIndicator, IconButton, List, useTheme, FAB } from 'react-native-paper';
+import { Text, ActivityIndicator, IconButton, useTheme, FAB, Portal, Modal as PaperModal } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { warehouseService, Location, Warehouse } from '../../../../../services/warehouseService';
-import { Modal } from '../../../../../components/Modal';
 import { Button } from '../../../../../components/Button';
 import { Input } from '../../../../../components/Input';
-import { FormGroup } from '../../../../../components/FormGroup';
 import { Colors } from '../../../../../constants/Colors';
+import { Layout } from '../../../../../constants/Layout';
 import Toast from 'react-native-toast-message';
 
 // Recursive Tree Node Component
@@ -58,7 +57,7 @@ const LocationNode = ({
           <IconButton 
             icon="delete" 
             size={18} 
-            iconColor={theme.colors.error} 
+            iconColor={Colors.error} 
             onPress={() => onDelete(node)} 
           />
         </View>
@@ -300,87 +299,95 @@ export default function WarehouseLocationsScreen() {
         <FAB
           icon="plus"
           label="Nueva Raíz"
-          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          style={[styles.fab, { backgroundColor: Colors.primary }]}
           onPress={handleOpenCreateRoot}
           color="white"
         />
       )}
 
-      <Modal
-        visible={modalVisible}
-        onDismiss={() => setModalVisible(false)}
-        title={modalMode === 'create' 
-          ? (selectedParent ? `Nueva Sub-ubicación en ${selectedParent.code}` : 'Nueva Ubicación Raíz') 
-          : 'Editar Ubicación'}
-      >
-        <FormGroup label="Código" error={errors.code}>
+      <Portal>
+        <PaperModal
+          visible={modalVisible}
+          onDismiss={() => setModalVisible(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Text variant="titleLarge" style={styles.modalTitle}>
+            {modalMode === 'create' 
+              ? (selectedParent ? `Nueva Sub-ubicación en ${selectedParent.code}` : 'Nueva Ubicación Raíz') 
+              : 'Editar Ubicación'}
+          </Text>
+
           <Input
+            label="Código *"
             value={formData.code}
             onChangeText={(text) => setFormData({ ...formData, code: text })}
             placeholder="Ej. A-01, ESTANTE-1"
             autoCapitalize="characters"
+            error={errors.code}
+            containerStyle={styles.input}
           />
-        </FormGroup>
 
-        <FormGroup label="Nombre" error={errors.name}>
           <Input
+            label="Nombre *"
             value={formData.name}
             onChangeText={(text) => setFormData({ ...formData, name: text })}
             placeholder="Ej. Pasillo A, Estantería Principal"
+            error={errors.name}
+            containerStyle={styles.input}
           />
-        </FormGroup>
 
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <FormGroup label="Pasillo">
+          <View style={styles.row}>
+            <View style={styles.col}>
               <Input
+                label="Pasillo"
                 value={formData.aisle}
                 onChangeText={(text) => setFormData({ ...formData, aisle: text })}
                 placeholder="Ej. A"
+                containerStyle={styles.input}
               />
-            </FormGroup>
-          </View>
-          <View style={styles.col}>
-            <FormGroup label="Rack (Estante)">
+            </View>
+            <View style={styles.col}>
               <Input
+                label="Rack (Estante)"
                 value={formData.rack}
                 onChangeText={(text) => setFormData({ ...formData, rack: text })}
                 placeholder="Ej. 1"
+                containerStyle={styles.input}
               />
-            </FormGroup>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <FormGroup label="Fila (Nivel)">
+          <View style={styles.row}>
+            <View style={styles.col}>
               <Input
+                label="Fila (Nivel)"
                 value={formData.shelf}
                 onChangeText={(text) => setFormData({ ...formData, shelf: text })}
                 placeholder="Ej. 1"
+                containerStyle={styles.input}
               />
-            </FormGroup>
-          </View>
-          <View style={styles.col}>
-            <FormGroup label="Posición (Columna)">
+            </View>
+            <View style={styles.col}>
               <Input
+                label="Posición (Columna)"
                 value={formData.position}
                 onChangeText={(text) => setFormData({ ...formData, position: text })}
                 placeholder="Ej. 1"
+                containerStyle={styles.input}
               />
-            </FormGroup>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.modalActions}>
-          <Button variant="outline" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 8 }}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onPress={handleSave} loading={saving} style={{ flex: 1 }}>
-            Guardar
-          </Button>
-        </View>
-      </Modal>
+          <View style={styles.modalActions}>
+            <Button variant="outline" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: 8 }}>
+              Cancelar
+            </Button>
+            <Button variant="primary" onPress={handleSave} loading={saving} style={{ flex: 1 }}>
+              Guardar
+            </Button>
+          </View>
+        </PaperModal>
+      </Portal>
     </View>
   );
 }
@@ -388,7 +395,7 @@ export default function WarehouseLocationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -398,21 +405,21 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: 'white',
+    padding: Layout.spacing.md,
+    backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: Layout.spacing.md,
   },
   emptyState: {
     alignItems: 'center',
     marginTop: 50,
   },
   emptyButton: {
-    marginTop: 16,
+    marginTop: Layout.spacing.md,
   },
   nodeContainer: {
     flexDirection: 'row',
@@ -446,13 +453,26 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: Layout.spacing.md,
     right: 0,
     bottom: 0,
   },
+  modalContainer: {
+    backgroundColor: 'white',
+    margin: Layout.spacing.lg,
+    padding: Layout.spacing.lg,
+    borderRadius: Layout.borderRadius.md,
+  },
+  modalTitle: {
+    marginBottom: Layout.spacing.lg,
+    fontWeight: 'bold',
+  },
+  input: {
+    marginBottom: Layout.spacing.md,
+  },
   modalActions: {
     flexDirection: 'row',
-    marginTop: 16,
+    marginTop: Layout.spacing.md,
   },
   row: {
     flexDirection: 'row',

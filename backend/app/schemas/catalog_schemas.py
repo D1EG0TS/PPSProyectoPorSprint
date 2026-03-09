@@ -55,12 +55,13 @@ class StockByWarehouse(BaseModel):
 
 class InternalCatalogItem(OperationalCatalogItem):
     stock_by_warehouse: List[StockByWarehouse] = []
+    locations: List[CatalogLocation] = []  # Added exact locations for Moderators
     min_stock: int = 0
     needs_reorder: bool = False
 
 # --- Tier 4: Admin Catalog (Admin, SuperAdmin / Role 1-2) ---
 class AdminCatalogItem(InternalCatalogItem):
-    locations: List[CatalogLocation] = []
+    # locations inherited from InternalCatalogItem
     cost: Decimal = Decimal('0.00')
     price: Decimal = Decimal('0.00')
     last_movement_date: Optional[datetime] = None

@@ -1,11 +1,15 @@
+
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, useWindowDimensions, RefreshControl } from 'react-native';
-import { Text, Card, Button, ActivityIndicator, useTheme, SegmentedButtons } from 'react-native-paper';
+import { View, StyleSheet, useWindowDimensions, RefreshControl, ScrollView } from 'react-native';
+import { Text, useTheme, SegmentedButtons } from 'react-native-paper';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from 'expo-router';
 import { documentDirectory, writeAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
+import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
+import { Layout } from '../../../../constants/Layout';
 import { 
     getInventorySummary, 
     getInventoryTurnover, 
@@ -103,26 +107,25 @@ export default function AdminDashboard() {
         name: t.category,
         population: t.total_out,
         color: ['#e57373', '#81c784', '#64b5f6', '#ffd54f', '#ba68c8'][index % 5],
-        legendFontColor: "#7F7F7F",
+        legendFontColor: theme.colors.onSurface,
         legendFontSize: 12
     }));
 
     const chartConfig = {
         backgroundGradientFrom: theme.colors.surface,
         backgroundGradientTo: theme.colors.surface,
-        color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        color: (opacity = 1) => theme.colors.primary,
+        labelColor: (opacity = 1) => theme.colors.onSurface,
         strokeWidth: 2,
     };
 
     return (
-        <ScrollableContent 
-            containerStyle={styles.container}
+        <ScreenContainer 
             refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
         >
             <View style={styles.header}>
-                <Text variant="headlineMedium">Dashboard Administrativo</Text>
-                <Button mode="contained" onPress={exportCSV} icon="download">Exportar CSV</Button>
+                <Text variant="headlineMedium" style={{ color: theme.colors.onBackground, fontWeight: 'bold' }}>Dashboard Administrativo</Text>
+                <Button variant="primary" onPress={exportCSV} icon="download">Exportar CSV</Button>
             </View>
 
             <View style={styles.filters}>
@@ -141,120 +144,105 @@ export default function AdminDashboard() {
             {/* KPI Cards */}
             <View style={styles.kpiContainer}>
                 <Card style={styles.kpiCard}>
-                    <Card.Content>
-                        <Text variant="titleMedium">Valor Inventario</Text>
-                        <Text variant="headlineSmall" style={{color: theme.colors.primary}}>
-                            ${summary?.total_value.toLocaleString()}
-                        </Text>
-                    </Card.Content>
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>Valor Inventario</Text>
+                    <Text variant="headlineSmall" style={{color: theme.colors.primary}}>
+                        ${summary?.total_value.toLocaleString()}
+                    </Text>
                 </Card>
                 <Card style={styles.kpiCard}>
-                    <Card.Content>
-                        <Text variant="titleMedium">Total Items</Text>
-                        <Text variant="headlineSmall" style={{color: theme.colors.secondary}}>
-                            {summary?.total_items.toLocaleString()}
-                        </Text>
-                    </Card.Content>
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>Total Items</Text>
+                    <Text variant="headlineSmall" style={{color: theme.colors.onSurface}}>
+                        {summary?.total_items.toLocaleString()}
+                    </Text>
                 </Card>
             </View>
 
             {/* Charts */}
-            <Card style={styles.chartCard}>
-                <Card.Title title="Movimientos (Últimos 7 días activos)" />
-                <Card.Content>
-                    {movements.length > 0 ? (
+            <Card title="Movimientos (Últimos 7 días activos)" style={styles.chartCard}>
+                {movements.length > 0 ? (
+                    <ScrollView horizontal>
                         <BarChart
                             data={processChartData()}
-                            width={width - 48}
+                            width={width > 600 ? width - 80 : width - 48}
                             height={220}
                             yAxisLabel=""
                             yAxisSuffix=""
                             chartConfig={chartConfig}
                             verticalLabelRotation={30}
                         />
-                    ) : <Text>No hay datos suficientes</Text>}
-                </Card.Content>
+                    </ScrollView>
+                ) : <Text>No hay datos suficientes</Text>}
             </Card>
 
-            <Card style={styles.chartCard}>
-                <Card.Title title="Top Categorías (Salidas)" />
-                <Card.Content>
-                    {turnover.length > 0 ? (
-                        <PieChart
-                            data={pieData}
-                            width={width - 48}
-                            height={220}
-                            chartConfig={chartConfig}
-                            accessor={"population"}
-                            backgroundColor={"transparent"}
-                            paddingLeft={"15"}
-                            center={[10, 0]}
-                            absolute
-                        />
-                    ) : <Text>No hay datos de salidas</Text>}
-                </Card.Content>
+            <Card title="Top Categorías (Salidas)" style={styles.chartCard}>
+                {turnover.length > 0 ? (
+                    <PieChart
+                        data={pieData}
+                        width={width > 600 ? width - 80 : width - 48}
+                        height={220}
+                        chartConfig={chartConfig}
+                        accessor={"population"}
+                        backgroundColor={"transparent"}
+                        paddingLeft={"15"}
+                        center={[10, 0]}
+                        absolute
+                    />
+                ) : <Text>No hay datos de salidas</Text>}
             </Card>
 
-            {/* Top Products Table (simulated from turnover or fetch separately? 
-               The prompt asked for "tablas (top productos)".
-               I don't have top products endpoint, I have top categories.
-               I will list top categories here as a table since I have that data)
-            */}
-            <Card style={styles.chartCard}>
-                <Card.Title title="Detalle por Categoría" />
-                <Card.Content>
-                    <View style={styles.tableRow}>
-                        <Text style={[styles.tableHeader, {flex: 2}]}>Categoría</Text>
-                        <Text style={[styles.tableHeader, {flex: 1}]}>Salidas</Text>
-                        <Text style={[styles.tableHeader, {flex: 1}]}>Movs</Text>
+            <Card title="Detalle por Categoría" style={styles.chartCard}>
+                <View style={[styles.tableRow, { borderBottomColor: theme.colors.outline }]}>
+                    <Text style={[styles.tableHeader, {flex: 2, color: theme.colors.onSurface}]}>Categoría</Text>
+                    <Text style={[styles.tableHeader, {flex: 1, color: theme.colors.onSurface}]}>Salidas</Text>
+                    <Text style={[styles.tableHeader, {flex: 1, color: theme.colors.onSurface}]}>Movs</Text>
+                </View>
+                {turnover.slice(0, 10).map((t, i) => (
+                    <View key={i} style={[styles.tableRow, { borderBottomColor: theme.colors.outline }]}>
+                        <Text style={{flex: 2, color: theme.colors.onSurface}}>{t.category}</Text>
+                        <Text style={{flex: 1, color: theme.colors.onSurface}}>{t.total_out}</Text>
+                        <Text style={{flex: 1, color: theme.colors.onSurface}}>{t.movement_count}</Text>
                     </View>
-                    {turnover.slice(0, 10).map((t, i) => (
-                        <View key={i} style={styles.tableRow}>
-                            <Text style={{flex: 2}}>{t.category}</Text>
-                            <Text style={{flex: 1}}>{t.total_out}</Text>
-                            <Text style={{flex: 1}}>{t.movement_count}</Text>
-                        </View>
-                    ))}
-                </Card.Content>
+                ))}
             </Card>
             
-        </ScrollableContent>
+        </ScreenContainer>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 16,
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: Layout.spacing.md,
+        flexWrap: 'wrap',
+        gap: Layout.spacing.sm,
     },
     filters: {
-        marginBottom: 16,
+        marginBottom: Layout.spacing.md,
     },
     segment: {
         width: '100%',
+        maxWidth: 400,
     },
     kpiContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 16,
+        marginBottom: Layout.spacing.md,
+        flexWrap: 'wrap',
+        gap: Layout.spacing.md,
     },
     kpiCard: {
-        width: '48%',
+        flex: 1,
+        minWidth: 150,
     },
     chartCard: {
-        marginBottom: 16,
+        marginBottom: Layout.spacing.md,
     },
     tableRow: {
         flexDirection: 'row',
-        paddingVertical: 8,
+        paddingVertical: Layout.spacing.sm,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
     },
     tableHeader: {
         fontWeight: 'bold',

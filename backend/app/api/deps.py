@@ -135,13 +135,12 @@ def get_catalog_permissions(role_level: int) -> dict:
         perms["can_see_stock"] = True
         perms["can_add_to_request"] = True
         
-    # Rol 3: Internal - Detailed stock
+    # Rol 3: Internal - Detailed stock, Locations
     if role_level <= 3:
-        pass # Additional features handled by schema return type
-        
-    # Rol 1-2: Admin - Locations, Costs, Export
-    if role_level <= 2:
         perms["can_see_locations"] = True
+        
+    # Rol 1-2: Admin - Costs, Export
+    if role_level <= 2:
         perms["can_see_costs"] = True
         perms["can_export_data"] = True
         

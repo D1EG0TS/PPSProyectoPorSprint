@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, Alert, ScrollView } from 'react-native';
-import { Text, FAB, Card, IconButton, Portal, Modal, TextInput, Button, ActivityIndicator, Menu, Divider } from 'react-native-paper';
+import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { Text, FAB, IconButton, Portal, Modal, Menu, Divider, ActivityIndicator, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { getCategories, createCategory, updateCategory, deleteCategory, Category } from '../../../../services/productService';
 import { Colors } from '../../../../constants/Colors';
+import { Layout } from '../../../../constants/Layout';
+import { Input } from '../../../../components/Input';
+import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
 
 export default function CategoryManagementScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -19,6 +24,7 @@ export default function CategoryManagementScreen() {
   const [saving, setSaving] = useState(false);
 
   const router = useRouter();
+  const theme = useTheme();
 
   const loadCategories = async () => {
     setLoading(true);
@@ -120,24 +126,23 @@ export default function CategoryManagementScreen() {
   };
 
   const renderItem = ({ item }: { item: Category }) => (
-    <Card style={styles.card} mode="elevated">
-      <Card.Content style={styles.cardContent}>
-        <View style={{ flex: 1 }}>
-            <Text variant="titleMedium">{item.name}</Text>
-            {item.description ? <Text variant="bodySmall">{item.description}</Text> : null}
-            {item.parent_id ? (
-                <Text variant="labelSmall" style={{ color: Colors.primary }}>
-                    Subcategoría de: {getParentName(item.parent_id)}
-                </Text>
-            ) : (
-                <Text variant="labelSmall" style={{ color: Colors.textSecondary }}>Categoría Principal</Text>
-            )}
-        </View>
-        <View style={styles.actions}>
+    <Card
+      title={item.name}
+      subtitle={item.description || undefined}
+      footer={
+        <View style={styles.cardActions}>
             <IconButton icon="pencil" size={20} onPress={() => handleOpenModal(item)} />
             <IconButton icon="delete" size={20} iconColor={Colors.error} onPress={() => handleDelete(item)} />
         </View>
-      </Card.Content>
+      }
+    >
+        {item.parent_id ? (
+            <Text variant="labelSmall" style={{ color: Colors.primary }}>
+                Subcategoría de: {getParentName(item.parent_id)}
+            </Text>
+        ) : (
+            <Text variant="labelSmall" style={{ color: Colors.textSecondary }}>Categoría Principal</Text>
+        )}
     </Card>
   );
 
@@ -147,48 +152,47 @@ export default function CategoryManagementScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>Gestión de Categorías</Text>
+    <ScreenContainer scrollable={false}>
+      <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>Gestión de Categorías</Text>
       
       {loading ? (
-        <ActivityIndicator size="large" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" style={{ marginTop: 20 }} color={theme.colors.primary} />
       ) : (
         <FlatList
           data={categories}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No hay categorías registradas</Text>}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20, color: theme.colors.onSurfaceVariant }}>No hay categorías registradas</Text>}
         />
       )}
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        color={theme.colors.onPrimary}
         onPress={() => handleOpenModal()}
         label="Nueva Categoría"
       />
 
       <Portal>
-        <Modal visible={modalVisible} onDismiss={handleCloseModal} contentContainerStyle={styles.modalContainer}>
-          <Text variant="titleLarge" style={{ marginBottom: 16 }}>
+        <Modal visible={modalVisible} onDismiss={handleCloseModal} contentContainerStyle={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+          <Text variant="titleLarge" style={{ marginBottom: 16, color: theme.colors.onSurface }}>
             {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
           </Text>
           
-          <TextInput
+          <Input
             label="Nombre *"
             value={name}
             onChangeText={setName}
-            mode="outlined"
-            style={styles.input}
+            containerStyle={styles.input}
           />
           
-          <TextInput
+          <Input
             label="Descripción"
             value={description}
             onChangeText={setDescription}
-            mode="outlined"
-            style={styles.input}
+            containerStyle={styles.input}
           />
 
           <View style={styles.input}>
@@ -196,7 +200,7 @@ export default function CategoryManagementScreen() {
                 visible={showParentMenu}
                 onDismiss={() => setShowParentMenu(false)}
                 anchor={
-                <Button mode="outlined" onPress={() => setShowParentMenu(true)} contentStyle={{ justifyContent: 'flex-start' }}>
+                <Button variant="outline" onPress={() => setShowParentMenu(true)} contentStyle={{ justifyContent: 'flex-start' }}>
                     {parentId ? `Padre: ${getParentName(parseInt(parentId))}` : 'Categoría Padre (Opcional)'}
                 </Button>
                 }
@@ -214,45 +218,32 @@ export default function CategoryManagementScreen() {
           </View>
 
           <View style={styles.modalActions}>
-            <Button onPress={handleCloseModal} style={{ marginRight: 8 }}>Cancelar</Button>
-            <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving}>
+            <Button variant="text" onPress={handleCloseModal} style={{ marginRight: 8 }}>Cancelar</Button>
+            <Button variant="primary" onPress={handleSave} loading={saving} disabled={saving}>
               Guardar
             </Button>
           </View>
         </Modal>
       </Portal>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    padding: 16,
-  },
   title: {
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
     fontWeight: 'bold',
   },
   list: {
     paddingBottom: 80,
   },
-  card: {
-    marginBottom: 10,
-    backgroundColor: 'white',
-  },
-  cardContent: {
+  cardActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: Layout.spacing.md,
     right: 0,
     bottom: 0,
     backgroundColor: Colors.primary,
@@ -261,14 +252,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     margin: 20,
-    borderRadius: 8,
+    borderRadius: Layout.borderRadius.md,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: Layout.spacing.md,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 16,
+    marginTop: Layout.spacing.md,
   },
 });

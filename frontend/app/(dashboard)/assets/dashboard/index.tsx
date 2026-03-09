@@ -1,11 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from 'react-native-paper';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { assetService } from '../../../../services/assetService';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
+import { Layout } from '../../../../constants/Layout';
 
 export default function AssetsDashboardScreen() {
     const router = useRouter();
+    const theme = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [widgets, setWidgets] = useState<any>(null);
@@ -33,44 +38,43 @@ export default function AssetsDashboardScreen() {
 
     const QuickAction = ({ icon, title, onPress, color }: any) => (
         <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-            <View style={[styles.actionIcon, { backgroundColor: color }]}>
+            <View style={[styles.actionIcon, { backgroundColor: color, shadowColor: theme.colors.shadow }]}>
                 <Ionicons name={icon} size={24} color="#fff" />
             </View>
-            <Text style={styles.actionText}>{title}</Text>
+            <Text style={[styles.actionText, { color: theme.colors.onSurface }]}>{title}</Text>
         </TouchableOpacity>
     );
 
     const StatCard = ({ title, value, subtext, icon, color }: any) => (
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
             <View style={[styles.statIconContainer, { backgroundColor: color + '20' }]}>
                 <MaterialCommunityIcons name={icon} size={24} color={color} />
             </View>
             <View>
-                <Text style={styles.statValue}>{value}</Text>
-                <Text style={styles.statTitle}>{title}</Text>
-                {subtext && <Text style={styles.statSubtext}>{subtext}</Text>}
+                <Text style={[styles.statValue, { color: theme.colors.onSurface }]}>{value}</Text>
+                <Text style={[styles.statTitle, { color: theme.colors.onSurfaceVariant }]}>{title}</Text>
+                {subtext && <Text style={[styles.statSubtext, { color: theme.colors.onSurfaceVariant }]}>{subtext}</Text>}
             </View>
         </View>
     );
 
     const WidgetCard = ({ title, children, color = '#2196F3' }: any) => (
-        <View style={[styles.widgetCard, { borderLeftColor: color }]}>
-            <Text style={styles.widgetTitle}>{title}</Text>
+        <View style={[styles.widgetCard, { borderLeftColor: color, backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}>
+            <Text style={[styles.widgetTitle, { color: theme.colors.onSurface }]}>{title}</Text>
             {children}
         </View>
     );
 
     return (
-        <ScrollView 
-            style={styles.container}
+        <ScreenContainer 
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Dashboard de Activos</Text>
+            <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.outline }]}>
+                <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>Dashboard de Activos</Text>
             </View>
 
             {loading ? (
-                <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+                <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 20 }} />
             ) : (
                 <>
                     {/* Main Stats */}
@@ -92,7 +96,7 @@ export default function AssetsDashboardScreen() {
                     )}
 
                     {/* Quick Actions */}
-                    <Text style={styles.sectionTitle}>Accesos Rápidos</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Accesos Rápidos</Text>
                     <View style={styles.actionsContainer}>
                         <QuickAction 
                             icon="add-circle-outline" 
@@ -115,7 +119,7 @@ export default function AssetsDashboardScreen() {
                     </View>
 
                     {/* Widgets Section */}
-                    <Text style={styles.sectionTitle}>Resumen Operativo</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Resumen Operativo</Text>
                     
                     {widgets && (
                         <View style={styles.widgetsContainer}>
@@ -123,16 +127,16 @@ export default function AssetsDashboardScreen() {
                             {/* Calibration Widget */}
                             <WidgetCard title="Calibraciones (Esta Semana)" color="#9C27B0">
                                 <View style={styles.widgetContent}>
-                                    <Text style={styles.widgetBigNumber}>{widgets.calibrations_due_week}</Text>
-                                    <Text style={styles.widgetLabel}>Equipos requieren atención</Text>
+                                    <Text style={[styles.widgetBigNumber, { color: theme.colors.onSurface }]}>{widgets.calibrations_due_week}</Text>
+                                    <Text style={[styles.widgetLabel, { color: theme.colors.onSurfaceVariant }]}>Equipos requieren atención</Text>
                                 </View>
                             </WidgetCard>
 
                             {/* Warranty Widget */}
                             <WidgetCard title="Vencimiento de Garantías (30 días)" color="#F44336">
                                 <View style={styles.widgetContent}>
-                                    <Text style={styles.widgetBigNumber}>{widgets.warranty_expiring_soon}</Text>
-                                    <Text style={styles.widgetLabel}>Activos por vencer</Text>
+                                    <Text style={[styles.widgetBigNumber, { color: theme.colors.onSurface }]}>{widgets.warranty_expiring_soon}</Text>
+                                    <Text style={[styles.widgetLabel, { color: theme.colors.onSurfaceVariant }]}>Activos por vencer</Text>
                                 </View>
                             </WidgetCard>
 
@@ -140,16 +144,16 @@ export default function AssetsDashboardScreen() {
                             <WidgetCard title="Top 5 Costos Mantenimiento" color="#795548">
                                 {widgets.top_maintenance_costs.length > 0 ? (
                                     widgets.top_maintenance_costs.map((item: any, index: number) => (
-                                        <View key={index} style={styles.topItem}>
+                                        <View key={index} style={[styles.topItem, { borderBottomColor: theme.colors.outline }]}>
                                             <View>
-                                                <Text style={styles.topItemName}>{item.name}</Text>
-                                                <Text style={styles.topItemTag}>{item.tag}</Text>
+                                                <Text style={[styles.topItemName, { color: theme.colors.onSurface }]}>{item.name}</Text>
+                                                <Text style={[styles.topItemTag, { color: theme.colors.onSurfaceVariant }]}>{item.tag}</Text>
                                             </View>
                                             <Text style={styles.topItemValue}>${item.cost.toLocaleString()}</Text>
                                         </View>
                                     ))
                                 ) : (
-                                    <Text style={styles.emptyText}>Sin registros recientes</Text>
+                                    <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>Sin registros recientes</Text>
                                 )}
                             </WidgetCard>
 
@@ -157,25 +161,19 @@ export default function AssetsDashboardScreen() {
                     )}
                 </>
             )}
-        </ScrollView>
+        </ScreenContainer>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
     header: {
         padding: 20,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        marginBottom: 10,
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
     },
     statsRow: {
         flexDirection: 'row',
@@ -184,12 +182,10 @@ const styles = StyleSheet.create({
     },
     statCard: {
         flex: 1,
-        backgroundColor: '#fff',
         padding: 16,
         borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -206,21 +202,17 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
     },
     statTitle: {
         fontSize: 12,
-        color: '#666',
         marginTop: 2,
     },
     statSubtext: {
         fontSize: 10,
-        color: '#999',
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginHorizontal: 20,
         marginTop: 24,
         marginBottom: 12,
@@ -241,7 +233,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 8,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
@@ -249,7 +240,6 @@ const styles = StyleSheet.create({
     },
     actionText: {
         fontSize: 12,
-        color: '#333',
         textAlign: 'center',
     },
     widgetsContainer: {
@@ -258,11 +248,9 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     widgetCard: {
-        backgroundColor: '#fff',
         borderRadius: 12,
         padding: 16,
         borderLeftWidth: 4,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
@@ -271,7 +259,6 @@ const styles = StyleSheet.create({
     widgetTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 12,
     },
     widgetContent: {
@@ -280,11 +267,9 @@ const styles = StyleSheet.create({
     widgetBigNumber: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#333',
     },
     widgetLabel: {
         fontSize: 14,
-        color: '#666',
     },
     topItem: {
         flexDirection: 'row',
@@ -292,16 +277,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     topItemName: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#333',
     },
     topItemTag: {
         fontSize: 12,
-        color: '#888',
     },
     topItemValue: {
         fontSize: 14,
@@ -309,7 +291,6 @@ const styles = StyleSheet.create({
         color: '#D32F2F',
     },
     emptyText: {
-        color: '#999',
         fontStyle: 'italic',
         textAlign: 'center',
     },

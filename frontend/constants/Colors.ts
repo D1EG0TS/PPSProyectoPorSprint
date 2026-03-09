@@ -1,20 +1,78 @@
-export const Colors = {
-  primary: '#EEB600', // Naranja Exproof - Acento/Botones Primarios
-  secondary: '#333333', // Gris Oscuro (Texto/Títulos)
-  success: '#4CAF50', // Verde - Éxito (Status)
-  danger: '#D32F2F', // Rojo - Error (Status)
-  warning: '#FF5733', // Naranja Intenso - Advertencia (Status)
-  info: '#0dcaf0',
-  light: '#f8f9fa',
-  dark: '#333333', // Gris Oscuro
-  white: '#FFFFFF', // Blanco Neutro
+
+const Shared = {
+  brand: '#EEB600', // Naranja Exproof
+  white: '#FFFFFF',
+  black: '#000000',
   transparent: 'transparent',
-  background: '#FFFFFF', // Fondo Principal - Blanco Neutro
-  surface: '#F4F4F4', // Fondo Secundario/Tarjetas - Gris Claro
-  text: '#333333', // Texto Principal/Títulos - Gris Oscuro
-  textSecondary: '#666666', // Un gris intermedio para texto secundario
+  // Status Colors (Modernized - inspired by Tailwind CSS)
+  success: '#16A34A', // Green 600
+  successDark: '#22C55E', // Green 500
+  danger: '#DC2626', // Red 600
+  dangerDark: '#EF4444', // Red 500
+  warning: '#D97706', // Amber 600
+  warningDark: '#F59E0B', // Amber 500
+  info: '#0284C7', // Sky 600
+  infoDark: '#0EA5E9', // Sky 500
+};
+
+export const Colors = {
+  // Legacy/Backward Compatibility (will be deprecated gradually)
+  primary: Shared.brand,
+  secondary: '#333333',
+  success: Shared.success,
+  danger: Shared.danger,
+  warning: Shared.warning,
+  info: Shared.info,
+  light: '#f8f9fa',
+  dark: '#333333',
+  white: Shared.white,
+  transparent: Shared.transparent,
+  background: '#FFFFFF',
+  surface: '#F4F4F4',
+  text: '#333333',
+  textSecondary: '#666666',
   border: '#E0E0E0',
-  error: '#D32F2F', // Error
+  error: Shared.danger,
   gray: '#9E9E9E',
-  blueBadge: '#4CAF50', // Updated to match Success Green since Blue is not in palette
+  blueBadge: Shared.success,
+
+  // Modern Theme Definitions
+  lightScheme: {
+    primary: Shared.brand,
+    onPrimary: '#1A1A1A', // Dark text on yellow for contrast
+    secondary: '#4B5563', // Gray 600
+    onSecondary: '#FFFFFF',
+    background: '#F9FAFB', // Gray 50
+    surface: '#FFFFFF',
+    surfaceVariant: '#F3F4F6', // Gray 100
+    text: '#111827', // Gray 900
+    textSecondary: '#4B5563', // Gray 600
+    border: '#E5E7EB', // Gray 200
+    error: Shared.danger,
+    success: Shared.success,
+    warning: Shared.warning,
+    info: Shared.info,
+    icon: '#4B5563',
+    outline: '#E5E7EB',
+    backdrop: 'rgba(0, 0, 0, 0.5)',
+  },
+  darkScheme: {
+    primary: Shared.brand,
+    onPrimary: '#1A1A1A',
+    secondary: '#9CA3AF', // Gray 400
+    onSecondary: '#1F2937',
+    background: '#111827', // Gray 900
+    surface: '#1F2937', // Gray 800
+    surfaceVariant: '#374151', // Gray 700
+    text: '#F9FAFB', // Gray 50
+    textSecondary: '#9CA3AF', // Gray 400
+    border: '#374151', // Gray 700
+    error: Shared.dangerDark,
+    success: Shared.successDark,
+    warning: Shared.warningDark,
+    info: Shared.infoDark,
+    icon: '#9CA3AF',
+    outline: '#374151',
+    backdrop: 'rgba(0, 0, 0, 0.7)',
+  },
 };

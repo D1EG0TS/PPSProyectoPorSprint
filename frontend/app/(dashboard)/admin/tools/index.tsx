@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, IconButton, Chip, useTheme, ActivityIndicator, Searchbar, SegmentedButtons } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Table } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { getTools, Tool, ToolStatus } from '../../../../services/toolService';
@@ -87,67 +87,60 @@ export default function ToolsListScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <Text variant="headlineMedium">Gestión de Herramientas</Text>
-          <Button 
-            variant="primary" 
-            icon="plus" 
-            onPress={() => router.push('/(dashboard)/admin/tools/create')}
-          >
-            Nueva Herramienta
-          </Button>
-        </View>
+    <ScreenContainer>
+      <View style={styles.header}>
+        <Text variant="headlineMedium">Gestión de Herramientas</Text>
+        <Button 
+          variant="primary" 
+          icon="plus" 
+          onPress={() => router.push('/(dashboard)/admin/tools/create')}
+        >
+          Nueva Herramienta
+        </Button>
+      </View>
 
-        <View style={styles.filters}>
-          <Searchbar
-            placeholder="Buscar por serial..."
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchBar}
-          />
-          {/* Simple Status Filter using Chips or SegmentedButtons */}
-          {/* Using a horizontal ScrollView or specific buttons for key statuses */}
-        </View>
-        <View style={styles.statusFilters}>
-            <Chip 
-              selected={statusFilter === ''} 
-              onPress={() => setStatusFilter('')}
-              style={styles.filterChip}
-            >Todos</Chip>
-            <Chip 
-              selected={statusFilter === ToolStatus.AVAILABLE} 
-              onPress={() => setStatusFilter(ToolStatus.AVAILABLE)}
-              style={styles.filterChip}
-            >Disponibles</Chip>
-            <Chip 
-              selected={statusFilter === ToolStatus.ASSIGNED} 
-              onPress={() => setStatusFilter(ToolStatus.ASSIGNED)}
-              style={styles.filterChip}
-            >Asignadas</Chip>
-        </View>
+      <View style={styles.filters}>
+        <Searchbar
+          placeholder="Buscar por serial..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+        />
+        {/* Simple Status Filter using Chips or SegmentedButtons */}
+        {/* Using a horizontal ScrollView or specific buttons for key statuses */}
+      </View>
+      <View style={styles.statusFilters}>
+          <Chip 
+            selected={statusFilter === ''} 
+            onPress={() => setStatusFilter('')}
+            style={styles.filterChip}
+          >Todos</Chip>
+          <Chip 
+            selected={statusFilter === ToolStatus.AVAILABLE} 
+            onPress={() => setStatusFilter(ToolStatus.AVAILABLE)}
+            style={styles.filterChip}
+          >Disponibles</Chip>
+          <Chip 
+            selected={statusFilter === ToolStatus.ASSIGNED} 
+            onPress={() => setStatusFilter(ToolStatus.ASSIGNED)}
+            style={styles.filterChip}
+          >Asignadas</Chip>
+      </View>
 
-        {loading ? (
-          <ActivityIndicator style={styles.loader} size="large" />
-        ) : (
-          <Table
-            columns={columns}
-            data={tools}
-            keyExtractor={(item) => item.id.toString()}
-          />
-        )}
-      </ScrollableContent>
-    </View>
+      {loading ? (
+        <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+      ) : (
+        <Table
+          columns={columns}
+          data={tools}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      )}
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -159,7 +152,6 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     marginBottom: 8,
-    backgroundColor: 'white',
   },
   statusFilters: {
     flexDirection: 'row',

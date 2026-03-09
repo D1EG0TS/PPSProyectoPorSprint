@@ -5,7 +5,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from 'expo-router';
 import { documentDirectory, writeAsStringAsync, EncodingType } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { 
     getVehicleCompliance, 
     getEPPExpiration,
@@ -74,21 +74,21 @@ export default function ModeratorDashboard() {
             name: "Al Día",
             population: compliance.total_vehicles - compliance.vehicles_with_expired_docs - compliance.vehicles_pending_verification,
             color: "#66bb6a",
-            legendFontColor: "#7F7F7F",
+            legendFontColor: theme.colors.onSurface,
             legendFontSize: 12
         },
         {
             name: "Vencidos",
             population: compliance.vehicles_with_expired_docs,
             color: "#ef5350",
-            legendFontColor: "#7F7F7F",
+            legendFontColor: theme.colors.onSurface,
             legendFontSize: 12
         },
         {
             name: "Pendientes",
             population: compliance.vehicles_pending_verification,
             color: "#ffa726",
-            legendFontColor: "#7F7F7F",
+            legendFontColor: theme.colors.onSurface,
             legendFontSize: 12
         }
     ] : [];
@@ -96,16 +96,15 @@ export default function ModeratorDashboard() {
     const chartConfig = {
         backgroundGradientFrom: theme.colors.surface,
         backgroundGradientTo: theme.colors.surface,
-        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        color: (opacity = 1) => theme.colors.onSurface,
     };
 
     return (
-        <ScrollableContent 
-            containerStyle={styles.container}
+        <ScreenContainer 
             refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} />}
         >
             <View style={styles.header}>
-                <Text variant="headlineMedium">Dashboard Operativo</Text>
+                <Text variant="headlineMedium" style={{color: theme.colors.onBackground}}>Dashboard Operativo</Text>
                 <Button mode="contained" onPress={exportCSV} icon="download">Exportar CSV</Button>
             </View>
 
@@ -113,7 +112,7 @@ export default function ModeratorDashboard() {
             <View style={styles.kpiContainer}>
                 <Card style={styles.kpiCard}>
                     <Card.Content>
-                        <Text variant="titleMedium">Cumplimiento Vehicular</Text>
+                        <Text variant="titleMedium" style={{color: theme.colors.onSurface}}>Cumplimiento Vehicular</Text>
                         <Text variant="displaySmall" style={{color: theme.colors.primary}}>
                             {compliance ? `${(compliance.compliance_rate * 100).toFixed(0)}%` : '-'}
                         </Text>
@@ -126,18 +125,18 @@ export default function ModeratorDashboard() {
                 </Card>
                 <Card style={styles.kpiCard}>
                     <Card.Content>
-                        <Text variant="titleMedium">EPP por Vencer</Text>
+                        <Text variant="titleMedium" style={{color: theme.colors.onSurface}}>EPP por Vencer</Text>
                         <Text variant="displaySmall" style={{color: theme.colors.error}}>
                             {eppExpiration.length}
                         </Text>
-                        <Text variant="bodySmall">En los próximos 30 días</Text>
+                        <Text variant="bodySmall" style={{color: theme.colors.onSurfaceVariant}}>En los próximos 30 días</Text>
                     </Card.Content>
                 </Card>
             </View>
 
             {/* Charts */}
             <Card style={styles.chartCard}>
-                <Card.Title title="Estado Documental de Flota" />
+                <Card.Title title="Estado Documental de Flota" titleStyle={{color: theme.colors.onSurface}} />
                 <Card.Content>
                     {compliance && compliance.total_vehicles > 0 ? (
                         <PieChart
@@ -151,26 +150,26 @@ export default function ModeratorDashboard() {
                             center={[10, 0]}
                             absolute
                         />
-                    ) : <Text>No hay datos de vehículos</Text>}
+                    ) : <Text style={{color: theme.colors.onSurfaceVariant}}>No hay datos de vehículos</Text>}
                 </Card.Content>
             </Card>
 
             {/* EPP Table */}
             <Card style={styles.chartCard}>
-                <Card.Title title="Alertas de Caducidad EPP" />
+                <Card.Title title="Alertas de Caducidad EPP" titleStyle={{color: theme.colors.onSurface}} />
                 <DataTable>
                     <DataTable.Header>
-                        <DataTable.Title>Equipo</DataTable.Title>
-                        <DataTable.Title>Vence</DataTable.Title>
-                        <DataTable.Title numeric>Días</DataTable.Title>
+                        <DataTable.Title textStyle={{color: theme.colors.onSurfaceVariant}}>Equipo</DataTable.Title>
+                        <DataTable.Title textStyle={{color: theme.colors.onSurfaceVariant}}>Vence</DataTable.Title>
+                        <DataTable.Title numeric textStyle={{color: theme.colors.onSurfaceVariant}}>Días</DataTable.Title>
                     </DataTable.Header>
 
                     {eppExpiration.slice(0, 5).map((item) => (
                         <DataTable.Row key={item.id}>
-                            <DataTable.Cell>{item.product_name} ({item.serial_number})</DataTable.Cell>
-                            <DataTable.Cell>{item.expiration_date}</DataTable.Cell>
+                            <DataTable.Cell textStyle={{color: theme.colors.onSurface}}>{item.product_name} ({item.serial_number})</DataTable.Cell>
+                            <DataTable.Cell textStyle={{color: theme.colors.onSurface}}>{item.expiration_date}</DataTable.Cell>
                             <DataTable.Cell numeric>
-                                <Text style={{color: item.days_until_expiration < 0 ? 'red' : 'orange'}}>
+                                <Text style={{color: item.days_until_expiration < 0 ? theme.colors.error : 'orange'}}>
                                     {item.days_until_expiration}
                                 </Text>
                             </DataTable.Cell>
@@ -187,28 +186,29 @@ export default function ModeratorDashboard() {
             </Card>
             
             <View style={{height: 50}} />
-        </ScrollableContent>
+        </ScreenContainer>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 16,
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
+        flexWrap: 'wrap',
+        gap: 8,
     },
     kpiContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 16,
+        gap: 16,
+        flexWrap: 'wrap',
     },
     kpiCard: {
-        width: '48%',
+        flex: 1,
+        minWidth: 150,
     },
     chartCard: {
         marginBottom: 16,

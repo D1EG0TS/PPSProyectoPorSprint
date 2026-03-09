@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { TextInput, HelperText, TextInputProps } from 'react-native-paper';
 import { Control, Controller, FieldValues, Path, RegisterOptions } from 'react-hook-form';
+import { Layout } from '../constants/Layout';
 
 interface InputProps<T extends FieldValues> extends Omit<TextInputProps, 'theme' | 'error'> {
   name?: Path<T>;
@@ -101,7 +102,7 @@ export function Input<T extends FieldValues>({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 8,
+    marginBottom: Layout.spacing.sm,
     width: '100%',
   },
 });

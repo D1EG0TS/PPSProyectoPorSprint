@@ -4,8 +4,9 @@ import { Text, Switch, ActivityIndicator, useTheme } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Button } from '../../../../../components/Button';
 import { Input } from '../../../../../components/Input';
-import { FormGroup } from '../../../../../components/FormGroup';
 import { warehouseService } from '../../../../../services/warehouseService';
+import { Colors } from '../../../../../constants/Colors';
+import { Layout } from '../../../../../constants/Layout';
 
 export default function EditWarehouseScreen() {
   const router = useRouter();
@@ -88,32 +89,33 @@ export default function EditWarehouseScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text variant="headlineMedium">Editar Almacén</Text>
-        <Text variant="bodyMedium" style={{ color: theme.colors.outline }}>{formData.code}</Text>
+        <Text variant="bodyMedium" style={{ color: Colors.gray }}>{formData.code}</Text>
       </View>
 
       <View style={styles.form}>
-        <FormGroup label="Nombre" error={errors.name}>
-          <Input
-            value={formData.name}
-            onChangeText={(text) => setFormData({ ...formData, name: text })}
-            placeholder="Nombre del almacén"
-          />
-        </FormGroup>
+        <Input
+          label="Nombre"
+          value={formData.name}
+          onChangeText={(text) => setFormData({ ...formData, name: text })}
+          placeholder="Nombre del almacén"
+          error={errors.name}
+          containerStyle={styles.input}
+        />
 
-        <FormGroup label="Ubicación Física">
-          <Input
-            value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
-            placeholder="Dirección o descripción"
-          />
-        </FormGroup>
+        <Input
+          label="Ubicación Física"
+          value={formData.location}
+          onChangeText={(text) => setFormData({ ...formData, location: text })}
+          placeholder="Dirección o descripción"
+          containerStyle={styles.input}
+        />
 
         <View style={styles.switchContainer}>
           <Text variant="bodyLarge">Activo</Text>
           <Switch
             value={formData.is_active}
             onValueChange={(val) => setFormData({ ...formData, is_active: val })}
-            color={theme.colors.primary}
+            color={Colors.primary}
           />
         </View>
 
@@ -144,30 +146,37 @@ export default function EditWarehouseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: Layout.spacing.md,
+    backgroundColor: Colors.background,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    marginBottom: 24,
+    marginBottom: Layout.spacing.lg,
   },
   form: {
     maxWidth: 600,
+  },
+  input: {
+    marginBottom: Layout.spacing.md,
   },
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 24,
-    paddingVertical: 8,
+    marginBottom: Layout.spacing.lg,
+    paddingVertical: Layout.spacing.sm,
+    backgroundColor: Colors.white,
+    paddingHorizontal: Layout.spacing.md,
+    borderRadius: Layout.borderRadius.md,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 24,
-    gap: 16,
+    marginTop: Layout.spacing.md,
+    gap: Layout.spacing.md,
   },
   button: {
     minWidth: 120,

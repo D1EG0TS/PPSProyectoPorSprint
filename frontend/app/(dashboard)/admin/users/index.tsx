@@ -2,17 +2,21 @@ import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, FAB, IconButton, Chip, useTheme, Searchbar } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
-import { Table } from '../../../../components/Table';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
+import { Table, Column } from '../../../../components/Table';
+import { Card } from '../../../../components/Card';
+import { Input } from '../../../../components/Input';
 import userService, { User, CreateUserData, UpdateUserData } from '../../../../services/userService';
 import { getRoleName } from '../../../../constants/roles';
 import { Colors } from '../../../../constants/Colors';
+import { Layout } from '../../../../constants/Layout';
 import { UserDialog } from '../../../../components/admin/users/UserDialog';
 import { UserPermissionsDialog } from '../../../../components/admin/users/UserPermissionsDialog';
 import { USER_ROLES } from '../../../../constants/roles';
 
 export default function UsersListScreen() {
   const [users, setUsers] = useState<User[]>([]);
+  // ... (rest of state)
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -108,7 +112,50 @@ export default function UsersListScreen() {
     }
   };
 
-  const columns = [
+  const renderUserCard = (user: User) => (
+    <Card
+      title={user.full_name}
+      subtitle={user.email}
+      footer={
+        <View style={styles.cardActions}>
+          {user.role_id !== USER_ROLES.SUPER_ADMIN && (
+             <IconButton 
+                icon="shield-account" 
+                size={20} 
+                iconColor={Colors.primary}
+                onPress={() => handleOpenPermissions(user)} 
+             />
+          )}
+          <IconButton icon="pencil" size={20} onPress={() => handleOpenEdit(user)} />
+          <IconButton 
+            icon="delete" 
+            size={20} 
+            iconColor={Colors.error}
+            onPress={() => handleDelete(user)} 
+          />
+        </View>
+      }
+    >
+      <View style={styles.cardContent}>
+        <View style={styles.row}>
+            <Text style={styles.label}>Rol:</Text>
+            <Chip mode="outlined" style={styles.chip} textStyle={{fontSize: 12}}>{getRoleName(user.role_id)}</Chip>
+        </View>
+        <View style={styles.row}>
+            <Text style={styles.label}>Estado:</Text>
+            <Chip 
+              mode="flat" 
+              style={{ backgroundColor: user.is_active ? Colors.success + '20' : Colors.error + '20', height: 28 }}
+              textStyle={{ color: user.is_active ? Colors.success : Colors.error, fontSize: 12 }}
+            >
+              {user.is_active ? 'Activo' : 'Inactivo'}
+            </Chip>
+        </View>
+      </View>
+    </Card>
+  );
+
+  const columns: Column<User>[] = [
     { key: 'id', label: 'ID', numeric: true, width: 60 },
     { key: 'full_name', label: 'Nombre', width: 150 },
     { key: 'email', label: 'Email', width: 220 },
@@ -159,15 +206,16 @@ export default function UsersListScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScreenContainer>
         <View style={styles.header}>
-          <Text variant="headlineMedium">Gestión de Usuarios</Text>
-          <Searchbar
+          <Text variant="headlineMedium" style={{ color: theme.colors.onBackground }}>Gestión de Usuarios</Text>
+          <Input
             placeholder="Buscar usuarios..."
             onChangeText={setSearchQuery}
             value={searchQuery}
-            style={styles.searchbar}
+            containerStyle={styles.searchbar}
+            right={<IconButton icon="magnify" />}
           />
         </View>
 
@@ -179,13 +227,15 @@ export default function UsersListScreen() {
           itemsPerPage={10}
           emptyMessage="No se encontraron usuarios"
           minWidth={800}
+          renderCard={renderUserCard}
         />
-      </ScrollableContent>
+      </ScreenContainer>
 
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
         onPress={handleOpenCreate}
+        color={theme.colors.onPrimary}
       />
 
       <UserDialog
@@ -208,16 +258,13 @@ export default function UsersListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: Layout.spacing.md,
+    gap: Layout.spacing.sm,
   },
   searchbar: {
-    elevation: 0,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    backgroundColor: Colors.white,
   },
   actions: {
     flexDirection: 'row',
@@ -227,8 +274,25 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: Layout.spacing.md,
     right: 0,
     bottom: 0,
   },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  cardContent: {
+    gap: 4,
+  },
+  row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 4,
+  },
+  label: {
+      fontWeight: 'bold',
+      marginRight: 8,
+      width: 60,
+  }
 });

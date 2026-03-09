@@ -7,7 +7,7 @@ class ProductLocationAssignmentBase(BaseModel):
     product_id: int
     batch_id: Optional[int] = None
     location_id: int
-    warehouse_id: int
+    warehouse_id: Optional[int] = None # Optional in request, inferred from location
     quantity: int
     assignment_type: AssignmentType = AssignmentType.MANUAL
     is_primary: bool = False
@@ -15,6 +15,8 @@ class ProductLocationAssignmentBase(BaseModel):
 
 class ProductLocationAssignmentCreate(ProductLocationAssignmentBase):
     assigned_by: Optional[int] = None # Can be inferred from context
+    product_id: Optional[int] = None # Can be inferred from URL
+    warehouse_id: Optional[int] = None # Optional in request
 
 class ProductLocationAssignmentUpdate(BaseModel):
     quantity: Optional[int] = None
@@ -33,3 +35,8 @@ class ProductRelocationRequest(BaseModel):
     to_location_id: int
     quantity: int
     reason: Optional[str] = None
+
+class ProductLocationAssignmentCreate(ProductLocationAssignmentBase):
+    assigned_by: Optional[int] = None # Can be inferred from context
+    product_id: Optional[int] = None # Can be inferred from URL
+

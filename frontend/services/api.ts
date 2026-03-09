@@ -36,8 +36,16 @@ const getBaseUrl = () => {
   return 'http://localhost:8000';
 }
 
-const API_URL = getBaseUrl();
+export const API_URL = getBaseUrl();
 console.log('API URL configured as:', API_URL);
+
+export const getImageUrl = (path: string | null | undefined) => {
+  if (!path) return 'https://via.placeholder.com/300';
+  if (path.startsWith('http')) return path;
+  // Handle relative paths correctly
+  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  return `${API_URL}/${cleanPath}`;
+};
 
 const api = axios.create({
   baseURL: API_URL,
@@ -81,12 +89,14 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    console.error('[API Error]', {
-        message: error.message,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        status: error.response?.status,
-        data: error.response?.data
+    const isReports404 = error.response?.status === 404 && String(error.config?.url || '').startsWith('/reports/');
+    const logFn = isReports404 ? console.warn : console.error;
+    logFn('[API Error]', {
+      message: error.message,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      status: error.response?.status,
+      data: error.response?.data
     });
     const originalRequest = error.config;
 

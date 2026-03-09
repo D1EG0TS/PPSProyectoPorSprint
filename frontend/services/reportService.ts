@@ -35,18 +35,39 @@ export interface EPPExpiration {
 }
 
 export const getInventorySummary = async (): Promise<InventorySummary> => {
-    const response = await api.get('/reports/inventory/summary');
-    return response.data;
+    try {
+        const response = await api.get('/reports/inventory/summary');
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return { total_items: 0, total_value: 0, total_products: 0 };
+        }
+        throw e;
+    }
 };
 
 export const getInventoryTurnover = async (periodDays: number = 30): Promise<InventoryTurnover[]> => {
-    const response = await api.get(`/reports/inventory/turnover?period_days=${periodDays}`);
-    return response.data;
+    try {
+        const response = await api.get(`/reports/inventory/turnover?period_days=${periodDays}`);
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return [];
+        }
+        throw e;
+    }
 };
 
 export const getMovementsSummary = async (period: 'week' | 'month' | 'year' = 'month'): Promise<MovementSummary[]> => {
-    const response = await api.get(`/reports/movements/summary?period=${period}`);
-    return response.data;
+    try {
+        const response = await api.get(`/reports/movements/summary?period=${period}`);
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return [];
+        }
+        throw e;
+    }
 };
 
 export interface MovementDaily {
@@ -56,16 +77,42 @@ export interface MovementDaily {
 }
 
 export const getMovementsDaily = async (days: number = 30): Promise<MovementDaily[]> => {
-    const response = await api.get(`/reports/movements/daily?days=${days}`);
-    return response.data;
+    try {
+        const response = await api.get(`/reports/movements/daily?days=${days}`);
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return [];
+        }
+        throw e;
+    }
 };
 
 export const getVehicleCompliance = async (): Promise<VehicleCompliance> => {
-    const response = await api.get('/reports/vehicles/compliance');
-    return response.data;
+    try {
+        const response = await api.get('/reports/vehicles/compliance');
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return {
+                total_vehicles: 0,
+                vehicles_with_expired_docs: 0,
+                vehicles_pending_verification: 0,
+                compliance_rate: 0,
+            };
+        }
+        throw e;
+    }
 };
 
 export const getEPPExpiration = async (days: number = 30): Promise<EPPExpiration[]> => {
-    const response = await api.get(`/reports/epp/expiration?days=${days}`);
-    return response.data;
+    try {
+        const response = await api.get(`/reports/epp/expiration?days=${days}`);
+        return response.data;
+    } catch (e: any) {
+        if (e?.response?.status === 404) {
+            return [];
+        }
+        throw e;
+    }
 };

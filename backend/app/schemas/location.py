@@ -5,7 +5,7 @@ from app.models.location_models import LocationType
 class StorageLocationBase(BaseModel):
     warehouse_id: Optional[int] = None
     parent_location_id: Optional[int] = None
-    code: str
+    code: Optional[str] = None # Optional for auto-generation
     name: str
     location_type: LocationType = LocationType.SHELF
     

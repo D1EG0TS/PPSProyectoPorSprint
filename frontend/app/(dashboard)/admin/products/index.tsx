@@ -1,15 +1,21 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Platform } from 'react-native';
-import { Text, IconButton, Chip, useTheme, ActivityIndicator, Searchbar, Menu, Divider } from 'react-native-paper';
+
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet, Alert, Platform, ScrollView } from 'react-native';
+import { Text, IconButton, Chip, useTheme, ActivityIndicator, Menu, Divider } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
+import { EmptyState } from '../../../../components/EmptyState';
 import { getProducts, deleteProduct, updateProduct, Product, getCategories, Category } from '../../../../services/productService';
 import { useAuth } from '../../../../hooks/useAuth';
 import { usePermission } from '../../../../hooks/usePermission';
+import { useResponsive } from '../../../../hooks/useResponsive';
 import { AccessDenied } from '../../../../components/AccessDenied';
 import { Colors } from '../../../../constants/Colors';
+import { Layout } from '../../../../constants/Layout';
+import { Input } from '../../../../components/Input';
 
 export default function ProductsListScreen() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -22,8 +28,8 @@ export default function ProductsListScreen() {
   
   const router = useRouter();
   const theme = useTheme();
-  const { user } = useAuth();
   const { hasPermission } = usePermission();
+  const { isMobile } = useResponsive();
 
   const loadData = async () => {
     try {
@@ -104,7 +110,7 @@ export default function ProductsListScreen() {
     const rows = products.map(p => [
       p.id,
       p.sku,
-      `"${p.name}"`, // Quote name to handle commas
+      `"${p.name}"`, 
       p.category_id,
       p.unit_id,
       p.cost,
@@ -116,8 +122,6 @@ export default function ProductsListScreen() {
     
     const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
     
-    // In a real web app, we would trigger a download. 
-    // For Expo Web/Mobile, we can just alert or log for now, or use Sharing.
     console.log(csvContent);
     if (Platform.OS === 'web') {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -136,6 +140,52 @@ export default function ProductsListScreen() {
     }
   };
 
+  const renderProductCard = (p: Product) => (
+    <Card
+      title={p.name}
+      subtitle={`SKU: ${p.sku}`}
+      mode="elevated"
+      footer={
+        <View style={styles.cardActions}>
+          <IconButton 
+            icon="pencil" 
+            size={20} 
+            onPress={() => router.push(`/(dashboard)/admin/products/${p.id}/edit`)} 
+          />
+          {p.has_batch && (
+             <IconButton 
+             icon="barcode" 
+             size={20} 
+             onPress={() => router.push(`/(dashboard)/admin/products/${p.id}/batches`)} 
+           />
+          )}
+          <IconButton 
+            icon={p.is_active ? "delete" : "refresh"} 
+            size={20} 
+            iconColor={p.is_active ? theme.colors.error : theme.colors.primary}
+            onPress={() => p.is_active ? handleDelete(p) : handleRestore(p)} 
+          />
+        </View>
+      }
+    >
+      <View style={styles.cardContent}>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>Precio: ${p.price}</Text>
+        <Chip 
+          icon={p.is_active ? 'check' : 'close'} 
+          mode="outlined" 
+          style={{ 
+            borderColor: p.is_active ? theme.colors.primary : theme.colors.error, 
+            alignSelf: 'flex-start', 
+            marginTop: 8 
+          }}
+          textStyle={{ color: theme.colors.onSurface }}
+        >
+            {p.is_active ? 'Activo' : 'Inactivo'}
+        </Chip>
+      </View>
+    </Card>
+  );
+
   const columns: Column<Product>[] = [
     { key: 'sku', label: 'SKU' },
     { key: 'name', label: 'Nombre' },
@@ -144,7 +194,12 @@ export default function ProductsListScreen() {
       key: 'is_active', 
       label: 'Estado', 
       renderCell: (p) => (
-        <Chip icon={p.is_active ? 'check' : 'close'} mode="outlined" style={{ borderColor: p.is_active ? Colors.success : Colors.error }}>
+        <Chip 
+          icon={p.is_active ? 'check' : 'close'} 
+          mode="outlined" 
+          style={{ borderColor: p.is_active ? theme.colors.primary : theme.colors.error }}
+          textStyle={{ color: theme.colors.onSurface }}
+        >
             {p.is_active ? 'Activo' : 'Inactivo'}
         </Chip>
       )
@@ -169,7 +224,7 @@ export default function ProductsListScreen() {
           <IconButton 
             icon={p.is_active ? "delete" : "refresh"} 
             size={20} 
-            iconColor={p.is_active ? Colors.error : Colors.primary}
+            iconColor={p.is_active ? theme.colors.error : theme.colors.primary}
             onPress={() => p.is_active ? handleDelete(p) : handleRestore(p)} 
           />
         </View>
@@ -177,116 +232,149 @@ export default function ProductsListScreen() {
     }
   ];
 
+  const ActionButtons = () => (
+    <>
+        <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/categories')} style={{ marginRight: 8 }}>
+            Categorías
+        </Button>
+        <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/units')} style={{ marginRight: 8 }}>
+            Unidades
+        </Button>
+        <Button variant="outline" icon="download" onPress={handleExportCSV} style={{ marginRight: 8 }}>
+            Exportar
+        </Button>
+        <Button 
+        variant="primary" 
+        icon="plus" 
+        onPress={() => router.push('/(dashboard)/admin/products/create')}
+        >
+        Registrar Nuevo
+        </Button>
+    </>
+  );
+
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <View>
-              <Text variant="headlineMedium">Gestión de Productos</Text>
-              <Text variant="bodyMedium" style={{ color: Colors.gray }}>{products.length} productos encontrados</Text>
-          </View>
-          <View style={styles.headerButtons}>
-              <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/categories')} style={{ marginRight: 8 }}>
-                  Categorías
-              </Button>
-              <Button variant="outline" onPress={() => router.push('/(dashboard)/admin/units')} style={{ marginRight: 8 }}>
-                  Unidades
-              </Button>
-              <Button variant="outline" icon="download" onPress={handleExportCSV} style={{ marginRight: 8 }}>
-                  Exportar
-              </Button>
-              <Button 
-              variant="primary" 
-              icon="plus" 
-              onPress={() => router.push('/(dashboard)/admin/products/create')}
-              >
-              Registrar Nuevo
-              </Button>
-          </View>
+    <ScreenContainer>
+      <View style={styles.header}>
+        <View>
+            <Text variant="headlineMedium" style={{ color: theme.colors.onBackground, fontWeight: 'bold' }}>Gestión de Productos</Text>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>{products.length} productos encontrados</Text>
         </View>
-
-        <View style={styles.filters}>
-          <Searchbar
-              placeholder="Buscar por nombre o SKU"
-              onChangeText={setSearchQuery}
-              value={searchQuery}
-              style={styles.searchbar}
-          />
-          <Menu
-              visible={showCategoryMenu}
-              onDismiss={() => setShowCategoryMenu(false)}
-              anchor={
-                  <Button variant="outline" onPress={() => setShowCategoryMenu(true)} icon="filter">
-                      {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name || 'Categoría' : 'Todas las Categorías'}
-                  </Button>
-              }
-          >
-              <Menu.Item onPress={() => { setSelectedCategory(undefined); setShowCategoryMenu(false); }} title="Todas" />
-              <Divider />
-              {categories.map(cat => (
-                  <Menu.Item key={cat.id} onPress={() => { setSelectedCategory(cat.id); setShowCategoryMenu(false); }} title={cat.name} />
-              ))}
-          </Menu>
-          <Button 
-            variant={showInactive ? "primary" : "outline"} 
-            onPress={() => setShowInactive(!showInactive)} 
-            icon={showInactive ? "eye" : "eye-off"}
-          >
-            {showInactive ? "Ocultar Inactivos" : "Mostrar Inactivos"}
-          </Button>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator style={styles.loader} size="large" />
+        
+        {/* Responsive Action Buttons */}
+        {isMobile ? (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              style={styles.mobileActionsScroll}
+              contentContainerStyle={styles.mobileActionsContainer}
+            >
+                <ActionButtons />
+            </ScrollView>
         ) : (
-          <Table
-            columns={columns}
-            data={products}
-            keyExtractor={(item) => item.id.toString()}
-            itemsPerPage={10}
-            emptyMessage="No se encontraron productos"
-          />
+            <View style={styles.headerButtons}>
+                <ActionButtons />
+            </View>
         )}
-      </ScrollableContent>
-    </View>
+      </View>
+
+      <View style={styles.filters}>
+        <Input
+            placeholder="Buscar por nombre o SKU"
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            containerStyle={styles.searchbar}
+            right={<IconButton icon="magnify" />}
+        />
+        <Menu
+            visible={showCategoryMenu}
+            onDismiss={() => setShowCategoryMenu(false)}
+            anchor={
+                <Button variant="outline" onPress={() => setShowCategoryMenu(true)} icon="filter">
+                    {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name || 'Categoría' : 'Todas las Categorías'}
+                </Button>
+            }
+        >
+            <Menu.Item onPress={() => { setSelectedCategory(undefined); setShowCategoryMenu(false); }} title="Todas" />
+            <Divider />
+            {categories.map(cat => (
+                <Menu.Item key={cat.id} onPress={() => { setSelectedCategory(cat.id); setShowCategoryMenu(false); }} title={cat.name} />
+            ))}
+        </Menu>
+        <Button 
+          variant={showInactive ? "primary" : "outline"} 
+          onPress={() => setShowInactive(!showInactive)} 
+          icon={showInactive ? "eye" : "eye-off"}
+        >
+          {showInactive ? "Ocultar Inactivos" : "Mostrar Inactivos"}
+        </Button>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+      ) : products.length === 0 ? (
+        <EmptyState 
+          title="No se encontraron productos"
+          description="Intenta ajustar los filtros de búsqueda o crea un nuevo producto."
+          icon="package-variant-closed"
+          actionLabel="Crear Producto"
+          onAction={() => router.push('/(dashboard)/admin/products/create')}
+        />
+      ) : (
+        <Table
+          columns={columns}
+          data={products}
+          keyExtractor={(item) => item.id.toString()}
+          itemsPerPage={10}
+          renderCard={renderProductCard}
+        />
+      )}
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: Colors.background,
-  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    flexWrap: 'wrap',
-    gap: 16,
+    marginBottom: Layout.spacing.lg,
+    gap: Layout.spacing.md,
   },
   headerButtons: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 8,
+  },
+  mobileActionsScroll: {
+      marginTop: 8,
+      flexGrow: 0,
+  },
+  mobileActionsContainer: {
+      paddingRight: 16,
+      alignItems: 'center',
   },
   filters: {
       flexDirection: 'row',
-      marginBottom: 16,
-      gap: 16,
+      marginBottom: Layout.spacing.md,
+      gap: Layout.spacing.md,
       alignItems: 'center',
+      flexWrap: 'wrap',
   },
   searchbar: {
       flex: 1,
+      minWidth: 200,
       maxWidth: 400,
-      backgroundColor: Colors.white,
-  },
-  content: {
-    flex: 1,
   },
   loader: {
     marginTop: 50,
   },
   actions: {
     flexDirection: 'row',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  cardContent: {
+    gap: 4,
   },
 });

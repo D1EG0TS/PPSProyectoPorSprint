@@ -2,13 +2,16 @@ import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, IconButton, Chip, useTheme, ActivityIndicator } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
-import { Table } from '../../../../components/Table';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
+import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
 import { warehouseService, Warehouse } from '../../../../services/warehouseService';
 import { useAuth } from '../../../../hooks/useAuth';
 import { usePermission } from '../../../../hooks/usePermission';
 import { AccessDenied } from '../../../../components/AccessDenied';
+import { Layout } from '../../../../constants/Layout';
+import { Colors } from '../../../../constants/Colors';
 
 export default function WarehousesListScreen() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -66,114 +69,146 @@ export default function WarehousesListScreen() {
     );
   };
 
-  return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <Text variant="headlineMedium">Gestión de Almacenes</Text>
-          {hasPermission('warehouses:manage') && (
-            <Button 
-              variant="primary" 
-              icon="plus" 
-              onPress={() => router.push('/(dashboard)/admin/warehouses/create')}
-            >
-              Crear Almacén
-            </Button>
-          )}
+  const renderWarehouseCard = (wh: Warehouse) => (
+    <Card
+      title={wh.name}
+      subtitle={`Código: ${wh.code}`}
+      footer={
+        <View style={styles.cardActions}>
+            <IconButton 
+              icon="pencil" 
+              size={20} 
+              onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/edit`)}
+            />
+            <IconButton 
+              icon="file-tree" 
+              size={20} 
+              onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/locations`)}
+            />
+            {wh.is_active && (
+              <IconButton 
+                  icon="delete" 
+                  size={20} 
+                  iconColor={theme.colors.error}
+                  onPress={() => handleDelete(wh)}
+              />
+            )}
         </View>
+      }
+    >
+      <View style={styles.cardContent}>
+        <Text variant="bodyMedium">Ubicación: {wh.location || '-'}</Text>
+        <Chip 
+            compact 
+            mode="outlined" 
+            style={{ backgroundColor: wh.is_active ? Colors.success + '20' : Colors.error + '20', alignSelf: 'flex-start' }}
+            textStyle={{ color: wh.is_active ? Colors.success : Colors.error, fontSize: 10 }}
+        >
+            {wh.is_active ? 'Activo' : 'Inactivo'}
+        </Chip>
+      </View>
+    </Card>
+  );
 
-        {loading ? (
-          <ActivityIndicator style={styles.loader} size="large" />
-        ) : (
-          <View style={styles.listContainer}>
-              {/* Simple header */}
-              <View style={[styles.row, styles.headerRow, { backgroundColor: theme.colors.elevation.level1 }]}>
-                  <Text style={[styles.cell, { flex: 1, fontWeight: 'bold' }]}>Código</Text>
-                  <Text style={[styles.cell, { flex: 2, fontWeight: 'bold' }]}>Nombre</Text>
-                  <Text style={[styles.cell, { flex: 2, fontWeight: 'bold' }]}>Ubicación</Text>
-                  <Text style={[styles.cell, { flex: 1, fontWeight: 'bold' }]}>Estado</Text>
-                  <Text style={[styles.cell, { flex: 1.5, fontWeight: 'bold' }]}>Acciones</Text>
-              </View>
+  const columns: Column<Warehouse>[] = [
+    { key: 'code', label: 'Código', width: 80 },
+    { key: 'name', label: 'Nombre', flex: 2 },
+    { key: 'location', label: 'Ubicación', flex: 2, renderCell: (w) => <Text>{w.location || '-'}</Text> },
+    { 
+        key: 'is_active', 
+        label: 'Estado', 
+        width: 100,
+        renderCell: (w) => (
+            <Chip 
+                compact 
+                mode="outlined" 
+                style={{ backgroundColor: w.is_active ? Colors.success + '20' : Colors.error + '20' }}
+                textStyle={{ color: w.is_active ? Colors.success : Colors.error, fontSize: 10 }}
+            >
+                {w.is_active ? 'Activo' : 'Inactivo'}
+            </Chip>
+        )
+    },
+    {
+        key: 'actions',
+        label: 'Acciones',
+        width: 120,
+        renderCell: (wh) => (
+            <View style={styles.actions}>
+                <IconButton 
+                  icon="pencil" 
+                  size={20} 
+                  onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/edit`)}
+                />
+                <IconButton 
+                  icon="file-tree" 
+                  size={20} 
+                  onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/locations`)}
+                />
+                {wh.is_active && (
+                  <IconButton 
+                      icon="delete" 
+                      size={20} 
+                      iconColor={theme.colors.error}
+                      onPress={() => handleDelete(wh)}
+                  />
+                )}
+            </View>
+        )
+    }
+  ];
 
-              {warehouses.map((wh) => (
-                <View key={wh.id} style={[styles.row, { borderBottomColor: theme.colors.outlineVariant }]}>
-                    <Text style={[styles.cell, { flex: 1 }]}>{wh.code}</Text>
-                    <Text style={[styles.cell, { flex: 2 }]}>{wh.name}</Text>
-                    <Text style={[styles.cell, { flex: 2 }]}>{wh.location || '-'}</Text>
-                    <View style={[styles.cell, { flex: 1 }]}>
-                      <Chip 
-                          compact 
-                          mode="outlined" 
-                          style={{ backgroundColor: wh.is_active ? '#E8F5E9' : '#FFEBEE' }}
-                          textStyle={{ color: wh.is_active ? '#2E7D32' : '#C62828', fontSize: 10 }}
-                      >
-                          {wh.is_active ? 'Activo' : 'Inactivo'}
-                      </Chip>
-                    </View>
-                    <View style={[styles.cell, { flex: 1.5, flexDirection: 'row' }]}>
-                        <IconButton 
-                          icon="pencil" 
-                          size={20} 
-                          onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/edit`)}
-                        />
-                        <IconButton 
-                          icon="file-tree" 
-                          size={20} 
-                          onPress={() => router.push(`/(dashboard)/admin/warehouses/${wh.id}/locations`)}
-                        />
-                        {wh.is_active && (
-                          <IconButton 
-                              icon="delete" 
-                              size={20} 
-                              iconColor={theme.colors.error}
-                              onPress={() => handleDelete(wh)}
-                          />
-                        )}
-                    </View>
-                </View>
-              ))}
-              
-              {warehouses.length === 0 && (
-                  <Text style={{ padding: 20, textAlign: 'center' }}>No hay almacenes registrados</Text>
-              )}
-          </View>
+  return (
+    <ScreenContainer>
+      <View style={styles.header}>
+        <Text variant="headlineMedium" style={{ color: theme.colors.onBackground }}>Gestión de Almacenes</Text>
+        {hasPermission('warehouses:manage') && (
+          <Button 
+            variant="primary" 
+            icon="plus" 
+            onPress={() => router.push('/(dashboard)/admin/warehouses/create')}
+          >
+            Crear Almacén
+          </Button>
         )}
-      </ScrollableContent>
-    </View>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+      ) : (
+        <Table
+          columns={columns}
+          data={warehouses}
+          keyExtractor={(item) => item.id.toString()}
+          itemsPerPage={10}
+          emptyMessage="No hay almacenes registrados"
+          renderCard={renderWarehouseCard}
+        />
+      )}
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: Layout.spacing.lg,
+    flexWrap: 'wrap',
+    gap: Layout.spacing.sm,
   },
   loader: {
     marginTop: 50,
   },
-  listContainer: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  row: {
+  actions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
   },
-  headerRow: {
-    borderBottomWidth: 2,
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
-  cell: {
-    paddingHorizontal: 4,
-  }
+  cardContent: {
+    gap: 8,
+  },
 });

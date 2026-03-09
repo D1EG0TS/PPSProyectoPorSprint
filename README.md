@@ -81,7 +81,7 @@ npx expo start -c
 ### Subir cambios a GIT
 ```bash
 git add .
-git commit -m "Descripción de los cambios"
+git commit -m "2022026"
 git push origin main
 ```
 ### BAJAR CAMBIOS DE GIT

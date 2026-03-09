@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Button as PaperButton, Card, IconButton, HelperText, Divider, Menu, TextInput } from 'react-native-paper';
+import { Text, Button as PaperButton, Card, IconButton, HelperText, Divider, Menu, TextInput, useTheme } from 'react-native-paper';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Colors } from '../../../../constants/Colors';
 import { ProductSearch } from '../../../../components/products/ProductSearch';
 import { Input } from '../../../../components/Input';
@@ -51,6 +51,7 @@ type RequestFormData = z.infer<typeof requestSchema>;
 
 export default function CreateRequestScreen() {
   const router = useRouter();
+  const theme = useTheme();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showTypeMenu, setShowTypeMenu] = useState(false);
@@ -157,17 +158,17 @@ export default function CreateRequestScreen() {
   };
 
   return (
-    <ScrollableContent containerStyle={styles.container} contentContainerStyle={styles.content}>
-      <Text variant="headlineMedium" style={styles.title}>Nueva Solicitud</Text>
+    <ScreenContainer>
+      <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>Nueva Solicitud</Text>
 
       {/* General Info */}
       <Card style={styles.card}>
         <Card.Content>
-          <Text variant="titleMedium" style={styles.cardTitle}>Información General</Text>
+          <Text variant="titleMedium" style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Información General</Text>
           
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.label}>Tipo de Movimiento</Text>
+                <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Tipo de Movimiento</Text>
                 <Menu
                     visible={showTypeMenu}
                     onDismiss={() => setShowTypeMenu(false)}
@@ -187,12 +188,12 @@ export default function CreateRequestScreen() {
           {/* Warehouses based on Type */}
           {(watchType === MovementType.OUT || watchType === MovementType.TRANSFER || watchType === MovementType.ADJUSTMENT) && (
              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Almacén Origen</Text>
+                <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Almacén Origen</Text>
                 <Menu
                     visible={showSourceMenu}
                     onDismiss={() => setShowSourceMenu(false)}
                     anchor={
-                    <PaperButton mode="outlined" onPress={() => setShowSourceMenu(true)} style={{ borderColor: errors.source_warehouse_id ? Colors.error : undefined }}>
+                    <PaperButton mode="outlined" onPress={() => setShowSourceMenu(true)} style={{ borderColor: errors.source_warehouse_id ? theme.colors.error : undefined }}>
                         {getSourceWarehouseName()}
                     </PaperButton>
                     }
@@ -207,12 +208,12 @@ export default function CreateRequestScreen() {
 
           {(watchType === MovementType.IN || watchType === MovementType.TRANSFER) && (
              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Almacén Destino</Text>
+                <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Almacén Destino</Text>
                  <Menu
                     visible={showDestMenu}
                     onDismiss={() => setShowDestMenu(false)}
                     anchor={
-                    <PaperButton mode="outlined" onPress={() => setShowDestMenu(true)} style={{ borderColor: errors.destination_warehouse_id ? Colors.error : undefined }}>
+                    <PaperButton mode="outlined" onPress={() => setShowDestMenu(true)} style={{ borderColor: errors.destination_warehouse_id ? theme.colors.error : undefined }}>
                          {getDestWarehouseName()}
                     </PaperButton>
                     }
@@ -234,17 +235,17 @@ export default function CreateRequestScreen() {
       {/* Items Section */}
       <Card style={styles.card}>
         <Card.Content>
-            <Text variant="titleMedium" style={styles.cardTitle}>Items</Text>
+            <Text variant="titleMedium" style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Items</Text>
             
             <View style={{ marginBottom: 16 }}>
                 <ProductSearch onSelect={handleProductSelect} />
             </View>
 
             {fields.map((item, index) => (
-                <View key={item.id} style={styles.itemRow}>
+                <View key={item.id} style={[styles.itemRow, { borderBottomColor: theme.colors.outline }]}>
                     <View style={styles.itemInfo}>
-                        <Text style={styles.itemName}>{item.product_name}</Text>
-                        <Text style={styles.itemSku}>{item.sku}</Text>
+                        <Text style={[styles.itemName, { color: theme.colors.onSurface }]}>{item.product_name}</Text>
+                        <Text style={[styles.itemSku, { color: theme.colors.onSurfaceVariant }]}>{item.sku}</Text>
                         <Controller
                             control={control}
                             name={`items.${index}.notes`}
@@ -255,6 +256,8 @@ export default function CreateRequestScreen() {
                                     onChangeText={onChange}
                                     style={styles.notesInput}
                                     dense
+                                    textColor={theme.colors.onSurface}
+                                    placeholderTextColor={theme.colors.onSurfaceVariant}
                                 />
                             )}
                         />
@@ -269,7 +272,7 @@ export default function CreateRequestScreen() {
                                     keyboardType="numeric"
                                     value={String(value)}
                                     onChangeText={text => onChange(Number(text) || 0)}
-                                    style={styles.qtyInput}
+                                    style={[styles.qtyInput, { backgroundColor: theme.colors.surface }]}
                                     dense
                                     mode="outlined"
                                     label="Cant."
@@ -278,7 +281,7 @@ export default function CreateRequestScreen() {
                         />
                     </View>
 
-                    <IconButton icon="delete" iconColor={Colors.error} onPress={() => remove(index)} />
+                    <IconButton icon="delete" iconColor={theme.colors.error} onPress={() => remove(index)} />
                 </View>
             ))}
             {errors.items && <HelperText type="error">{errors.items.message}</HelperText>}
@@ -300,33 +303,23 @@ export default function CreateRequestScreen() {
             onPress={handleSubmit((data) => onSubmit(data, true))} 
             loading={submitting} 
             style={styles.button}
-            buttonColor={Colors.primary}
+            buttonColor={theme.colors.primary}
         >
             Enviar Solicitud
         </PaperButton>
       </View>
 
-    </ScrollableContent>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 100,
-  },
   title: {
     marginBottom: 16,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   card: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   cardTitle: {
     marginBottom: 16,
@@ -342,14 +335,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 4,
-    color: '#6b7280',
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   itemInfo: {
     flex: 1,
@@ -361,7 +352,6 @@ const styles = StyleSheet.create({
   },
   itemSku: {
     fontSize: 12,
-    color: '#6b7280',
     marginBottom: 4,
   },
   notesInput: {
@@ -374,13 +364,13 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   qtyInput: {
-    backgroundColor: 'white',
     textAlign: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
+    marginBottom: 32,
   },
   button: {
     flex: 0.48,

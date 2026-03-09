@@ -20,7 +20,11 @@ def create_movement_request(
 ) -> Any:
     """
     Create a new movement request (Draft).
+    Role 4 (Operative) and up.
     """
+    if not current_user.role or current_user.role.level < 10:
+         raise HTTPException(status_code=403, detail="Not authorized to create requests")
+         
     request = movement_request.create(db=db, obj_in=request_in, user_id=current_user.id)
     return request
 
@@ -129,6 +133,30 @@ def read_movement_request(
         
     return request
 
+@router.delete("/requests/{id}", response_model=dict)
+def delete_movement_request(
+    *,
+    db: Session = Depends(get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Delete a movement request. Only allowed if status is DRAFT.
+    """
+    request = movement_request.get(db=db, id=id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+        
+    # Permission check: Only creator can delete (or admin)
+    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    if request.status != MovementStatus.DRAFT:
+        raise HTTPException(status_code=400, detail="Only DRAFT requests can be deleted")
+        
+    movement_request.remove(db=db, id=id)
+    return {"ok": True}
+
 @router.post("/requests/{id}/approve", response_model=MovementRequest)
 def approve_movement_request(
     *,
@@ -149,12 +177,54 @@ def approve_movement_request(
     request = movement_request.get(db=db, id=id)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
-        
+    
+    # Self-approval check (Role 4 restriction, applied to all for safety)
+    if request.requested_by == current_user.id:
+        raise HTTPException(status_code=403, detail="You cannot approve your own requests")
+
     if request.status != MovementStatus.PENDING:
         raise HTTPException(status_code=400, detail="Only PENDING requests can be approved")
+        
+    # Adjustment Special Check
+    if request.type == MovementType.ADJUSTMENT:
+        # Require Level 50 (Admin) or higher for Adjustments
+        if current_user.role.level < 50:
+             raise HTTPException(status_code=403, detail="Adjustments require Admin approval")
 
     request.status = MovementStatus.APPROVED
     request.approved_by = current_user.id
+    
+    if review_in and review_in.notes:
+        request.approval_notes = review_in.notes
+        
+    db.add(request)
+    db.commit()
+    db.refresh(request)
+    return request
+
+@router.post("/requests/{id}/reject", response_model=MovementRequest)
+def reject_movement_request(
+    *,
+    db: Session = Depends(get_db),
+    id: int,
+    review_in: Optional[MovementRequestReview] = None,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Reject a PENDING movement request.
+    """
+    if not current_user.role or current_user.role.level < 30:
+         raise HTTPException(status_code=403, detail="Not authorized to reject requests")
+         
+    request = movement_request.get(db=db, id=id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+        
+    if request.status != MovementStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Only PENDING requests can be rejected")
+
+    request.status = MovementStatus.REJECTED
+    # request.approved_by = current_user.id # Or rejected_by if field exists
     
     if review_in and review_in.notes:
         request.approval_notes = review_in.notes

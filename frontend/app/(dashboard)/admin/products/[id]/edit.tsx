@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { TextInput, Button, Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu } from 'react-native-paper';
+import { Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { 
   getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch, getCategories, getUnits,
   Product, ProductBatch, ProductUpdate, ProductBatchCreate, ProductBatchUpdate, Category, Unit
 } from '../../../../../services/productService';
+import Toast from 'react-native-toast-message';
 import { BatchTable } from '../../../../../components/products/BatchTable';
+import { Input } from '../../../../../components/Input';
+import { Button } from '../../../../../components/Button';
+import { Colors } from '../../../../../constants/Colors';
+import { Layout } from '../../../../../constants/Layout';
 
 export default function EditProductScreen() {
   const { id, tab } = useLocalSearchParams();
@@ -134,11 +139,20 @@ export default function EditProductScreen() {
       };
 
       await updateProduct(productId, updateData);
-      Alert.alert('Success', 'Product updated successfully');
+      Toast.show({
+        type: 'success',
+        text1: 'Éxito',
+        text2: 'Producto actualizado correctamente'
+      });
       loadData(); // Reload to ensure sync
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to update product');
+      const msg = error.response?.data?.detail || 'No se pudo actualizar el producto';
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: msg
+      });
     } finally {
       setSaving(false);
     }
@@ -163,11 +177,11 @@ export default function EditProductScreen() {
 
   const handleSaveBatch = async () => {
     if (!batchNumber || !batchQty) {
-      Alert.alert('Error', 'Batch Number and Quantity are required');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Número de lote y cantidad requeridos' });
       return;
     }
     if (hasExpiration && !expDate) {
-      Alert.alert('Error', 'Expiration Date is required');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'La fecha de expiración es obligatoria' });
       return;
     }
 
@@ -191,9 +205,11 @@ export default function EditProductScreen() {
       }
       setBatchModalVisible(false);
       loadBatches();
+      Toast.show({ type: 'success', text1: 'Éxito', text2: 'Lote guardado correctamente' });
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save batch');
+      const msg = error.response?.data?.detail || 'No se pudo guardar el lote';
+      Toast.show({ type: 'error', text1: 'Error', text2: msg });
     }
   };
 
@@ -228,10 +244,10 @@ export default function EditProductScreen() {
       {activeTab === 'details' ? (
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
-            <TextInput label="SKU" value={sku} onChangeText={setSku} mode="outlined" style={styles.input} />
-            <TextInput label="Barcode" value={barcode} onChangeText={setBarcode} mode="outlined" style={styles.input} />
-            <TextInput label="Name" value={name} onChangeText={setName} mode="outlined" style={styles.input} />
-            <TextInput label="Description" value={description} onChangeText={setDescription} mode="outlined" multiline style={styles.input} />
+            <Input label="SKU" value={sku} onChangeText={setSku} containerStyle={styles.input} />
+            <Input label="Barcode" value={barcode} onChangeText={setBarcode} containerStyle={styles.input} />
+            <Input label="Name" value={name} onChangeText={setName} containerStyle={styles.input} />
+            <Input label="Description" value={description} onChangeText={setDescription} multiline containerStyle={styles.input} />
             
             <View style={styles.row}>
               <View style={[styles.halfInput, { marginBottom: 15 }]}>
@@ -239,13 +255,12 @@ export default function EditProductScreen() {
                   visible={showCategoryMenu}
                   onDismiss={() => setShowCategoryMenu(false)}
                   anchor={
-                    <TextInput
+                    <Input
                       label="Category"
                       value={getCategoryName()}
-                      mode="outlined"
                       editable={false}
-                      right={<TextInput.Icon icon="menu-down" onPress={() => setShowCategoryMenu(true)} />}
-                      style={{ backgroundColor: 'white' }}
+                      right={<Input.Icon icon="menu-down" onPress={() => setShowCategoryMenu(true)} />}
+                      containerStyle={{ backgroundColor: 'white' }}
                     />
                   }
                 >
@@ -264,13 +279,12 @@ export default function EditProductScreen() {
                   visible={showUnitMenu}
                   onDismiss={() => setShowUnitMenu(false)}
                   anchor={
-                    <TextInput
+                    <Input
                       label="Unit"
                       value={getUnitName()}
-                      mode="outlined"
                       editable={false}
-                      right={<TextInput.Icon icon="menu-down" onPress={() => setShowUnitMenu(true)} />}
-                      style={{ backgroundColor: 'white' }}
+                      right={<Input.Icon icon="menu-down" onPress={() => setShowUnitMenu(true)} />}
+                      containerStyle={{ backgroundColor: 'white' }}
                     />
                   }
                 >
@@ -286,13 +300,13 @@ export default function EditProductScreen() {
             </View>
 
             <View style={styles.row}>
-              <TextInput label="Cost" value={cost} onChangeText={setCost} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
-              <TextInput label="Price" value={price} onChangeText={setPrice} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
+              <Input label="Cost" value={cost} onChangeText={setCost} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Price" value={price} onChangeText={setPrice} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
             </View>
 
             <View style={styles.row}>
-              <TextInput label="Min Stock" value={minStock} onChangeText={setMinStock} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
-              <TextInput label="Target Stock" value={targetStock} onChangeText={setTargetStock} keyboardType="numeric" mode="outlined" style={[styles.input, styles.halfInput]} />
+              <Input label="Min Stock" value={minStock} onChangeText={setMinStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Target Stock" value={targetStock} onChangeText={setTargetStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
             </View>
 
             <Surface style={styles.switchContainer} elevation={1}>
@@ -310,7 +324,7 @@ export default function EditProductScreen() {
               </View>
             </Surface>
 
-            <Button mode="contained" onPress={handleUpdateProduct} loading={saving} style={styles.saveButton}>
+            <Button variant="primary" onPress={handleUpdateProduct} loading={saving} style={styles.saveButton}>
               Save Changes
             </Button>
           </View>
@@ -319,7 +333,7 @@ export default function EditProductScreen() {
         <View style={styles.batchContainer}>
           <View style={styles.batchHeader}>
             <Text variant="titleMedium">Product Batches</Text>
-            <Button mode="contained" onPress={() => openBatchModal()} icon="plus">Add Batch</Button>
+            <Button variant="primary" onPress={() => openBatchModal()} icon="plus">Add Batch</Button>
           </View>
           <BatchTable 
                     batches={batches} 
@@ -332,19 +346,19 @@ export default function EditProductScreen() {
         <Modal visible={batchModalVisible} onDismiss={() => setBatchModalVisible(false)} contentContainerStyle={styles.modalContent}>
           <Text variant="headlineSmall" style={styles.modalTitle}>{editingBatch ? 'Edit Batch' : 'New Batch'}</Text>
           
-          <TextInput label="Batch Number" value={batchNumber} onChangeText={setBatchNumber} mode="outlined" style={styles.input} />
-          <TextInput label="Quantity" value={batchQty} onChangeText={setBatchQty} keyboardType="numeric" mode="outlined" style={styles.input} />
+          <Input label="Batch Number" value={batchNumber} onChangeText={setBatchNumber} containerStyle={styles.input} />
+          <Input label="Quantity" value={batchQty} onChangeText={setBatchQty} keyboardType="numeric" containerStyle={styles.input} />
           
           {!editingBatch && (
              <>
-              <TextInput label="Mfg Date (YYYY-MM-DD)" value={mfgDate} onChangeText={setMfgDate} mode="outlined" style={styles.input} placeholder="2023-01-01" />
-              <TextInput label="Exp Date (YYYY-MM-DD)" value={expDate} onChangeText={setExpDate} mode="outlined" style={styles.input} placeholder="2024-01-01" />
+              <Input label="Mfg Date (YYYY-MM-DD)" value={mfgDate} onChangeText={setMfgDate} containerStyle={styles.input} placeholder="2023-01-01" />
+              <Input label="Exp Date (YYYY-MM-DD)" value={expDate} onChangeText={setExpDate} containerStyle={styles.input} placeholder="2024-01-01" />
              </>
           )}
 
           <View style={styles.modalButtons}>
-            <Button onPress={() => setBatchModalVisible(false)} style={styles.modalButton}>Cancel</Button>
-            <Button mode="contained" onPress={handleSaveBatch} style={styles.modalButton}>Save</Button>
+            <Button variant="text" onPress={() => setBatchModalVisible(false)} style={styles.modalButton}>Cancel</Button>
+            <Button variant="primary" onPress={handleSaveBatch} style={styles.modalButton}>Save</Button>
           </View>
         </Modal>
       </Portal>
@@ -355,7 +369,7 @@ export default function EditProductScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -363,17 +377,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabs: {
-    margin: 15,
+    margin: Layout.spacing.md,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: Layout.spacing.lg,
+    paddingBottom: Layout.spacing.lg,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: Layout.spacing.lg,
   },
   input: {
-    marginBottom: 15,
+    marginBottom: Layout.spacing.md,
   },
   row: {
     flexDirection: 'row',
@@ -383,46 +397,47 @@ const styles = StyleSheet.create({
     width: '48%',
   },
   switchContainer: {
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
-    marginBottom: 20,
+    padding: Layout.spacing.md,
+    borderRadius: Layout.borderRadius.md,
+    marginTop: Layout.spacing.sm,
+    marginBottom: Layout.spacing.lg,
+    backgroundColor: Colors.white,
   },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: Layout.spacing.sm,
   },
   saveButton: {
-    marginTop: 10,
+    marginTop: Layout.spacing.sm,
   },
   batchContainer: {
     flex: 1,
-    padding: 15,
+    padding: Layout.spacing.md,
   },
   batchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: Layout.spacing.md,
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 20,
-    margin: 20,
-    borderRadius: 8,
+    padding: Layout.spacing.lg,
+    margin: Layout.spacing.lg,
+    borderRadius: Layout.borderRadius.md,
   },
   modalTitle: {
-    marginBottom: 20,
+    marginBottom: Layout.spacing.lg,
     textAlign: 'center',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 10,
+    marginTop: Layout.spacing.md,
   },
   modalButton: {
-    marginLeft: 10,
+    marginLeft: Layout.spacing.sm,
   },
 });

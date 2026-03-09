@@ -1,55 +1,39 @@
+
 import { Stack } from 'expo-router';
-import { PaperProvider, MD3LightTheme as DefaultTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { AuthProvider } from '../context/AuthContext';
 import { RequestCartProvider } from '../context/RequestCartContext';
 import { CatalogProvider } from '../context/CatalogContext';
+import { ThemeProvider } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useProtectedRoute } from '../hooks/useProtectedRoute';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { toastConfig } from '../components/Toast';
-import { Colors } from '../constants/Colors';
-import { USER_ROLES } from '../constants/roles';
-
-const theme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: Colors.primary,
-    secondary: Colors.secondary,
-    error: Colors.danger,
-    background: Colors.background,
-    surface: Colors.surface,
-    onSurface: Colors.text,
-    outline: Colors.secondary,
-  },
-};
 
 function RootLayoutNav() {
-  const { isLoading, user } = useAuth();
+  const { isLoading } = useAuth();
+  const theme = useTheme();
   useProtectedRoute();
   
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // Define logic for initial route based on role if needed, 
-  // but useProtectedRoute handles most redirects.
-  // Here we just define the stacks available.
-
   return (
     <>
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: Colors.primary,
+            backgroundColor: theme.colors.primary,
           },
-          headerTintColor: Colors.text,
+          headerTintColor: theme.colors.onPrimary,
           headerTitleStyle: {
             fontWeight: 'bold',
           },
+          headerShown: false,
         }}
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -64,12 +48,7 @@ function RootLayoutNav() {
 export default function Layout() {
   return (
     <SafeAreaProvider>
-      <PaperProvider 
-        theme={theme}
-        settings={{
-          icon: props => <MaterialCommunityIcons {...props} />,
-        }}
-      >
+      <ThemeProvider>
         <AuthProvider>
           <CatalogProvider>
             <RequestCartProvider>
@@ -77,7 +56,7 @@ export default function Layout() {
             </RequestCartProvider>
           </CatalogProvider>
         </AuthProvider>
-      </PaperProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

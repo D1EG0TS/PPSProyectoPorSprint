@@ -8,6 +8,7 @@ import * as z from 'zod';
 import { createEPP, EPPCreate } from '../../../../services/eppService';
 import { getProducts, Product } from '../../../../services/productService';
 import { Input } from '../../../../components/Input';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
 
@@ -87,12 +88,12 @@ export default function CreateEPPScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScreenContainer>
       <Card style={styles.card}>
-        <Card.Title title="Registrar Nuevo EPP" />
+        <Card.Title title="Registrar Nuevo EPP" titleStyle={{ color: theme.colors.onSurface }} />
         <Card.Content>
           {loadingProducts ? (
-            <ActivityIndicator style={styles.loader} />
+            <ActivityIndicator style={styles.loader} color={theme.colors.primary} />
           ) : (
             <View style={styles.inputContainer}>
               <Text style={{ color: theme.colors.onSurface, marginBottom: 5 }}>Producto *</Text>
@@ -104,7 +105,8 @@ export default function CreateEPPScreen() {
                     <Picker
                       selectedValue={value}
                       onValueChange={(itemValue: number) => onChange(Number(itemValue))}
-                      style={{ color: theme.colors.onSurface }}
+                      style={{ color: theme.colors.onSurface, backgroundColor: 'transparent' }}
+                      dropdownIconColor={theme.colors.onSurface}
                     >
                       <Picker.Item label="Seleccione un producto..." value={0} />
                       {products.map((product) => (
@@ -176,15 +178,11 @@ export default function CreateEPPScreen() {
           </Button>
         </Card.Content>
       </Card>
-    </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
   card: {
     marginBottom: 16,
   },
@@ -200,6 +198,5 @@ const styles = StyleSheet.create({
   pickerContainer: {
     borderWidth: 1,
     borderRadius: 4,
-    backgroundColor: 'transparent',
   },
 });

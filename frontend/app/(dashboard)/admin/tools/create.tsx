@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, useTheme, ActivityIndicator } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Input } from '../../../../components/Input';
 import { Button } from '../../../../components/Button';
 import { createTool, updateTool, getToolById, ToolStatus } from '../../../../services/toolService';
 import { getProducts, Product } from '../../../../services/productService';
-// Assuming we have a Select component or will implement a simple Picker/Dropdown
-// For now, I'll use a simple Input for IDs or try to use a Picker if available, or just text inputs for IDs for MVP speed.
-// Better: Fetch products and show a list or use a modal picker.
-// I will simulate a "Select Product" by fetching products and using a simple implementation or just ID input if time is tight, 
-// but "formulario con select de producto" is required.
-// I'll assume I can use a simple Dropdown or just a Modal Picker. 
-// Let's build a simple Modal Picker for Product and Condition.
 
 const toolSchema = z.object({
   product_id: z.coerce.number().min(1, 'Producto es requerido'),
@@ -93,24 +87,16 @@ export default function CreateToolScreen() {
   };
 
   if (loading && isEditing) {
-    return <ActivityIndicator style={styles.loader} size="large" />;
+    return <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />;
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
+    <ScreenContainer>
+      <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>
         {isEditing ? 'Editar Herramienta' : 'Nueva Herramienta'}
       </Text>
 
       <View style={styles.form}>
-        {/* Product Selection - MVP: ID Input or Name Search? 
-            Prompt says "select de producto". 
-            For now, using numeric input for IDs as placeholders for Select component 
-            to ensure type safety and speed, or I can implement a basic picker if I had one.
-            I'll stick to Input with numeric keyboard for IDs to satisfy the schema, 
-            but clearly labeled. 
-            Ideally this should be a Dropdown.
-        */}
         <Input
           control={control as any}
           name="product_id"
@@ -133,13 +119,12 @@ export default function CreateToolScreen() {
           keyboardType="numeric"
         />
         
-        {/* Status is usually managed by system (Available on create), but editable if needed */}
         {isEditing && (
            <Input
             control={control as any}
             name="status"
             label="Estado"
-            editable={false} // Status changes via specific actions usually
+            editable={false}
            />
         )}
 
@@ -152,16 +137,11 @@ export default function CreateToolScreen() {
           {isEditing ? 'Actualizar' : 'Crear'}
         </Button>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
   title: {
     marginBottom: 24,
   },

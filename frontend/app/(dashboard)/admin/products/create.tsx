@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView, Pressable, Platform } from 'react-native';
-import { TextInput, Button, HelperText, Switch, Text, ProgressBar, useTheme, Surface, Menu, Snackbar } from 'react-native-paper';
+import { View, StyleSheet, Alert, ScrollView, Pressable, Platform, Image } from 'react-native';
+import { TextInput as PaperTextInput, Button as PaperButton, HelperText, Switch, Text, ProgressBar, useTheme, Surface, Menu, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { createProduct, createProductBatch, getProductByCode, getCategories, getUnits, ProductCreate, ProductBatchCreate, Category, Unit } from '../../../../services/productService';
+import * as ImagePicker from 'expo-image-picker';
+import { createProduct, createProductBatch, getProductByCode, getCategories, getUnits, uploadProductImage, ProductCreate, ProductBatchCreate, Category, Unit } from '../../../../services/productService';
 import { useAuth } from '../../../../hooks/useAuth';
 import { USER_ROLES } from '../../../../constants/roles';
+import { Input } from '../../../../components/Input';
+import { Button } from '../../../../components/Button';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
+import { Layout } from '../../../../constants/Layout';
 
 export default function CreateProductScreen() {
   const router = useRouter();
@@ -65,6 +70,7 @@ export default function CreateProductScreen() {
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // New state for image
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [parentCategoryId, setParentCategoryId] = useState('');
@@ -87,8 +93,22 @@ export default function CreateProductScreen() {
   const [mfgDate, setMfgDate] = useState('');
   const [expDate, setExpDate] = useState('');
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      setImageUrl(''); // Clear manual URL if image picked
+    }
+  };
+
   const validateSku = async () => {
-    if (!sku) return;
+    if (!sku) return; // SKU is optional now (auto-generated)
     try {
       const existing = await getProductByCode(sku);
       if (existing) {
@@ -104,7 +124,7 @@ export default function CreateProductScreen() {
   const validateStep1 = () => {
     let isValid = true;
     
-    if (!sku) { setSkuError('SKU es requerido'); isValid = false; }
+    // SKU is optional
     if (!name) { setNameError('Nombre es requerido'); isValid = false; }
     if (!categoryId) { setCategoryError('Categoría es requerida'); isValid = false; }
     if (!unitId) { setUnitError('Unidad es requerida'); isValid = false; }
@@ -164,7 +184,7 @@ export default function CreateProductScreen() {
     setLoading(true);
     try {
       const productData: ProductCreate = {
-        sku,
+        sku: sku || undefined, // Send undefined to trigger auto-generation
         barcode: barcode || undefined,
         name,
         brand: brand || undefined,
@@ -184,7 +204,19 @@ export default function CreateProductScreen() {
 
       const newProduct = await createProduct(productData);
 
+      // Upload Image if selected
+      if (selectedImage) {
+          try {
+              await uploadProductImage(newProduct.id, selectedImage);
+          } catch (imgError) {
+              console.error("Error uploading image:", imgError);
+              showSnackbar('Producto creado, pero falló la carga de imagen', true);
+              // Don't return, allow success flow to continue
+          }
+      }
+
       if (hasBatch && batchNumber) {
+        // ... batch logic
         const batchData: ProductBatchCreate = {
           batch_number: batchNumber,
           quantity: parseInt(batchQty),
@@ -218,85 +250,77 @@ export default function CreateProductScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ width: '100%', height: 4, zIndex: 1 }}>
         <ProgressBar progress={progress} color={theme.colors.primary} style={{ height: 4 }} />
       </View>
       
-      <View style={{ flex: 1, width: '100%', overflow: 'hidden' }}>
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-        <Text variant="headlineMedium" style={styles.title}>
+      <ScreenContainer>
+        <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>
           {step === 0 ? 'Información Básica' : step === 1 ? 'Configuración y Precios' : 'Lote Inicial'}
         </Text>
 
         {step === 0 && (
           <View style={styles.stepContainer}>
-            <TextInput
-              label="SKU *"
+            <Input
+              label="SKU (Opcional - Auto)"
               value={sku}
               onChangeText={(text) => { setSku(text); setSkuError(''); }}
               onBlur={validateSku}
-              mode="outlined"
-              error={!!skuError}
-              style={styles.input}
+              error={skuError}
             />
-            {!!skuError && <HelperText type="error">{skuError}</HelperText>}
 
-            <TextInput
+            <Input
               label="Código de Barras"
               value={barcode}
               onChangeText={setBarcode}
-              mode="outlined"
-              style={styles.input}
             />
 
-            <TextInput
+            <Input
               label="Nombre *"
               value={name}
               onChangeText={(text) => { setName(text); setNameError(''); }}
-              mode="outlined"
-              error={!!nameError}
-              style={styles.input}
+              error={nameError}
             />
-            {!!nameError && <HelperText type="error">{nameError}</HelperText>}
 
             <View style={styles.row}>
-              <TextInput
+              <Input
                 label="Marca"
                 value={brand}
                 onChangeText={setBrand}
-                mode="outlined"
-                style={[styles.halfInput, { marginBottom: 15 }]}
+                containerStyle={styles.halfInput}
               />
-              <TextInput
+              <Input
                 label="Modelo"
                 value={model}
                 onChangeText={setModel}
-                mode="outlined"
-                style={[styles.halfInput, { marginBottom: 15 }]}
+                containerStyle={styles.halfInput}
               />
             </View>
 
-            <TextInput
-              label="URL Imagen Principal"
-              value={imageUrl}
-              onChangeText={setImageUrl}
-              mode="outlined"
-              style={styles.input}
-            />
+            <View style={styles.imagePickerContainer}>
+                {(selectedImage || imageUrl) && (
+                    <Image 
+                        source={{ uri: selectedImage || imageUrl }} 
+                        style={[styles.previewImage, { backgroundColor: theme.colors.surfaceVariant }]} 
+                    />
+                )}
+                <Button variant="outline" onPress={pickImage} icon="camera" style={{marginBottom: 10}}>
+                    Seleccionar Imagen Local
+                </Button>
+                <Input
+                  label="O ingresar URL Imagen Externa"
+                  value={imageUrl}
+                  onChangeText={(text) => { setImageUrl(text); setSelectedImage(null); }}
+                />
+            </View>
 
-            <TextInput
+            <Input
               label="Descripción"
               value={description}
               onChangeText={setDescription}
-              mode="outlined"
               multiline
               numberOfLines={3}
-              style={styles.input}
             />
 
             <View style={styles.row}>
@@ -307,14 +331,12 @@ export default function CreateProductScreen() {
                   anchor={
                     <Pressable onPress={() => setShowCategoryMenu(true)}>
                       <View pointerEvents="none">
-                        <TextInput
+                        <Input
                           label="Categoría *"
                           value={categories.find(c => c.id.toString() === parentCategoryId)?.name || ''}
-                          mode="outlined"
                           editable={false}
-                          error={!!categoryError}
-                          right={<TextInput.Icon icon="menu-down" />}
-                          style={{ backgroundColor: 'white' }}
+                          error={categoryError}
+                          right={<PaperTextInput.Icon icon="menu-down" />}
                         />
                       </View>
                     </Pressable>
@@ -333,7 +355,6 @@ export default function CreateProductScreen() {
                     />
                   ))}
                 </Menu>
-                {!!categoryError && <HelperText type="error">{categoryError}</HelperText>}
               </View>
 
               <View style={[styles.halfInput, { marginBottom: 15 }]}>
@@ -343,14 +364,12 @@ export default function CreateProductScreen() {
                   anchor={
                     <Pressable onPress={() => setShowUnitMenu(true)}>
                       <View pointerEvents="none">
-                         <TextInput
+                         <Input
                           label="Unidad *"
                           value={getUnitName()}
-                          mode="outlined"
                           editable={false}
-                          error={!!unitError}
-                          right={<TextInput.Icon icon="menu-down" />}
-                          style={{ backgroundColor: 'white' }}
+                          error={unitError}
+                          right={<PaperTextInput.Icon icon="menu-down" />}
                         />
                       </View>
                     </Pressable>
@@ -364,7 +383,6 @@ export default function CreateProductScreen() {
                     />
                   ))}
                 </Menu>
-                {!!unitError && <HelperText type="error">{unitError}</HelperText>}
               </View>
             </View>
 
@@ -383,17 +401,15 @@ export default function CreateProductScreen() {
                               anchor={
                                 <Pressable onPress={() => setShowSubCategoryMenu(true)}>
                                   <View pointerEvents="none">
-                                    <TextInput
+                                    <Input
                                       label="Subcategoría"
                                       value={
                                           (categoryId !== parentCategoryId) 
                                           ? (subCats.find(s => s.id.toString() === categoryId)?.name || categories.find(c => c.id.toString() === categoryId)?.name || '') 
                                           : ''
                                       }
-                                      mode="outlined"
                                       editable={false}
-                                      right={<TextInput.Icon icon="menu-down" />}
-                                      style={{ backgroundColor: 'white' }}
+                                      right={<PaperTextInput.Icon icon="menu-down" />}
                                     />
                                   </View>
                                 </Pressable>
@@ -428,57 +444,53 @@ export default function CreateProductScreen() {
         {step === 1 && (
           <View style={styles.stepContainer}>
             <View style={styles.row}>
-              <TextInput
+              <Input
                 label="Costo"
                 value={cost}
                 onChangeText={setCost}
                 keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
-                left={<TextInput.Affix text="$" />}
+                containerStyle={styles.halfInput}
+                left={<PaperTextInput.Affix text="$" />}
               />
-              <TextInput
+              <Input
                 label="Precio"
                 value={price}
                 onChangeText={setPrice}
                 keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
-                left={<TextInput.Affix text="$" />}
+                containerStyle={styles.halfInput}
+                left={<PaperTextInput.Affix text="$" />}
               />
             </View>
 
             <View style={styles.row}>
-              <TextInput
+              <Input
                 label="Stock Mínimo"
                 value={minStock}
                 onChangeText={setMinStock}
                 keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
+                containerStyle={styles.halfInput}
               />
-              <TextInput
+              <Input
                 label="Stock Objetivo"
                 value={targetStock}
                 onChangeText={setTargetStock}
                 keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, styles.halfInput]}
+                containerStyle={styles.halfInput}
               />
             </View>
 
-            <Surface style={styles.switchContainer} elevation={1}>
+            <Surface style={[styles.switchContainer, { backgroundColor: theme.colors.surfaceVariant }]} elevation={1}>
               <View style={styles.switchRow}>
-                <Text>Activo</Text>
-                <Switch value={isActive} onValueChange={setIsActive} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Activo</Text>
+                <Switch value={isActive} onValueChange={setIsActive} color={theme.colors.primary} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Gestiona Lotes</Text>
-                <Switch value={hasBatch} onValueChange={setHasBatch} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Gestiona Lotes</Text>
+                <Switch value={hasBatch} onValueChange={setHasBatch} color={theme.colors.primary} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Tiene Fecha de Caducidad</Text>
-                <Switch value={hasExpiration} onValueChange={setHasExpiration} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Tiene Fecha de Caducidad</Text>
+                <Switch value={hasExpiration} onValueChange={setHasExpiration} color={theme.colors.primary} />
               </View>
             </Surface>
           </View>
@@ -486,50 +498,42 @@ export default function CreateProductScreen() {
 
         {step === 2 && (
           <View style={styles.stepContainer}>
-            <Text style={styles.subtitle}>Detalles del Lote Inicial</Text>
-            <TextInput
+            <Text style={[styles.subtitle, { color: theme.colors.onSurface }]}>Detalles del Lote Inicial</Text>
+            <Input
               label="Número de Lote *"
               value={batchNumber}
               onChangeText={setBatchNumber}
-              mode="outlined"
-              style={styles.input}
             />
-            <TextInput
+            <Input
               label="Cantidad *"
               value={batchQty}
               onChangeText={setBatchQty}
               keyboardType="numeric"
-              mode="outlined"
-              style={styles.input}
             />
-            <TextInput
+            <Input
               label="Fecha de Fabricación (AAAA-MM-DD)"
               value={mfgDate}
               onChangeText={setMfgDate}
-              mode="outlined"
-              style={styles.input}
               placeholder="2023-01-01"
             />
-            <TextInput
+            <Input
               label={`Fecha de Caducidad${hasExpiration ? ' *' : ''} (AAAA-MM-DD)`}
               value={expDate}
               onChangeText={setExpDate}
-              mode="outlined"
-              style={styles.input}
               placeholder="2024-01-01"
-              error={hasExpiration && !expDate}
+              error={hasExpiration && !expDate ? 'Requerido' : undefined}
             />
           </View>
         )}
 
         <View style={styles.buttonRow}>
           {step > 0 && (
-            <Button mode="outlined" onPress={handleBack} style={styles.button} disabled={loading}>
+            <Button variant="outline" onPress={handleBack} style={styles.button} disabled={loading}>
               Atrás
             </Button>
           )}
           <Button 
-            mode="contained" 
+            variant="primary" 
             onPress={handleNext} 
             style={styles.button}
             loading={loading}
@@ -538,8 +542,8 @@ export default function CreateProductScreen() {
             {step === totalSteps - 1 ? 'Registrar Producto' : 'Siguiente'}
           </Button>
         </View>
-      </ScrollView>
-      </View>
+      </ScreenContainer>
+      
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
@@ -553,34 +557,17 @@ export default function CreateProductScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollView: {
-    flex: 1,
-    width: '100%',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-    flexGrow: 1,
-    minHeight: 300, 
-  },
   title: {
-    marginBottom: 20,
+    marginBottom: Layout.spacing.lg,
     textAlign: 'center',
   },
   subtitle: {
-    marginBottom: 10,
+    marginBottom: Layout.spacing.sm,
     fontSize: 16,
     fontWeight: 'bold',
   },
   stepContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    marginBottom: 15,
+    marginBottom: Layout.spacing.lg,
   },
   row: {
     flexDirection: 'row',
@@ -590,23 +577,35 @@ const styles = StyleSheet.create({
     width: '48%',
   },
   switchContainer: {
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
+    padding: Layout.spacing.md,
+    borderRadius: Layout.borderRadius.md,
+    marginTop: Layout.spacing.sm,
   },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: Layout.spacing.sm,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: Layout.spacing.lg,
   },
   button: {
     flex: 1,
     marginHorizontal: 5,
+  },
+  imagePickerContainer: {
+    marginBottom: 15,
+    alignItems: 'center',
+    width: '100%',
+  },
+  previewImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 8,
+    marginBottom: 10,
+    resizeMode: 'cover',
   },
 });

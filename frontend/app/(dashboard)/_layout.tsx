@@ -1,12 +1,14 @@
+
 import React, { useState, useRef } from 'react';
 import { View, StyleSheet, useWindowDimensions, PanResponder, Platform } from 'react-native';
 import { Slot } from 'expo-router';
+import { useTheme } from 'react-native-paper';
 import { Sidebar } from '../../components/Sidebar';
 import { Topbar } from '../../components/Topbar';
 import { StockNotifications } from '../../components/notifications/StockNotifications';
 
 export default function DashboardLayout() {
-  
+  const theme = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(280);
@@ -34,6 +36,8 @@ export default function DashboardLayout() {
   // Effective width depends on collapsed state
   const currentWidth = isSidebarCollapsed ? 80 : sidebarWidth;
 
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.container}>
       {/* Permanent Sidebar for large screens */}
@@ -42,8 +46,6 @@ export default function DashboardLayout() {
           <View style={[
             styles.sidebarContainer, 
             { width: currentWidth },
-            // If we have a resizer, we don't need the border right on the container itself
-            // strictly speaking, but the resizer acts as the border.
             !isSidebarCollapsed && { borderRightWidth: 0 } 
           ]}>
              <Sidebar 
@@ -93,33 +95,35 @@ export default function DashboardLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
+    backgroundColor: theme.colors.background,
   },
   sidebarContainer: {
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
+    borderRightColor: theme.colors.outline,
     overflow: 'hidden',
-    backgroundColor: '#fff', // Ensure background is white
+    backgroundColor: theme.colors.surface,
   },
   resizer: {
     width: 6,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.surfaceVariant,
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
+    borderRightColor: theme.colors.outline,
     borderLeftWidth: 1,
-    borderLeftColor: '#fff', // visual effect
+    borderLeftColor: theme.colors.surface, 
     zIndex: 10,
   },
   contentContainer: {
     flex: 1,
     flexDirection: 'column',
+    backgroundColor: theme.colors.background,
   },
   slotContainer: {
     flex: 1,
-    padding: 16,
+    // padding: 16, // Removed to avoid double scroll/floating scrollbar issues. Screens should use ScreenContainer.
   },
   overlaySidebar: {
     position: 'absolute',
@@ -127,7 +131,7 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     zIndex: 100,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

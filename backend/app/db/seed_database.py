@@ -8,11 +8,11 @@ import sys
 
 def seed_roles(db: Session):
     roles = [
-        {"name": "super_admin", "description": "Acceso total al sistema", "level": 100},
-        {"name": "admin", "description": "Administrador de inventario", "level": 50},
-        {"name": "manager", "description": "Gestor de inventario", "level": 30},
-        {"name": "operator", "description": "Operador básico", "level": 10},
-        {"name": "viewer", "description": "Solo lectura", "level": 1},
+        {"name": "super_admin", "description": "Acceso total al sistema (Rol 1)", "level": 100},
+        {"name": "admin", "description": "Administrador de inventario (Rol 2)", "level": 50},
+        {"name": "moderator", "description": "Moderador y validador (Rol 3)", "level": 30},
+        {"name": "operative", "description": "Operador básico (Rol 4)", "level": 10},
+        {"name": "visitor", "description": "Solo lectura catálogo público (Rol 5)", "level": 1},
     ]
     
     for role_data in roles:
@@ -22,7 +22,11 @@ def seed_roles(db: Session):
             db.add(role)
             print(f"✅ Role creado: {role_data['name']}")
         else:
-            print(f"ℹ️ Role ya existe: {role_data['name']}")
+            # Update description if exists
+            role.description = role_data["description"]
+            role.level = role_data["level"]
+            db.add(role)
+            print(f"ℹ️ Role actualizado: {role_data['name']}")
     db.commit()
 
 def seed_conditions(db: Session):

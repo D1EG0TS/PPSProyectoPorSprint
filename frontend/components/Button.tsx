@@ -2,8 +2,9 @@ import React from 'react';
 import { StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { Button as PaperButton, ButtonProps as PaperButtonProps } from 'react-native-paper';
 import { Colors } from '../constants/Colors';
+import { Layout } from '../constants/Layout';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'success' | 'warning' | 'info' | 'light' | 'dark';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'success' | 'warning' | 'info' | 'light' | 'dark' | 'text';
 export type ButtonSize = 'small' | 'medium' | 'large';
 
 interface ButtonProps extends Omit<PaperButtonProps, 'mode'> {
@@ -28,12 +29,13 @@ export function Button({
   
   const getMode = (): PaperButtonProps['mode'] => {
     if (variant === 'outline') return 'outlined';
+    if (variant === 'text') return 'text';
     if (variant === 'light') return 'contained-tonal'; // or outlined?
     return 'contained';
   };
 
   const getButtonColor = () => {
-    if (variant === 'outline') return undefined; // uses theme or text color
+    if (variant === 'outline' || variant === 'text') return undefined; // uses theme or text color
     if (disabled) return undefined;
     
     switch (variant) {
@@ -64,7 +66,7 @@ export function Button({
       case 'small':
         return { paddingVertical: 0, minHeight: 32 };
       case 'large':
-        return { paddingVertical: 8, minHeight: 56 };
+        return { paddingVertical: Layout.spacing.sm, minHeight: 56 };
       default:
         return { paddingVertical: 4, minHeight: 48 }; // Increased to 48px for better touch target and visibility
     }
@@ -91,7 +93,7 @@ export function Button({
         fullWidth && styles.fullWidth,
         style
       ]}
-      contentStyle={[styles.content]}
+      // Use default contentStyle from PaperButton to avoid stretching vertically on mobile
       labelStyle={[getLabelSizeStyles(), labelStyle]}
       {...props}
     >
@@ -102,14 +104,11 @@ export function Button({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 6, // Bootstrap default radius
+    borderRadius: Layout.borderRadius.md, // Use Layout constant
     justifyContent: 'center',
   },
   fullWidth: {
     width: '100%',
   },
-  content: {
-    // padding is handled in button style to ensure height control
-    height: '100%',
-  },
+  // Avoid forcing content height to 100% to prevent full-height buttons in flex rows
 });

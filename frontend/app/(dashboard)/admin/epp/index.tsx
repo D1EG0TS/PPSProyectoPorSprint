@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, IconButton, Chip, useTheme, ActivityIndicator } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Table } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { getEPPs, EPP, EPPStatus } from '../../../../services/eppService';
@@ -77,19 +77,21 @@ export default function EPPListScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
-        <View style={styles.header}>
-          <Text variant="headlineMedium">Gestión de EPP</Text>
-          <Button 
-            variant="primary" 
-            icon="plus" 
-            onPress={() => router.push('/(dashboard)/admin/epp/create')}
-          >
-            Nuevo EPP
-          </Button>
-        </View>
+    <ScreenContainer>
+      <View style={styles.header}>
+        <Text variant="headlineMedium">Gestión de EPP</Text>
+        <Button 
+          variant="primary" 
+          icon="plus" 
+          onPress={() => router.push('/(dashboard)/admin/epp/create')}
+        >
+          Nuevo EPP
+        </Button>
+      </View>
 
+      {loading ? (
+        <ActivityIndicator style={styles.loader} size="large" color={theme.colors.primary} />
+      ) : (
         <Table
           data={epps}
           columns={columns}
@@ -97,16 +99,12 @@ export default function EPPListScreen() {
           emptyMessage="No hay EPPs registrados"
           loading={loading}
         />
-      </ScrollableContent>
-    </View>
+      )}
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

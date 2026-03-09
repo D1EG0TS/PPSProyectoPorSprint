@@ -8,7 +8,9 @@ export interface Permission {
 export interface User {
   id: number;
   email: string;
+  name?: string; // Mapeado a full_name en el backend si es necesario, o unificar
   full_name?: string;
+  role?: string; // Para mostrar el nombre del rol (ej: "admin")
   role_id?: number;
   is_active: boolean;
   permissions?: Permission[];

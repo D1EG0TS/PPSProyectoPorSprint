@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Text, FAB, Card, IconButton, Portal, Modal, TextInput, Button, ActivityIndicator } from 'react-native-paper';
+import { Text, FAB, IconButton, Portal, Modal, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { getUnits, createUnit, updateUnit, deleteUnit, Unit } from '../../../../services/productService';
 import { Colors } from '../../../../constants/Colors';
+import { Layout } from '../../../../constants/Layout';
+import { Input } from '../../../../components/Input';
+import { Button } from '../../../../components/Button';
+import { Card } from '../../../../components/Card';
 
 export default function UnitManagementScreen() {
   const [units, setUnits] = useState<Unit[]>([]);
@@ -108,17 +112,17 @@ export default function UnitManagementScreen() {
   };
 
   const renderItem = ({ item }: { item: Unit }) => (
-    <Card style={styles.card} mode="elevated">
-      <Card.Content style={styles.cardContent}>
-        <View style={{ flex: 1 }}>
-            <Text variant="titleMedium">{item.name}</Text>
-            <Text variant="bodyMedium" style={{ color: Colors.textSecondary }}>Abreviación: {item.abbreviation}</Text>
-        </View>
-        <View style={styles.actions}>
+    <Card
+      title={item.name}
+      subtitle={`Abreviación: ${item.abbreviation}`}
+      footer={
+        <View style={styles.cardActions}>
             <IconButton icon="pencil" size={20} onPress={() => handleOpenModal(item)} />
             <IconButton icon="delete" size={20} iconColor={Colors.error} onPress={() => handleDelete(item)} />
         </View>
-      </Card.Content>
+      }
+    >
+      <View />
     </Card>
   );
 
@@ -151,26 +155,24 @@ export default function UnitManagementScreen() {
             {editingUnit ? 'Editar Unidad' : 'Nueva Unidad'}
           </Text>
           
-          <TextInput
+          <Input
             label="Nombre *"
             value={name}
             onChangeText={setName}
-            mode="outlined"
-            style={styles.input}
+            containerStyle={styles.input}
           />
           
-          <TextInput
+          <Input
             label="Abreviación *"
             value={abbreviation}
             onChangeText={setAbbreviation}
-            mode="outlined"
             placeholder="e.g. kg, m, u"
-            style={styles.input}
+            containerStyle={styles.input}
           />
 
           <View style={styles.modalActions}>
-            <Button onPress={handleCloseModal} style={{ marginRight: 8 }}>Cancelar</Button>
-            <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving}>
+            <Button variant="text" onPress={handleCloseModal} style={{ marginRight: 8 }}>Cancelar</Button>
+            <Button variant="primary" onPress={handleSave} loading={saving} disabled={saving}>
               Guardar
             </Button>
           </View>
@@ -184,30 +186,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding: 16,
+    padding: Layout.spacing.md,
   },
   title: {
-    marginBottom: 16,
+    marginBottom: Layout.spacing.md,
     fontWeight: 'bold',
   },
   list: {
     paddingBottom: 80,
   },
-  card: {
-    marginBottom: 10,
-    backgroundColor: 'white',
-  },
-  cardContent: {
+  cardActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: Layout.spacing.md,
     right: 0,
     bottom: 0,
     backgroundColor: Colors.primary,
@@ -216,14 +210,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     margin: 20,
-    borderRadius: 8,
+    borderRadius: Layout.borderRadius.md,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: Layout.spacing.md,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 16,
+    marginTop: Layout.spacing.md,
   },
 });

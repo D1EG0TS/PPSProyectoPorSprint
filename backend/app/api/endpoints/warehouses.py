@@ -151,6 +151,19 @@ def delete_warehouse(
     if db_warehouse is None:
         raise HTTPException(status_code=404, detail="Warehouse not found")
         
+    # Check if warehouse has stock (ProductLocationAssignment > 0)
+    from app.models.product_location_models import ProductLocationAssignment
+    has_stock = db.query(ProductLocationAssignment).filter(
+        ProductLocationAssignment.warehouse_id == warehouse_id,
+        ProductLocationAssignment.quantity > 0
+    ).first()
+    
+    if has_stock:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Cannot delete warehouse with stock. Relocate items first."
+        )
+
     db_warehouse.is_active = False
     db.add(db_warehouse)
     db.commit()
@@ -227,6 +240,11 @@ def create_location(
              raise HTTPException(status_code=400, detail="Parent location belongs to a different warehouse")
         parent_path = parent.path if parent.path else ""
     
+    # Generate code if not provided
+    if not location.code:
+        import uuid
+        location.code = f"LOC-{str(uuid.uuid4())[:8].upper()}"
+
     # Check uniqueness of code within warehouse
     existing = db.query(location_models.StorageLocation).filter(
         location_models.StorageLocation.warehouse_id == warehouse_id,

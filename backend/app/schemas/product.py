@@ -27,7 +27,7 @@ class ProductBatch(ProductBatchBase):
 # --- Product Schemas ---
 
 class ProductBase(BaseModel):
-    sku: str
+    sku: Optional[str] = None # Made optional for base, required for Product response
     barcode: Optional[str] = None
     name: str
     description: Optional[str] = None
@@ -67,6 +67,7 @@ class ProductUpdate(BaseModel):
 
 class Product(ProductBase):
     id: int
+    sku: str # Enforce SKU presence in response
     cost: Optional[Decimal] = None
     price: Optional[Decimal] = None
     batches: List[ProductBatch] = []

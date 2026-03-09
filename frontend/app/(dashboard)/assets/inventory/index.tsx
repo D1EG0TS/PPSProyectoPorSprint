@@ -1,14 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from 'react-native-paper';
+import { Ionicons } from '@expo/vector-icons';
 import { AssetTypeSelector } from '../../../../components/assets/AssetTypeSelector';
 import { Asset, AssetType } from '../../../../types/assets';
 import { assetService } from '../../../../services/assetService';
-import { Ionicons } from '@expo/vector-icons';
-import { format } from 'date-fns';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 
 export default function AssetInventoryScreen() {
     const router = useRouter();
+    const theme = useTheme();
     const [selectedType, setSelectedType] = useState<AssetType | 'ALL'>('ALL');
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(true);
@@ -54,14 +57,14 @@ export default function AssetInventoryScreen() {
     const renderAssetItem = (asset: Asset) => (
         <TouchableOpacity 
             key={asset.id} 
-            style={styles.card}
+            style={[styles.card, { backgroundColor: theme.colors.surface, shadowColor: theme.colors.shadow }]}
             onPress={() => router.push(`/assets/${asset.id}`)}
         >
             <View style={styles.cardHeader}>
                 <View style={styles.tagContainer}>
-                    <Text style={styles.assetTag}>{asset.asset_tag}</Text>
+                    <Text style={[styles.assetTag, { backgroundColor: theme.colors.surfaceVariant, color: theme.colors.onSurfaceVariant }]}>{asset.asset_tag}</Text>
                     {asset.category && (
-                        <Text style={styles.categoryName}>{asset.category.name}</Text>
+                        <Text style={[styles.categoryName, { color: theme.colors.onSurfaceVariant }]}>{asset.category.name}</Text>
                     )}
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(asset.status) }]}>
@@ -70,19 +73,19 @@ export default function AssetInventoryScreen() {
             </View>
 
             <View style={styles.cardContent}>
-                <Text style={styles.assetName}>{asset.name}</Text>
+                <Text style={[styles.assetName, { color: theme.colors.onSurface }]}>{asset.name}</Text>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Marca/Modelo:</Text>
-                    <Text style={styles.value}>{asset.brand} {asset.model}</Text>
+                    <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Marca/Modelo:</Text>
+                    <Text style={[styles.value, { color: theme.colors.onSurface }]}>{asset.brand} {asset.model}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Serie:</Text>
-                    <Text style={styles.value}>{asset.serial_number}</Text>
+                    <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Serie:</Text>
+                    <Text style={[styles.value, { color: theme.colors.onSurface }]}>{asset.serial_number}</Text>
                 </View>
                 {asset.responsible_user_id && (
                     <View style={styles.row}>
-                        <Text style={styles.label}>Responsable:</Text>
-                        <Text style={styles.value}>ID: {asset.responsible_user_id}</Text>
+                        <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>Responsable:</Text>
+                        <Text style={[styles.value, { color: theme.colors.onSurface }]}>ID: {asset.responsible_user_id}</Text>
                     </View>
                 )}
             </View>
@@ -90,15 +93,17 @@ export default function AssetInventoryScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Inventario de Activos</Text>
+        <ScreenContainer 
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+            <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.outline }]}>
+                <Text style={[styles.title, { color: theme.colors.onSurface }]}>Inventario de Activos</Text>
                 <TouchableOpacity 
-                    style={styles.addButton}
+                    style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => router.push('/assets/create')}
                 >
-                    <Ionicons name="add" size={24} color="#fff" />
-                    <Text style={styles.addButtonText}>Nuevo</Text>
+                    <Ionicons name="add" size={24} color={theme.colors.onPrimary} />
+                    <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>Nuevo</Text>
                 </TouchableOpacity>
             </View>
 
@@ -108,57 +113,44 @@ export default function AssetInventoryScreen() {
             />
 
             {loading ? (
-                <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+                <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
             ) : (
-                <ScrollView 
-                    contentContainerStyle={styles.listContent}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                    }
-                >
+                <View style={styles.listContent}>
                     {assets.length > 0 ? (
                         assets.map(renderAssetItem)
                     ) : (
                         <View style={styles.emptyState}>
-                            <Ionicons name="cube-outline" size={48} color="#ccc" />
-                            <Text style={styles.emptyText}>No se encontraron activos</Text>
+                            <Ionicons name="cube-outline" size={48} color={theme.colors.onSurfaceVariant} />
+                            <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>No se encontraron activos</Text>
                         </View>
                     )}
-                </ScrollView>
+                </View>
             )}
-        </View>
+        </ScreenContainer>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        marginBottom: 10,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
     },
     addButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#007AFF',
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 8,
     },
     addButtonText: {
-        color: '#fff',
         fontWeight: '600',
         marginLeft: 4,
     },
@@ -166,16 +158,15 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 20,
     },
     listContent: {
         padding: 16,
     },
     card: {
-        backgroundColor: '#fff',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -193,8 +184,6 @@ const styles = StyleSheet.create({
     assetTag: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#666',
-        backgroundColor: '#f0f0f0',
         alignSelf: 'flex-start',
         paddingHorizontal: 8,
         paddingVertical: 2,
@@ -203,7 +192,6 @@ const styles = StyleSheet.create({
     },
     categoryName: {
         fontSize: 12,
-        color: '#888',
     },
     statusBadge: {
         paddingHorizontal: 8,
@@ -221,7 +209,6 @@ const styles = StyleSheet.create({
     assetName: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
         marginBottom: 4,
     },
     row: {
@@ -231,11 +218,9 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 14,
-        color: '#666',
     },
     value: {
         fontSize: 14,
-        color: '#333',
         fontWeight: '500',
     },
     emptyState: {
@@ -245,7 +230,6 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         marginTop: 8,
-        color: '#888',
         fontSize: 16,
     },
 });

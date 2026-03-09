@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, FAB, Chip, useTheme, Searchbar } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ScrollableContent } from '../../../../components/ScrollableContent';
+import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Table } from '../../../../components/Table';
 import vehicleService, { Vehicle, VehicleStatus } from '../../../../services/vehicleService';
 import { usePermission } from '../../../../hooks/usePermission';
 import { AccessDenied } from '../../../../components/AccessDenied';
+import { Layout } from '../../../../constants/Layout';
 
 const VehicleListScreen = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -125,31 +126,34 @@ const VehicleListScreen = () => {
   ];
 
   return (
-    <View style={{flex: 1}}>
-      <View style={{padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+    <ScreenContainer scrollable={false} withPadding={false}>
+      <View style={styles.headerContainer}>
         <Searchbar
           placeholder="Search vehicles..."
           onChangeText={setSearchQuery}
           value={searchQuery}
-          style={{flex: 1, marginRight: 10}}
+          style={styles.searchBar}
         />
-        <Button 
-            mode="outlined" 
-            icon="calendar" 
-            onPress={() => router.push('/(dashboard)/admin/vehicles/calendar')}
-            style={{ marginRight: 8 }}
-        >
-            Calendar
-        </Button>
-        <Button 
-            mode="contained" 
-            icon="chart-bar" 
-            onPress={() => router.push('/(dashboard)/admin/vehicles/dashboard')}
-        >
-            Stats
-        </Button>
+        <View style={styles.headerActions}>
+            <Button 
+                mode="outlined" 
+                icon="calendar" 
+                onPress={() => router.push('/(dashboard)/admin/vehicles/calendar')}
+                style={{ marginRight: 8 }}
+            >
+                Calendar
+            </Button>
+            <Button 
+                mode="contained" 
+                icon="chart-bar" 
+                onPress={() => router.push('/(dashboard)/admin/vehicles/dashboard')}
+            >
+                Stats
+            </Button>
+        </View>
       </View>
-      <ScrollableContent>
+      
+      <ScreenContainer>
         <Table
           columns={columns}
           data={filteredVehicles}
@@ -157,31 +161,41 @@ const VehicleListScreen = () => {
           loading={loading}
           emptyMessage="No vehicles found"
         />
-      </ScrollableContent>
+      </ScreenContainer>
+
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        color={theme.colors.onPrimary}
         onPress={() => router.push('/(dashboard)/admin/vehicles/create')}
         visible={hasPermission('vehicles:manage')}
       />
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  header: {
+  headerContainer: {
+    padding: Layout.spacing.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    flexWrap: 'wrap',
+    gap: Layout.spacing.sm,
+  },
+  headerActions: {
+      flexDirection: 'row',
+      marginLeft: 'auto',
   },
   searchBar: {
-    marginBottom: 16,
+    flex: 1,
+    minWidth: 200,
+    marginRight: 10,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
   },
   statusBadge: {
     paddingHorizontal: 8,

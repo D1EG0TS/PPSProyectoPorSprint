@@ -1,15 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { Button, Switch, Text, useTheme } from 'react-native-paper';
+import { Switch, Text, useTheme, Menu } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Modal } from '../../Modal';
 import { Input } from '../../Input';
+import { Button } from '../../Button';
 import { User } from '../../../services/userService';
 import { USER_ROLES, getRoleName } from '../../../constants/roles';
 import { useAuth } from '../../../hooks/useAuth';
-import { Picker } from '@react-native-picker/picker';
+import { Layout } from '../../../constants/Layout';
+import { Colors } from '../../../constants/Colors';
 
 const userSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -44,8 +46,9 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
   const isEdit = !!user;
   const theme = useTheme();
   const { user: currentUser } = useAuth();
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
   
-  const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm<UserFormData>({
+  const { control, handleSubmit, reset, formState: { isSubmitting, errors }, setValue, watch } = useForm<UserFormData>({
     resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
     defaultValues: {
       email: '',
@@ -55,6 +58,8 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
       is_active: true,
     }
   });
+
+  const selectedRoleId = watch('role_id');
 
   useEffect(() => {
     if (visible) {
@@ -102,71 +107,108 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
       title={isEdit ? 'Editar Usuario' : 'Crear Usuario'}
     >
       <View style={styles.form}>
-        <Input
-          name="email"
+        <Controller
           control={control}
-          label="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          disabled={isEdit} 
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Email"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              error={errors.email?.message}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              disabled={isEdit} 
+              containerStyle={styles.input}
+            />
+          )}
         />
         
-        <Input
-          name="full_name"
+        <Controller
           control={control}
-          label="Nombre Completo"
-          autoCapitalize="words"
+          name="full_name"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label="Nombre Completo"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              error={errors.full_name?.message}
+              autoCapitalize="words"
+              containerStyle={styles.input}
+            />
+          )}
         />
 
-        <Input
-            name="password"
-            control={control}
-            label={isEdit ? "Nueva Contraseña (Opcional)" : "Contraseña"}
-            secureTextEntry
-            placeholder={isEdit ? "Dejar en blanco para mantener la actual" : ""}
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              label={isEdit ? "Nueva Contraseña (Opcional)" : "Contraseña"}
+              value={value || ''}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              error={errors.password?.message}
+              secureTextEntry
+              placeholder={isEdit ? "Dejar en blanco para mantener la actual" : ""}
+              containerStyle={styles.input}
+            />
+          )}
         />
 
-        <View style={styles.field}>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Rol</Text>
-            <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
-                <Controller
-                    control={control}
-                    name="role_id"
-                    render={({ field: { onChange, value } }) => (
-                        <Picker
-                            selectedValue={value}
-                            onValueChange={(itemValue) => onChange(Number(itemValue))}
-                            style={styles.picker}
-                        >
-                            {availableRoles.map((role) => (
-                                <Picker.Item key={role} label={getRoleName(role)} value={role} />
-                            ))}
-                        </Picker>
-                    )}
-                />
-            </View>
+        <View style={styles.input}>
+          <Menu
+            visible={showRoleMenu}
+            onDismiss={() => setShowRoleMenu(false)}
+            anchor={
+              <Input
+                label="Rol"
+                value={getRoleName(selectedRoleId)}
+                editable={false}
+                right={<Input.Icon icon="menu-down" onPress={() => setShowRoleMenu(true)} />}
+                error={errors.role_id?.message}
+              />
+            }
+          >
+            {availableRoles.map((role) => (
+              <Menu.Item 
+                key={role} 
+                onPress={() => { 
+                  setValue('role_id', role); 
+                  setShowRoleMenu(false); 
+                }} 
+                title={getRoleName(role)} 
+              />
+            ))}
+          </Menu>
         </View>
 
         <View style={styles.switchContainer}>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>Activo</Text>
+            <Text variant="bodyMedium" style={{ color: Colors.text }}>Activo</Text>
             <Controller
                 control={control}
                 name="is_active"
                 render={({ field: { onChange, value } }) => (
-                    <Switch value={value} onValueChange={onChange} />
+                    <Switch value={value} onValueChange={onChange} color={Colors.primary} />
                 )}
             />
         </View>
 
-        <Button 
-            mode="contained" 
-            onPress={handleSubmit(onFormSubmit)} 
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            style={styles.submitButton}
-        >
-            {isEdit ? 'Guardar Cambios' : 'Crear Usuario'}
-        </Button>
+        <View style={styles.actions}>
+            <Button variant="outline" onPress={onDismiss} style={{ marginRight: 8 }}>
+                Cancelar
+            </Button>
+            <Button 
+                variant="primary"
+                onPress={handleSubmit(onFormSubmit)} 
+                loading={isSubmitting}
+                disabled={isSubmitting}
+            >
+                {isEdit ? 'Guardar' : 'Crear'}
+            </Button>
+        </View>
       </View>
     </Modal>
   );
@@ -174,27 +216,22 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
 
 const styles = StyleSheet.create({
   form: {
-    gap: 12,
+    gap: Layout.spacing.sm,
   },
-  field: {
-    gap: 4,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 4,
-    backgroundColor: 'transparent',
-  },
-  picker: {
-    height: Platform.OS === 'web' ? 40 : 50,
-    width: '100%',
+  input: {
+    marginBottom: Layout.spacing.sm,
   },
   switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: Layout.spacing.md,
+    marginTop: Layout.spacing.sm,
+    paddingHorizontal: 4,
   },
-  submitButton: {
-    marginTop: 8,
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: Layout.spacing.md,
   }
 });

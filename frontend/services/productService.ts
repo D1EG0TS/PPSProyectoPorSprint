@@ -28,10 +28,11 @@ export interface Product {
   has_expiration?: boolean;
   is_active?: boolean;
   batches?: ProductBatch[];
+  total_stock?: number; // Added for catalog view
 }
 
 export interface ProductCreate {
-  sku: string;
+  sku?: string; // Optional (auto-generated)
   barcode?: string;
   name: string;
   description?: string;
@@ -211,4 +212,22 @@ export const getProductByCode = async (code: string) => {
     }
     throw error;
   }
+};
+
+export const uploadProductImage = async (id: number, imageUri: string) => {
+  const formData = new FormData();
+  
+  const filename = imageUri.split('/').pop();
+  const match = /\.(\w+)$/.exec(filename || '');
+  const type = match ? `image/${match[1]}` : `image`;
+  
+  // @ts-ignore
+  formData.append('file', { uri: imageUri, name: filename, type });
+  
+  const response = await api.post<Product>(`/products/${id}/image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
 };

@@ -4,6 +4,7 @@ import { Card, Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Product } from '../../services/productService';
 import { Colors } from '../../constants/Colors';
+import { getImageUrl } from '../../services/api';
 
 interface ProductCardProps {
   product: Product;
@@ -21,10 +22,8 @@ export const ProductCard = ({ product, onPress }: ProductCardProps) => {
     }
   };
 
-  // Product image or placeholder
-  const imageSource = product.image_url 
-    ? { uri: product.image_url } 
-    : { uri: 'https://via.placeholder.com/300' };
+  // Product image
+  const imageSource = { uri: getImageUrl(product.image_url) };
 
   // Calculate stock (this would ideally come from backend aggregation, 
   // but for now we assume product might have a total_quantity field or we check batches if available)
@@ -39,7 +38,8 @@ export const ProductCard = ({ product, onPress }: ProductCardProps) => {
   // To make it real, we'd need the backend to return `total_stock`. 
   // For now, let's just display "EN EXISTENCIA" if active, or a mock number if we want to match UI exactly.
   // Let's check if we can get a number.
-  const stock = product.batches?.reduce((acc, b) => acc + b.quantity, 0) || 0;
+  // We check if product has `total_stock` property (from catalog service)
+  const stock = (product as any).total_stock ?? (product.batches?.reduce((acc, b) => acc + b.quantity, 0) || 0);
   const hasStock = stock > 0; // or product.is_active
 
   return (
