@@ -1,0 +1,21 @@
+[Unit]
+Description=Gunicorn instance to serve Exproof Backend
+After=network.target
+
+[Service]
+# User running the application (change 'ubuntu' to your VPS username if different)
+User=root
+Group=www-data
+
+# Working directory (path to your project root on VPS)
+WorkingDirectory=/var/www/exproof-backend
+
+# Environment variables
+Environment="PATH=/var/www/exproof-backend/venv/bin"
+EnvironmentFile=/var/www/exproof-backend/.env
+
+# Gunicorn command to run the application on port 3000
+ExecStart=/var/www/exproof-backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:3000
+
+[Install]
+WantedBy=multi-user.target

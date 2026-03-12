@@ -106,8 +106,8 @@ def seed_system_config(db: Session):
     db.commit()
 
 def seed_super_admin(db: Session):
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+    admin_email = os.getenv("ADMIN_EMAIL", "diegoterrazas@exproof.com")
+    admin_password = os.getenv("ADMIN_PASSWORD", "D25terrazas*")
     
     # Validar longitud de contraseña para bcrypt (max 72 bytes)
     if len(admin_password.encode('utf-8')) > 72:

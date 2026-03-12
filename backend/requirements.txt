@@ -11,3 +11,4 @@ email-validator
 bcrypt==4.0.1
 websockets
 httpx
+gunicorn
