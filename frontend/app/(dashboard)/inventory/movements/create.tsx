@@ -27,11 +27,14 @@ const itemSchema = z.object({
   quantity: z.number().min(1, 'Cantidad debe ser mayor a 0'),
   notes: z.string().optional(),
   source_location_id: z.number().optional(),
+  source_location_name: z.string().optional(), // Helper for UI
   destination_location_id: z.number().optional(),
+  destination_location_name: z.string().optional(), // Helper for UI
 });
 
 const movementSchema = z.object({
   type: z.nativeEnum(MovementType),
+  adjustment_mode: z.enum(['IN', 'OUT']).optional(),
   source_warehouse_id: z.number().optional(),
   destination_warehouse_id: z.number().optional(),
   reason: z.string().min(3, 'Razón requerida'),
@@ -42,6 +45,9 @@ const movementSchema = z.object({
     return !!data.destination_warehouse_id;
   }
   if (data.type === MovementType.OUT || data.type === MovementType.ADJUSTMENT) {
+    if (data.type === MovementType.ADJUSTMENT && data.adjustment_mode === 'IN') {
+      return !!data.destination_warehouse_id;
+    }
     return !!data.source_warehouse_id;
   }
   if (data.type === MovementType.TRANSFER) {
@@ -74,6 +80,7 @@ export default function CreateMovementScreen() {
     resolver: zodResolver(movementSchema),
     defaultValues: {
       type: MovementType.IN,
+      adjustment_mode: 'OUT',
       reason: '',
       items: [],
     }
@@ -85,6 +92,7 @@ export default function CreateMovementScreen() {
   });
 
   const selectedType = watch('type');
+  const adjustmentMode = watch('adjustment_mode');
   const sourceWarehouseId = watch('source_warehouse_id');
   const destinationWarehouseId = watch('destination_warehouse_id');
 
@@ -104,8 +112,29 @@ export default function CreateMovementScreen() {
 
   const handleLocationSelect = (location: any) => {
     if (locationDialog.index >= 0) {
-      // @ts-ignore
-      setValue(`items.${locationDialog.index}.${locationDialog.type === 'source' ? 'source_location_id' : 'destination_location_id'}`, location.id);
+      if (locationDialog.type === 'source') {
+        setValue(`items.${locationDialog.index}.source_location_id`, location.id);
+        setValue(`items.${locationDialog.index}.source_location_name`, location.code);
+        if (!sourceWarehouseId && location.warehouse_id) {
+            setValue('source_warehouse_id', location.warehouse_id);
+        } else if (sourceWarehouseId && sourceWarehouseId !== location.warehouse_id) {
+            Alert.alert("Advertencia", "La ubicación seleccionada pertenece a un almacén diferente al ya asignado. Se actualizará el almacén origen.", [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Actualizar", onPress: () => setValue('source_warehouse_id', location.warehouse_id) }
+            ]);
+        }
+      } else {
+        setValue(`items.${locationDialog.index}.destination_location_id`, location.id);
+        setValue(`items.${locationDialog.index}.destination_location_name`, location.code);
+        if (!destinationWarehouseId && location.warehouse_id) {
+            setValue('destination_warehouse_id', location.warehouse_id);
+        } else if (destinationWarehouseId && destinationWarehouseId !== location.warehouse_id) {
+            Alert.alert("Advertencia", "La ubicación seleccionada pertenece a un almacén diferente al ya asignado. Se actualizará el almacén destino.", [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Actualizar", onPress: () => setValue('destination_warehouse_id', location.warehouse_id) }
+            ]);
+        }
+      }
     }
     setLocationDialog({ ...locationDialog, visible: false });
   };
@@ -147,14 +176,36 @@ export default function CreateMovementScreen() {
       // 1. Create Request
       const request = await createMovementRequest({
         type: data.type,
-        source_warehouse_id: data.type === MovementType.IN ? undefined : data.source_warehouse_id,
-        destination_warehouse_id: (data.type === MovementType.OUT || data.type === MovementType.ADJUSTMENT) ? undefined : data.destination_warehouse_id,
+        source_warehouse_id:
+          data.type === MovementType.IN
+            ? undefined
+            : data.type === MovementType.ADJUSTMENT && data.adjustment_mode === 'IN'
+              ? undefined
+              : data.source_warehouse_id,
+        destination_warehouse_id:
+          data.type === MovementType.OUT
+            ? undefined
+            : data.type === MovementType.ADJUSTMENT && data.adjustment_mode !== 'IN'
+              ? undefined
+              : data.destination_warehouse_id,
         reason: data.reason,
         reference: data.reference,
         items: data.items.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity,
-          notes: item.notes
+          notes: item.notes,
+          source_location_id:
+            data.type === MovementType.IN
+              ? undefined
+              : data.type === MovementType.ADJUSTMENT && data.adjustment_mode === 'IN'
+                ? undefined
+                : item.source_location_id,
+          destination_location_id:
+            data.type === MovementType.OUT
+              ? undefined
+              : data.type === MovementType.ADJUSTMENT && data.adjustment_mode !== 'IN'
+                ? undefined
+                : item.destination_location_id
         }))
       });
 
@@ -210,57 +261,55 @@ export default function CreateMovementScreen() {
             </View>
           </View>
 
-          {/* Warehouses Logic */}
-          {(selectedType !== MovementType.IN) && (
+          {/* Warehouses Logic - Auto-selected via items but visible here */}
+          {(selectedType === MovementType.OUT || selectedType === MovementType.TRANSFER || (selectedType === MovementType.ADJUSTMENT && adjustmentMode !== 'IN')) && (
             <View style={styles.field}>
               <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Almacén Origen</Text>
-              <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
-                <Controller
-                  control={control}
-                  name="source_warehouse_id"
-                  render={({ field: { onChange, value } }) => (
-                    <Picker
-                      selectedValue={value}
-                      onValueChange={(v) => onChange(Number(v))}
-                      style={[styles.picker, { color: theme.colors.onSurface }]}
-                      dropdownIconColor={theme.colors.onSurface}
-                    >
-                      <Picker.Item label="Seleccionar origen..." value={0} />
-                      {warehouses.map(w => (
-                        <Picker.Item key={w.id} label={w.name} value={w.id} />
-                      ))}
-                    </Picker>
-                  )}
-                />
-              </View>
+              {sourceWarehouseId ? (
+                <View style={styles.warehouseChip}>
+                    <Text variant="bodyLarge" style={{fontWeight: 'bold'}}>{warehouses.find(w => w.id === sourceWarehouseId)?.name || 'Desconocido'}</Text>
+                    <IconButton icon="close-circle" onPress={() => setValue('source_warehouse_id', undefined)} />
+                </View>
+              ) : (
+                <Text variant="bodyMedium" style={{color: theme.colors.outline}}>Seleccione una ubicación en los ítems para asignar automáticamente.</Text>
+              )}
               {errors.source_warehouse_id && <HelperText type="error">{errors.source_warehouse_id.message}</HelperText>}
             </View>
           )}
 
-          {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
+          {(selectedType === MovementType.IN || selectedType === MovementType.TRANSFER || (selectedType === MovementType.ADJUSTMENT && adjustmentMode === 'IN')) && (
              <View style={styles.field}>
              <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Almacén Destino</Text>
-             <View style={[styles.pickerContainer, { borderColor: theme.colors.outline }]}>
-               <Controller
-                 control={control}
-                 name="destination_warehouse_id"
-                 render={({ field: { onChange, value } }) => (
-                   <Picker
-                     selectedValue={value}
-                     onValueChange={(v) => onChange(Number(v))}
-                     style={[styles.picker, { color: theme.colors.onSurface }]}
-                     dropdownIconColor={theme.colors.onSurface}
-                   >
-                     <Picker.Item label="Seleccionar destino..." value={0} />
-                     {warehouses.map(w => (
-                       <Picker.Item key={w.id} label={w.name} value={w.id} />
-                     ))}
-                   </Picker>
-                 )}
-               />
-             </View>
+             {destinationWarehouseId ? (
+                <View style={styles.warehouseChip}>
+                    <Text variant="bodyLarge" style={{fontWeight: 'bold'}}>{warehouses.find(w => w.id === destinationWarehouseId)?.name || 'Desconocido'}</Text>
+                    <IconButton icon="close-circle" onPress={() => setValue('destination_warehouse_id', undefined)} />
+                </View>
+              ) : (
+                <Text variant="bodyMedium" style={{color: theme.colors.outline}}>Seleccione una ubicación en los ítems para asignar automáticamente.</Text>
+              )}
              {errors.destination_warehouse_id && <HelperText type="error">{errors.destination_warehouse_id.message}</HelperText>}
            </View>
+          )}
+
+          {selectedType === MovementType.ADJUSTMENT && (
+            <View style={styles.field}>
+              <Text variant="labelLarge" style={{ color: theme.colors.onSurface }}>Tipo de Ajuste</Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <Button
+                  variant={adjustmentMode === 'IN' ? 'primary' : 'outline'}
+                  onPress={() => setValue('adjustment_mode', 'IN')}
+                >
+                  Aumentar
+                </Button>
+                <Button
+                  variant={adjustmentMode !== 'IN' ? 'primary' : 'outline'}
+                  onPress={() => setValue('adjustment_mode', 'OUT')}
+                >
+                  Disminuir
+                </Button>
+              </View>
+            </View>
           )}
 
           {/* Reason & Reference */}
@@ -312,37 +361,35 @@ export default function CreateMovementScreen() {
                 <Text style={{ fontWeight: 'bold', color: theme.colors.onSurfaceVariant }}>{field.product_name}</Text>
                 
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                   {/* We need PaperTextInput here because Input doesn't support right icon click easily without refactoring or passing prop */}
-                   {/* Actually Input supports `right` prop */}
-                   {selectedType !== MovementType.IN && (
+                   {selectedType !== MovementType.IN && !(selectedType === MovementType.ADJUSTMENT && adjustmentMode === 'IN') && (
                      <Controller
                        control={control}
-                       name={`items.${index}.source_location_id`}
-                       render={({ field: { onChange, value } }) => (
+                       name={`items.${index}.source_location_name`}
+                       render={({ field: { value } }) => (
                           <Input
                            label="Loc. Origen"
-                           value={value ? String(value) : ''}
-                           onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                           value={value || ''}
+                           onChangeText={() => {}}
                            containerStyle={{ flex: 1 }}
-                           keyboardType="numeric"
                            right={<PaperTextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'source')} />}
+                           editable={false}
                          />
                        )}
                      />
                    )}
                    
-                   {(selectedType !== MovementType.OUT && selectedType !== MovementType.ADJUSTMENT) && (
+                   {(selectedType !== MovementType.OUT && !(selectedType === MovementType.ADJUSTMENT && adjustmentMode !== 'IN')) && (
                       <Controller
                        control={control}
-                       name={`items.${index}.destination_location_id`}
-                       render={({ field: { onChange, value } }) => (
+                       name={`items.${index}.destination_location_name`}
+                       render={({ field: { value } }) => (
                           <Input
                            label="Loc. Destino"
-                           value={value ? String(value) : ''}
-                           onChangeText={(t) => onChange(t ? Number(t) : undefined)}
+                           value={value || ''}
+                           onChangeText={() => {}}
                            containerStyle={{ flex: 1 }}
-                           keyboardType="numeric"
                            right={<PaperTextInput.Icon icon="magnify" onPress={() => openLocationDialog(index, 'destination')} />}
+                           editable={false}
                          />
                        )}
                      />
@@ -499,5 +546,14 @@ const styles = StyleSheet.create({
   itemActions: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  warehouseChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginTop: 4,
   },
 });

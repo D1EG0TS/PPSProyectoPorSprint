@@ -43,6 +43,7 @@ export interface OperationalCatalogItem extends PublicCatalogItem {
   total_stock: number;
   available_stock: number;
   can_add_to_request: boolean;
+  locations?: CatalogLocation[];
 }
 
 export interface InternalCatalogItem extends OperationalCatalogItem {
@@ -52,7 +53,6 @@ export interface InternalCatalogItem extends OperationalCatalogItem {
 }
 
 export interface AdminCatalogItem extends InternalCatalogItem {
-  locations: CatalogLocation[];
   cost: number;
   price: number;
   last_movement_date?: string;

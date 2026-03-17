@@ -59,36 +59,6 @@ Este proyecto consiste en un sistema de gestión de inventarios y almacenes (War
 - **Validaciones:** Control de números de serie duplicados y validación de estados (AVAILABLE, ASSIGNED, etc.).
 - **Tests de Integración:** Pruebas automatizadas para el flujo completo de vida de una herramienta.
 
-## Instalación y Ejecución
-
-### Backend
-```bash
-cd backend
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-alembic upgrade head
-python db/seed_database.py
-.\venv\Scripts\python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npx expo start -c
-```
-### Subir cambios a GIT
-```bash
-git add .
-git commit -m "Estilos"
-git push origin main
-```
-### BAJAR CAMBIOS DE GIT
-```bash
-git pull origin main
-```
-
 ### Sprint 9.2: Dashboards de Inventario y Kardex (Frontend)
 
 **Estado:** Completado
@@ -628,3 +598,35 @@ git pull origin main
 **Para comenzar, di: "Genera el código del SPRINT 0.1"**
 
 ### sprint 9.2
+
+
+
+## Instalación y Ejecución
+
+### Backend
+```bash
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+alembic upgrade head
+python -m app.db.seed_database
+.\venv\Scripts\python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npx expo start -c
+```
+### Subir cambios a GIT
+```bash
+git add .
+git commit -m "Estilos"
+git push origin main
+```
+### BAJAR CAMBIOS DE GIT
+```bash
+git pull origin main
+```

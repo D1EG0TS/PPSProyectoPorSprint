@@ -202,18 +202,7 @@ export default function CreateProductScreen() {
         has_expiration: hasExpiration,
       };
 
-      const newProduct = await createProduct(productData);
-
-      // Upload Image if selected
-      if (selectedImage) {
-          try {
-              await uploadProductImage(newProduct.id, selectedImage);
-          } catch (imgError) {
-              console.error("Error uploading image:", imgError);
-              showSnackbar('Producto creado, pero falló la carga de imagen', true);
-              // Don't return, allow success flow to continue
-          }
-      }
+      const newProduct = await createProduct(productData, selectedImage || undefined);
 
       if (hasBatch && batchNumber) {
         // ... batch logic
@@ -232,7 +221,19 @@ export default function CreateProductScreen() {
       }, 1500);
     } catch (error: any) {
       console.error(error);
-      showSnackbar(error.response?.data?.detail || 'Error al registrar el producto', true);
+      let errorMessage = 'Error al registrar el producto';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          // Handle FastAPI validation errors (array of objects)
+          errorMessage = detail.map((err: any) => err.msg || JSON.stringify(err)).join('\n');
+        } else if (typeof detail === 'object') {
+          errorMessage = JSON.stringify(detail);
+        }
+      }
+      showSnackbar(errorMessage, true);
     } finally {
       setLoading(false);
     }

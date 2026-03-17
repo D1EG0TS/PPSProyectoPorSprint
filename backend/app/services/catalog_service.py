@@ -47,16 +47,20 @@ class CatalogService:
         elif role_id == 4: # Operational
             # Fetch total stock
             stock_map = self._get_total_stock_map(product_ids)
+            # Fetch locations
+            locations_map = self._get_locations_map(product_ids)
             
             results = []
             for p in products:
                 item_data = catalog_schemas.PublicCatalogItem.model_validate(p).model_dump()
                 total_stock = stock_map.get(p.id, 0)
+                locs = locations_map.get(p.id, [])
                 results.append(catalog_schemas.OperationalCatalogItem(
                     **item_data,
                     total_stock=total_stock,
                     available_stock=total_stock, # Simplified logic: available = total for now
-                    can_add_to_request=True
+                    can_add_to_request=True,
+                    locations=locs
                 ))
             return results
 

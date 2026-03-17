@@ -1,85 +1,81 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { IconButton, Text, useTheme } from 'react-native-paper';
+import { Location } from '../../services/warehouseService';
 import { Colors } from '../../constants/Colors';
-import { StorageLocation } from '../../types/location';
-import { Ionicons } from '@expo/vector-icons';
-import { CapacityBar } from './CapacityBar';
+import { Layout } from '../../constants/Layout';
 
 interface LocationTreeProps {
-  locations: StorageLocation[];
-  onSelectLocation: (location: StorageLocation) => void;
-  selectedId?: number;
+  roots: Location[];
+  onAddChild: (node: Location) => void;
+  onEdit: (node: Location) => void;
+  onDelete: (node: Location) => void;
+  onAssignProduct?: (node: Location) => void;
 }
 
-const LocationTreeNode: React.FC<{
-  location: StorageLocation;
-  level: number;
-  onSelect: (loc: StorageLocation) => void;
-  selectedId?: number;
-}> = ({ location, level, onSelect, selectedId }) => {
+const Node: React.FC<{
+  node: Location;
+  level?: number;
+  onAddChild: (node: Location) => void;
+  onEdit: (node: Location) => void;
+  onDelete: (node: Location) => void;
+  onAssignProduct?: (node: Location) => void;
+}> = ({ node, level = 0, onAddChild, onEdit, onDelete, onAssignProduct }) => {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
-  const hasChildren = location.children && location.children.length > 0;
-  const isSelected = location.id === selectedId;
+  const hasChildren = !!node.children && node.children.length > 0;
 
   return (
     <View>
-      <TouchableOpacity
-        style={[
-          styles.node, 
-          { marginLeft: level * 16 },
-          isSelected && styles.selectedNode
-        ]}
-        onPress={() => onSelect(location)}
-      >
+      <View style={[styles.nodeContainer, { paddingLeft: level * 20 }]}>
         <TouchableOpacity 
-          style={styles.expandButton}
+          style={styles.nodeContent} 
           onPress={() => setExpanded(!expanded)}
           disabled={!hasChildren}
         >
-          {hasChildren && (
-            <Ionicons 
-              name={expanded ? "chevron-down" : "chevron-forward"} 
-              size={16} 
-              color={Colors.textSecondary} 
-            />
-          )}
-        </TouchableOpacity>
-        
-        <Ionicons 
-          name={location.location_type === 'rack' ? "grid-outline" : "cube-outline"} 
-          size={18} 
-          color={isSelected ? Colors.primary : Colors.textSecondary} 
-          style={styles.icon}
-        />
-        
-        <View style={styles.info}>
-          <Text style={[styles.code, isSelected && styles.selectedText]}>
-            {location.code}
-          </Text>
-          <Text style={styles.name}>{location.name}</Text>
-        </View>
-
-        {location.capacity > 0 && (
-          <View style={styles.miniBar}>
-             <CapacityBar 
-               current={location.current_occupancy} 
-               max={location.capacity} 
-               height={4}
-               showText={false}
-             />
+          <View style={styles.nodeIcon}>
+            {hasChildren ? (
+              <IconButton 
+                icon={expanded ? "chevron-down" : "chevron-right"} 
+                size={20} 
+                onPress={() => setExpanded(!expanded)} 
+              />
+            ) : (
+              <View style={{ width: 36 }} />
+            )}
           </View>
-        )}
-      </TouchableOpacity>
+          <View style={styles.nodeTextContainer}>
+            <Text variant="bodyLarge" style={styles.nodeName}>{node.name}</Text>
+            <Text variant="bodySmall" style={styles.nodeCode}>{node.code}</Text>
+          </View>
+        </TouchableOpacity>
 
-      {expanded && hasChildren && (
+        <View style={styles.nodeActions}>
+          <IconButton icon="plus" size={18} onPress={() => onAddChild(node)} />
+          <IconButton icon="pencil" size={18} onPress={() => onEdit(node)} />
+          <IconButton 
+            icon="delete" 
+            size={18} 
+            iconColor={theme.colors.error} 
+            onPress={() => onDelete(node)} 
+          />
+          {onAssignProduct && (
+            <IconButton icon="cube-outline" size={18} onPress={() => onAssignProduct(node)} />
+          )}
+        </View>
+      </View>
+
+      {expanded && hasChildren && node.children && (
         <View>
-          {location.children!.map(child => (
-            <LocationTreeNode 
-              key={child.id} 
-              location={child} 
+          {node.children.map(child => (
+            <Node 
+              key={child.id}
+              node={child}
               level={level + 1}
-              onSelect={onSelect}
-              selectedId={selectedId}
+              onAddChild={onAddChild}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onAssignProduct={onAssignProduct}
             />
           ))}
         </View>
@@ -88,69 +84,64 @@ const LocationTreeNode: React.FC<{
   );
 };
 
-export const LocationTree: React.FC<LocationTreeProps> = ({ 
-  locations, 
-  onSelectLocation,
-  selectedId 
-}) => {
-  // Assuming locations provided here are roots (no parent)
-  // If flat list is provided, we might need to build tree first.
-  // Assuming backend returns tree or we pass roots.
-  
+export const LocationTree: React.FC<LocationTreeProps> = ({ roots, onAddChild, onEdit, onDelete, onAssignProduct }) => {
+  if (!roots || roots.length === 0) {
+    return (
+      <View style={styles.emptyState}>
+        <Text style={{ color: Colors.gray }}>No hay ubicaciones registradas.</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      {locations.map(loc => (
-        <LocationTreeNode 
-          key={loc.id} 
-          location={loc} 
-          level={0}
-          onSelect={onSelectLocation}
-          selectedId={selectedId}
+    <View>
+      {roots.map(root => (
+        <Node 
+          key={root.id}
+          node={root}
+          onAddChild={onAddChild}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onAssignProduct={onAssignProduct}
         />
       ))}
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  node: {
+  nodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingRight: 12,
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#eee',
+    minHeight: 56,
   },
-  selectedNode: {
-    backgroundColor: '#FFF8E1', // Light orange/yellow
-  },
-  expandButton: {
-    width: 24,
+  nodeContent: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    height: '100%',
   },
-  icon: {
+  nodeIcon: {
     marginRight: 8,
   },
-  info: {
+  nodeTextContainer: {
     flex: 1,
   },
-  code: {
-    fontSize: 14,
+  nodeName: {
     fontWeight: '500',
-    color: Colors.text,
   },
-  selectedText: {
-    color: Colors.primary,
-    fontWeight: 'bold',
-  },
-  name: {
+  nodeCode: {
+    color: Colors.gray,
     fontSize: 12,
-    color: Colors.textSecondary,
   },
-  miniBar: {
-    width: 60,
+  nodeActions: {
+    flexDirection: 'row',
+  },
+  emptyState: {
+    alignItems: 'center',
+    marginTop: Layout.spacing.md,
   }
 });

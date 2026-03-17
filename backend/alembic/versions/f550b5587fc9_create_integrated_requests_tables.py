@@ -133,6 +133,27 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_request_tools_id'), 'request_tools', ['id'], unique=False)
+    op.create_table('ledger_entries',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('movement_request_id', sa.Integer(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('batch_id', sa.Integer(), nullable=True),
+    sa.Column('warehouse_id', sa.Integer(), nullable=False),
+    sa.Column('location_id', sa.Integer(), nullable=True),
+    sa.Column('entry_type', sa.Enum('INCREMENT', 'DECREMENT', name='ledgerentrytype'), nullable=False),
+    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('previous_balance', sa.Integer(), nullable=False),
+    sa.Column('new_balance', sa.Integer(), nullable=False),
+    sa.Column('applied_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('applied_by', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['movement_request_id'], ['movement_requests.id'], ),
+    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
+    sa.ForeignKeyConstraint(['batch_id'], ['product_batches.id'], ),
+    sa.ForeignKeyConstraint(['warehouse_id'], ['warehouses.id'], ),
+    sa.ForeignKeyConstraint(['location_id'], ['storage_locations.id'], ),
+    sa.ForeignKeyConstraint(['applied_by'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_index(op.f('ix_ledger_entries_applied_at'), 'ledger_entries', ['applied_at'], unique=False)
     op.create_index(op.f('ix_ledger_entries_id'), 'ledger_entries', ['id'], unique=False)
     op.create_index(op.f('ix_ledger_entries_product_id'), 'ledger_entries', ['product_id'], unique=False)
@@ -151,6 +172,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_ledger_entries_product_id'), table_name='ledger_entries')
     op.drop_index(op.f('ix_ledger_entries_id'), table_name='ledger_entries')
     op.drop_index(op.f('ix_ledger_entries_applied_at'), table_name='ledger_entries')
+    op.drop_table('ledger_entries')
     op.drop_index(op.f('ix_request_tools_id'), table_name='request_tools')
     op.drop_table('request_tools')
     op.drop_index(op.f('ix_request_vehicles_id'), table_name='request_vehicles')

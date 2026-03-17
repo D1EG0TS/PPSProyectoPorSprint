@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { DataTable, IconButton, Text, Tooltip, ActivityIndicator } from 'react-native-paper';
+import { DataTable, IconButton, Text, Tooltip, ActivityIndicator, List, Divider } from 'react-native-paper';
 import { InternalCatalogItem, AdminCatalogItem, CatalogPermissions } from '../../../types/catalog';
 import { StockIndicator } from '../common/StockIndicator';
 import { WarehouseStockCell } from './WarehouseStockCell';
@@ -23,6 +23,15 @@ export const InternalCatalogTable: React.FC<InternalCatalogTableProps> = ({
   onRequest
 }) => {
   const [selectedLocationItem, setSelectedLocationItem] = useState<AdminCatalogItem | null>(null);
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  const toggleRow = (id: number) => {
+    if (expandedRow === id) {
+      setExpandedRow(null);
+    } else {
+      setExpandedRow(id);
+    }
+  };
 
   if (loading) {
       return (
@@ -66,7 +75,8 @@ export const InternalCatalogTable: React.FC<InternalCatalogTableProps> = ({
             </DataTable.Header>
 
             {items.map((item) => (
-              <DataTable.Row key={item.id}>
+              <React.Fragment key={item.id}>
+              <DataTable.Row onPress={() => toggleRow(item.id)}>
                 <DataTable.Cell style={{ width: 60 }}>{item.id}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 100 }}>{item.sku}</DataTable.Cell>
                 <DataTable.Cell style={{ width: 200 }}>{item.name}</DataTable.Cell>
@@ -117,9 +127,40 @@ export const InternalCatalogTable: React.FC<InternalCatalogTableProps> = ({
                           onPress={() => onAdjustStock(item)}
                        />
                     </Tooltip>
+                    <IconButton 
+                      icon={expandedRow === item.id ? "chevron-up" : "chevron-down"}
+                      size={20}
+                      onPress={() => toggleRow(item.id)}
+                    />
                   </View>
                 </DataTable.Cell>
               </DataTable.Row>
+              {expandedRow === item.id && (
+                  <View style={styles.expandedRow}>
+                      <Text style={styles.detailTitle}>Product Details:</Text>
+                      <View style={styles.detailGrid}>
+                          <Text>Brand: {item.brand || '-'}</Text>
+                          <Text>Model: {item.model || '-'}</Text>
+                          <Text>Description: {item.description || '-'}</Text>
+                          <Text>Barcode: {item.barcode || '-'}</Text>
+                          <Text>Unit: {item.unit?.abbreviation || item.unit?.name || '-'}</Text>
+                          {/* Add more fields here */}
+                      </View>
+                      <Divider style={{ marginVertical: 10 }} />
+                      {!!item.image_url && (
+                        <View style={{ width: 120, height: 120, borderRadius: 8, overflow: 'hidden', backgroundColor: '#eee' }}>
+                          {/* Web thumbnail; for native, Image component in a conditional block would be used */}
+                          {/* @ts-ignore */}
+                          <img 
+                            src={require('../../../services/api').getImageUrl(item.image_url)} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                            alt="thumb" 
+                          />
+                        </View>
+                      )}
+                  </View>
+              )}
+              </React.Fragment>
             ))}
           </DataTable>
         </View>
@@ -151,5 +192,18 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  expandedRow: {
+      padding: 16,
+      backgroundColor: '#f9f9f9',
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+  },
+  detailTitle: {
+      fontWeight: 'bold',
+      marginBottom: 8,
+  },
+  detailGrid: {
+      gap: 4
   }
 });

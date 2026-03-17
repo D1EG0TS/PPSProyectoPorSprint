@@ -3,6 +3,9 @@ import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-nat
 import { Text, ActivityIndicator, IconButton, useTheme, FAB, Portal, Modal as PaperModal } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { warehouseService, Location, Warehouse } from '../../../../../services/warehouseService';
+import { locationService } from '../../../../../services/locationService';
+import { Product } from '../../../../../services/productService';
+import { ProductSearch } from '../../../../../components/products/ProductSearch';
 import { Button } from '../../../../../components/Button';
 import { Input } from '../../../../../components/Input';
 import { Colors } from '../../../../../constants/Colors';
@@ -15,13 +18,15 @@ const LocationNode = ({
   level = 0, 
   onAddChild, 
   onEdit, 
-  onDelete 
+  onDelete, 
+  onAssignProduct
 }: { 
   node: Location; 
   level?: number; 
   onAddChild: (node: Location) => void; 
   onEdit: (node: Location) => void; 
   onDelete: (node: Location) => void; 
+  onAssignProduct: (node: Location) => void;
 }) => {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
@@ -60,6 +65,11 @@ const LocationNode = ({
             iconColor={Colors.error} 
             onPress={() => onDelete(node)} 
           />
+          <IconButton 
+            icon="cube-outline" 
+            size={18} 
+            onPress={() => onAssignProduct(node)} 
+          />
         </View>
       </View>
       
@@ -73,6 +83,7 @@ const LocationNode = ({
               onAddChild={onAddChild} 
               onEdit={onEdit} 
               onDelete={onDelete} 
+              onAssignProduct={onAssignProduct}
             />
           ))}
         </View>
@@ -108,6 +119,13 @@ export default function WarehouseLocationsScreen() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [assignVisible, setAssignVisible] = useState(false);
+  const [assignTarget, setAssignTarget] = useState<Location | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [assignQty, setAssignQty] = useState<string>('1');
+  const [assignSaving, setAssignSaving] = useState(false);
+  const [assignInventory, setAssignInventory] = useState<any[]>([]);
+  const [assignInvLoading, setAssignInvLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -118,7 +136,7 @@ export default function WarehouseLocationsScreen() {
       setLoading(true);
       const [whData, locsData] = await Promise.all([
         warehouseService.getWarehouse(warehouseId),
-        warehouseService.getLocations(warehouseId)
+        warehouseService.getLocationsTree(warehouseId)
       ]);
       setWarehouse(whData);
       setLocations(locsData);
@@ -255,6 +273,60 @@ export default function WarehouseLocationsScreen() {
     );
   };
 
+  const openAssignProduct = (location: Location) => {
+    setAssignTarget(location);
+    setSelectedProduct(null);
+    setAssignQty('1');
+    setAssignVisible(true);
+  };
+
+  const loadAssignInventory = async (locationId?: number) => {
+    if (!locationId) return;
+    try {
+      setAssignInvLoading(true);
+      const data = await locationService.getInventory(locationId);
+      setAssignInventory(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAssignInvLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (assignTarget?.id && assignVisible) {
+      loadAssignInventory(assignTarget.id);
+    }
+  }, [assignTarget, assignVisible]);
+  const handleAssignProduct = async () => {
+    if (!assignTarget || !selectedProduct) {
+      Toast.show({ type: 'error', text1: 'Selecciona ubicación y producto' });
+      return;
+    }
+    const qty = parseInt(assignQty);
+    if (!qty || qty <= 0) {
+      Toast.show({ type: 'error', text1: 'Cantidad inválida' });
+      return;
+    }
+    try {
+      setAssignSaving(true);
+      await locationService.assignProduct(selectedProduct.id, {
+        location_id: assignTarget.id,
+        warehouse_id: warehouseId,
+        quantity: qty,
+        assignment_type: 'manual',
+      });
+      Toast.show({ type: 'success', text1: 'Producto asignado' });
+      setAssignVisible(false);
+      fetchData();
+    } catch (error: any) {
+      const msg = error.response?.data?.detail || 'Error al asignar';
+      Toast.show({ type: 'error', text1: 'Error', text2: msg });
+    } finally {
+      setAssignSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -288,7 +360,8 @@ export default function WarehouseLocationsScreen() {
               node={node} 
               onAddChild={handleOpenCreateChild} 
               onEdit={handleOpenEdit} 
-              onDelete={handleDelete} 
+            onDelete={handleDelete} 
+            onAssignProduct={openAssignProduct}
             />
           ))
         )}
@@ -384,6 +457,68 @@ export default function WarehouseLocationsScreen() {
             </Button>
             <Button variant="primary" onPress={handleSave} loading={saving} style={{ flex: 1 }}>
               Guardar
+            </Button>
+          </View>
+        </PaperModal>
+        <PaperModal
+          visible={assignVisible}
+          onDismiss={() => setAssignVisible(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Text variant="titleLarge" style={styles.modalTitle}>
+            Asignar Producto a {assignTarget?.code}
+          </Text>
+
+          <View style={{ marginBottom: Layout.spacing.md }}>
+            <ProductSearch 
+              onSelect={(p) => setSelectedProduct(p)} 
+              label="Buscar Producto"
+              placeholder="SKU, Nombre o Código"
+            />
+            {selectedProduct && (
+              <Text style={{ color: Colors.gray }}>
+                Seleccionado: {selectedProduct.name} (SKU: {selectedProduct.sku})
+              </Text>
+            )}
+          </View>
+
+          <Input
+            label="Cantidad *"
+            value={assignQty}
+            onChangeText={setAssignQty}
+            keyboardType="numeric"
+            containerStyle={styles.input}
+          />
+
+          <View style={{ marginTop: Layout.spacing.md }}>
+            <Text variant="titleMedium" style={{ marginBottom: 8 }}>Inventario por ubicación</Text>
+            {assignInvLoading ? (
+              <ActivityIndicator />
+            ) : assignInventory.length === 0 ? (
+              <Text style={{ color: Colors.gray }}>No hay productos asignados en este contenedor.</Text>
+            ) : (
+              <View>
+                {assignInventory.map((it) => (
+                  <View key={it.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                    <Text>{it.product?.name || `Producto #${it.product_id}`}</Text>
+                    <Text style={{ color: Colors.gray }}>Qty: {it.quantity}</Text>
+                  </View>
+                ))}
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  <Button variant="outline" icon="refresh" onPress={() => loadAssignInventory(assignTarget?.id)}>
+                    Refrescar
+                  </Button>
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.modalActions}>
+            <Button variant="outline" onPress={() => setAssignVisible(false)} style={{ flex: 1, marginRight: 8 }}>
+              Cancelar
+            </Button>
+            <Button variant="primary" onPress={handleAssignProduct} loading={assignSaving} style={{ flex: 1 }}>
+              Asignar
             </Button>
           </View>
         </PaperModal>

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { catalogService } from '../../../services/catalogService';
 import { OperationalCatalogItem } from '../../../types/catalog';
 import { Colors } from '../../../constants/Colors';
+import { getImageUrl } from '../../../services/api';
 
 interface FrequentProductsProps {
   onSelect: (item: OperationalCatalogItem) => void;
@@ -46,6 +47,15 @@ export const FrequentProducts: React.FC<FrequentProductsProps> = ({ onSelect }) 
           <TouchableOpacity key={item.id} onPress={() => onSelect(item)}>
             <Card style={styles.card}>
               <Card.Content style={styles.cardContent}>
+                {!!item.image_url && (
+                  <View style={styles.imageContainer}>
+                    <Image 
+                      source={{ uri: getImageUrl(item.image_url) }} 
+                      style={styles.image}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
                 <Text numberOfLines={1} variant="labelLarge" style={styles.itemName}>{item.name}</Text>
                 <Text variant="bodySmall" style={styles.sku}>{item.sku}</Text>
                 <View style={styles.stockBadge}>
@@ -83,6 +93,18 @@ const styles = StyleSheet.create({
   cardContent: {
     padding: 10,
     alignItems: 'center',
+  },
+  imageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+    marginBottom: 6,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   itemName: {
     fontWeight: 'bold',

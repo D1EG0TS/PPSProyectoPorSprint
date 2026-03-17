@@ -18,6 +18,7 @@ interface LedgerItem {
   previous_balance: number;
   new_balance: number;
   warehouse_id: number;
+  location_id?: number;
   movement_request_id?: number;
   reference?: string; // From join or extra fetch? Movement model has request_id.
 }
@@ -134,6 +135,7 @@ export default function ProductLedgerScreen() {
                         <DataTable.Title numeric style={{width: 80}}>Cant.</DataTable.Title>
                         <DataTable.Title numeric style={{width: 80}}>Saldo</DataTable.Title>
                         <DataTable.Title numeric style={{width: 80}}>Almacén</DataTable.Title>
+                        <DataTable.Title numeric style={{width: 80}}>Ubic.</DataTable.Title>
                     </DataTable.Header>
 
                     {ledger.map((item) => (
@@ -155,6 +157,7 @@ export default function ProductLedgerScreen() {
                             </DataTable.Cell>
                             <DataTable.Cell numeric style={{width: 80}}>{item.new_balance}</DataTable.Cell>
                             <DataTable.Cell numeric style={{width: 80}}>{item.warehouse_id}</DataTable.Cell>
+                            <DataTable.Cell numeric style={{width: 80}}>{item.location_id || '-'}</DataTable.Cell>
                         </DataTable.Row>
                     ))}
 

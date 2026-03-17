@@ -26,6 +26,7 @@ class MovementBase(BaseModel):
     type: MovementType
     product_id: int
     warehouse_id: int
+    location_id: Optional[int] = None
     quantity: int
     previous_balance: int
     new_balance: int

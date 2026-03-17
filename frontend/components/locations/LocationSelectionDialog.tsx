@@ -19,9 +19,18 @@ export const LocationSelectionDialog: React.FC<Props> = ({ visible, onDismiss, o
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | undefined>(undefined);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  
   useEffect(() => {
-    if (visible && warehouseId) {
-      loadLocations();
+    if (visible) {
+      if (warehouseId) {
+        setSelectedWarehouseId(warehouseId);
+        loadLocations(warehouseId);
+      } else {
+        setSelectedWarehouseId(undefined);
+        loadWarehouses();
+      }
     }
   }, [visible, warehouseId]);
 
@@ -39,19 +48,57 @@ export const LocationSelectionDialog: React.FC<Props> = ({ visible, onDismiss, o
     }
   }, [query, locations]);
 
-  const loadLocations = async () => {
-    if (!warehouseId) return;
+  const flattenLocations = (locs: Location[]): Location[] => {
+    let flat: Location[] = [];
+    locs.forEach(loc => {
+      flat.push(loc);
+      if (loc.children && loc.children.length > 0) {
+        flat = flat.concat(flattenLocations(loc.children));
+      }
+    });
+    return flat;
+  };
+
+  const loadWarehouses = async () => {
     setLoading(true);
     try {
-      const data = await warehouseService.getLocations(warehouseId);
-      setLocations(data);
-      setFilteredLocations(data);
+      const data = await warehouseService.getWarehouses();
+      setWarehouses(data);
+    } catch (error) {
+      console.error('Error loading warehouses', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadLocations = async (id: number) => {
+    setLoading(true);
+    try {
+      const data = await warehouseService.getLocations(id);
+      const flatData = flattenLocations(data);
+      setLocations(flatData);
+      setFilteredLocations(flatData);
     } catch (error) {
       console.error('Error loading locations', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleWarehouseSelect = (id: number) => {
+    setSelectedWarehouseId(id);
+    loadLocations(id);
+  };
+
+  const renderWarehouseItem = ({ item }: { item: any }) => (
+    <List.Item
+      title={item.name}
+      description={item.code}
+      left={props => <List.Icon {...props} icon="office-building" />}
+      onPress={() => handleWarehouseSelect(item.id)}
+      style={styles.item}
+    />
+  );
 
   const renderItem = ({ item }: { item: Location }) => (
     <List.Item
@@ -70,25 +117,41 @@ export const LocationSelectionDialog: React.FC<Props> = ({ visible, onDismiss, o
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modalContainer}>
         <Card style={styles.card}>
-          <Card.Title title={title} right={(props) => <IconButton {...props} icon="close" onPress={onDismiss} />} />
+          <Card.Title 
+            title={!selectedWarehouseId ? "Seleccionar Almacén" : title} 
+            left={(props) => selectedWarehouseId && !warehouseId ? <IconButton {...props} icon="arrow-left" onPress={() => setSelectedWarehouseId(undefined)} /> : null}
+            right={(props) => <IconButton {...props} icon="close" onPress={onDismiss} />} 
+          />
           <Card.Content style={styles.content}>
-            <Searchbar
-              placeholder="Buscar ubicación..."
-              onChangeText={setQuery}
-              value={query}
-              style={styles.searchBar}
-            />
-            
-            {loading ? (
-              <ActivityIndicator style={styles.loader} size="large" />
-            ) : (
-              <FlatList
-                data={filteredLocations}
-                renderItem={renderItem}
+            {!selectedWarehouseId ? (
+               <FlatList
+                data={warehouses}
+                renderItem={renderWarehouseItem}
                 keyExtractor={item => item.id.toString()}
-                ListEmptyComponent={<Text style={styles.empty}>No se encontraron ubicaciones</Text>}
+                ListEmptyComponent={<Text style={styles.empty}>No se encontraron almacenes</Text>}
                 style={styles.list}
               />
+            ) : (
+              <>
+                <Searchbar
+                  placeholder="Buscar ubicación..."
+                  onChangeText={setQuery}
+                  value={query}
+                  style={styles.searchBar}
+                />
+                
+                {loading ? (
+                  <ActivityIndicator style={styles.loader} size="large" />
+                ) : (
+                  <FlatList
+                    data={filteredLocations}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id.toString()}
+                    ListEmptyComponent={<Text style={styles.empty}>No se encontraron ubicaciones</Text>}
+                    style={styles.list}
+                  />
+                )}
+              </>
             )}
           </Card.Content>
         </Card>
@@ -100,7 +163,11 @@ export const LocationSelectionDialog: React.FC<Props> = ({ visible, onDismiss, o
 // Helper for Close Icon
 const IconButton = ({ icon, onPress }: any) => (
   <TouchableOpacity onPress={onPress}>
-    <Ionicons name={icon === 'close' ? 'close' : 'help'} size={24} color={Colors.text} />
+    <Ionicons
+      name={icon === 'close' ? 'close' : icon === 'arrow-left' ? 'arrow-back' : 'help'}
+      size={24}
+      color={Colors.text}
+    />
   </TouchableOpacity>
 );
 

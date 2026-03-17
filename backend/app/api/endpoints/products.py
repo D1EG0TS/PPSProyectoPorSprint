@@ -1,7 +1,8 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from decimal import Decimal
 from app.api import deps
 from app.crud import product as crud_product
 from app.utils.file_storage import save_product_image
@@ -82,16 +83,53 @@ def read_products(
     )
     return filter_sensitive_data(products, current_user)
 
-@router.post("/", response_model=product_schemas.Product)
+@router.post("/", response_model=product_schemas.Product, status_code=status.HTTP_201_CREATED)
 def create_product(
-    product_in: product_schemas.ProductCreate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.check_permission("inventory:create")),
+    sku: str = Form(...),
+    name: str = Form(...),
+    category_id: int = Form(...),
+    unit_id: int = Form(...),
+    barcode: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    brand: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    cost: Decimal = Form(Decimal('0.00')),
+    price: Decimal = Form(Decimal('0.00')),
+    min_stock: int = Form(0),
+    target_stock: int = Form(0),
+    has_batch: bool = Form(False),
+    has_expiration: bool = Form(False),
+    is_active: bool = Form(True),
+    image_url: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
 ):
     """
     Create new product.
     Requires 'inventory:create' permission.
+    Supports multipart/form-data for image upload.
     """
+    # Construct ProductCreate schema manually from form data
+    product_in = product_schemas.ProductCreate(
+        sku=sku,
+        name=name,
+        category_id=category_id,
+        unit_id=unit_id,
+        barcode=barcode,
+        description=description,
+        brand=brand,
+        model=model,
+        cost=cost,
+        price=price,
+        min_stock=min_stock,
+        target_stock=target_stock,
+        has_batch=has_batch,
+        has_expiration=has_expiration,
+        is_active=is_active,
+        image_url=image_url
+    )
+
     # Validations
     if crud_product.get_product_by_sku(db, sku=product_in.sku):
         raise HTTPException(status_code=400, detail="The product with this SKU already exists")
@@ -99,24 +137,67 @@ def create_product(
     if product_in.barcode and crud_product.get_product_by_barcode(db, barcode=product_in.barcode):
         raise HTTPException(status_code=400, detail="The product with this Barcode already exists")
         
+    # Handle Image Upload if present
+    if image:
+        try:
+            file_path = save_product_image(image)
+            product_in.image_url = file_path
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
     product = crud_product.create_product(db, product=product_in)
     return product
 
 @router.put("/{id}", response_model=product_schemas.Product)
 def update_product(
     id: int,
-    product_in: product_schemas.ProductUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.check_permission("inventory:update")),
+    sku: Optional[str] = Form(None),
+    name: Optional[str] = Form(None),
+    category_id: Optional[int] = Form(None),
+    unit_id: Optional[int] = Form(None),
+    barcode: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    brand: Optional[str] = Form(None),
+    model: Optional[str] = Form(None),
+    cost: Optional[Decimal] = Form(None),
+    price: Optional[Decimal] = Form(None),
+    min_stock: Optional[int] = Form(None),
+    target_stock: Optional[int] = Form(None),
+    has_batch: Optional[bool] = Form(None),
+    has_expiration: Optional[bool] = Form(None),
+    is_active: Optional[bool] = Form(None),
+    image_url: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
 ):
     """
     Update a product.
+    Supports multipart/form-data for image upload.
     """
-    check_permissions(current_user)
-    
     product = crud_product.get_product(db, product_id=id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    # Construct ProductUpdate schema manually
+    product_in = product_schemas.ProductUpdate(
+        sku=sku,
+        name=name,
+        category_id=category_id,
+        unit_id=unit_id,
+        barcode=barcode,
+        description=description,
+        brand=brand,
+        model=model,
+        cost=cost,
+        price=price,
+        min_stock=min_stock,
+        target_stock=target_stock,
+        has_batch=has_batch,
+        has_expiration=has_expiration,
+        is_active=is_active,
+        image_url=image_url
+    )
         
     # Validations for unique fields if they are being updated
     if product_in.sku and product_in.sku != product.sku:
@@ -126,6 +207,14 @@ def update_product(
     if product_in.barcode and product_in.barcode != product.barcode:
         if crud_product.get_product_by_barcode(db, barcode=product_in.barcode):
              raise HTTPException(status_code=400, detail="The product with this Barcode already exists")
+    
+    # Handle Image Upload if present
+    if image:
+        try:
+            file_path = save_product_image(image)
+            product_in.image_url = file_path
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
              
     product = crud_product.update_product(db, product_id=id, product_in=product_in)
     return product
@@ -402,8 +491,33 @@ def read_product_ledger(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
         
-    ledger = movement.get_ledger(db, product_id=id, skip=skip, limit=limit)
-    return ledger
+    from app.services.stock_service import StockService
+    # Use StockService to get LedgerEntry records instead of legacy Movement table
+    ledger = StockService.get_stock_history(db, product_id=id)
+    # Apply pagination manually or adjust get_stock_history if needed
+    ledger = ledger[skip:skip+limit]
+    
+    # Map LedgerEntry to MovementSchema format
+    result = []
+    from app.models.ledger import LedgerEntryType
+    for entry in ledger:
+        # Determine movement type based on entry_type (INCREMENT -> IN, DECREMENT -> OUT)
+        # Note: Transfer might be represented as two entries (OUT then IN)
+        type_str = "IN" if entry.entry_type == LedgerEntryType.INCREMENT or entry.entry_type == "increment" else "OUT"
+        
+        result.append({
+            "id": entry.id,
+            "movement_request_id": entry.movement_request_id,
+            "created_at": entry.applied_at,
+            "type": type_str,
+            "product_id": entry.product_id,
+            "warehouse_id": entry.warehouse_id,
+            "location_id": entry.location_id,
+            "quantity": entry.quantity,
+            "previous_balance": entry.previous_balance,
+            "new_balance": entry.new_balance
+        })
+    return result
 
 @router.post("/{product_id}/locations", response_model=assignment_schemas.ProductLocationAssignmentResponse)
 def assign_product_location(

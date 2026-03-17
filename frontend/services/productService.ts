@@ -1,4 +1,5 @@
 import api from './api';
+import { Platform } from 'react-native';
 
 export interface ProductBatch {
   id: number;
@@ -114,8 +115,39 @@ export const getProductById = async (id: number) => {
   return response.data;
 };
 
-export const createProduct = async (product: ProductCreate) => {
-  const response = await api.post<Product>('/products/', product);
+export const createProduct = async (product: ProductCreate, imageUri?: string) => {
+  const formData = new FormData();
+
+  // Append product fields
+  Object.keys(product).forEach(key => {
+    const value = product[key as keyof ProductCreate];
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
+  });
+
+  // Append image if present
+  if (imageUri) {
+    const filename = imageUri.split('/').pop() || 'image.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : `image`;
+    
+    if (Platform.OS === 'web') {
+      // Fetch blob from URI
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      formData.append('image', blob, filename);
+    } else {
+      // @ts-ignore
+      formData.append('image', { uri: imageUri, name: filename, type });
+    }
+  }
+
+  const response = await api.post<Product>('/products/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 
@@ -214,15 +246,27 @@ export const getProductByCode = async (code: string) => {
   }
 };
 
+export const getProductLedger = async (id: number, params?: { skip?: number; limit?: number }) => {
+  const response = await api.get(`/products/${id}/ledger`, { params });
+  return response.data;
+};
+
 export const uploadProductImage = async (id: number, imageUri: string) => {
   const formData = new FormData();
   
-  const filename = imageUri.split('/').pop();
-  const match = /\.(\w+)$/.exec(filename || '');
+  const filename = imageUri.split('/').pop() || 'image.jpg';
+  const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : `image`;
   
-  // @ts-ignore
-  formData.append('file', { uri: imageUri, name: filename, type });
+  if (Platform.OS === 'web') {
+    // Fetch blob from URI
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    formData.append('file', blob, filename);
+  } else {
+    // @ts-ignore
+    formData.append('file', { uri: imageUri, name: filename, type });
+  }
   
   const response = await api.post<Product>(`/products/${id}/image`, formData, {
     headers: {

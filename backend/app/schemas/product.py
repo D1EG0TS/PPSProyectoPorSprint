@@ -1,7 +1,8 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 from datetime import date
 from decimal import Decimal
+from app.core.config import settings
 
 # --- Product Batch Schemas ---
 
@@ -71,5 +72,13 @@ class Product(ProductBase):
     cost: Optional[Decimal] = None
     price: Optional[Decimal] = None
     batches: List[ProductBatch] = []
+
+    @computed_field
+    def full_image_url(self) -> Optional[str]:
+        if self.image_url:
+            if self.image_url.startswith("http"):
+                return self.image_url
+            return f"{settings.BACKEND_URL}/{self.image_url}"
+        return None
 
     model_config = ConfigDict(from_attributes=True)

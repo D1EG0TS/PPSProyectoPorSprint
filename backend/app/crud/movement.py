@@ -4,6 +4,7 @@ from sqlalchemy import func
 from app.models.movement import MovementRequest, MovementRequestItem, Movement, MovementStatus, MovementType
 from app.schemas.movement import MovementRequestCreate, MovementRequestUpdate
 from app.models.product import ProductBatch
+from app.services.stock_service import StockService
 
 class CRUDMovementRequest:
     def create(self, db: Session, obj_in: MovementRequestCreate, user_id: int) -> MovementRequest:
@@ -72,15 +73,13 @@ class CRUDMovementRequest:
                     if not batch or batch.quantity < item.quantity:
                         raise ValueError(f"Insufficient global batch stock for product {item.product_id}")
 
-                # 2. Check Warehouse Product Stock (Ledger aggregation)
-                # Query sum of quantity from movements table
-                balance = db.query(func.sum(Movement.quantity)).filter(
-                    Movement.warehouse_id == db_obj.source_warehouse_id,
-                    Movement.product_id == item.product_id
-                ).scalar() or 0
-                
-                if balance < item.quantity:
-                    raise ValueError(f"Insufficient warehouse stock for product {item.product_id}. Available: {balance}, Requested: {item.quantity}")
+                StockService.validate_stock_availability(
+                    db=db,
+                    product_id=item.product_id,
+                    warehouse_id=db_obj.source_warehouse_id,
+                    quantity=item.quantity,
+                    location_id=item.source_location_id
+                )
 
         db_obj.status = MovementStatus.PENDING
         db.add(db_obj)

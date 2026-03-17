@@ -52,3 +52,6 @@ class StorageLocationResponse(StorageLocationBase):
     children: List['StorageLocationResponse'] = [] 
 
     model_config = ConfigDict(from_attributes=True)
+
+# Resolve forward references for recursive model
+StorageLocationResponse.model_rebuild()

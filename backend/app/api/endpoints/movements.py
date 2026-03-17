@@ -11,6 +11,15 @@ from app.services.stock_service import StockService
 
 router = APIRouter()
 
+def _is_admin(user: User) -> bool:
+    return bool(user.role_id in (1, 2))
+
+def _is_approver(user: User) -> bool:
+    return bool(user.role_id in (1, 2, 3))
+
+def _can_create_request(user: User) -> bool:
+    return bool(user.role_id in (1, 2, 3, 4))
+
 @router.post("/requests/", response_model=MovementRequest)
 def create_movement_request(
     *,
@@ -22,8 +31,8 @@ def create_movement_request(
     Create a new movement request (Draft).
     Role 4 (Operative) and up.
     """
-    if not current_user.role or current_user.role.level < 10:
-         raise HTTPException(status_code=403, detail="Not authorized to create requests")
+    if not _can_create_request(current_user):
+        raise HTTPException(status_code=403, detail="Not authorized to create requests")
          
     request = movement_request.create(db=db, obj_in=request_in, user_id=current_user.id)
     return request
@@ -43,11 +52,7 @@ def update_movement_request(
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    # Permission check: Only creator can update (or admin, but requirement focuses on creator/rol 4)
-    # Using Tier system: 1=Super, 2=Admin, >2=User/Guest. So Admins are level <= 2.
-    # Updated to use Role Level system: 100=Super, 50=Admin, 30=Manager.
-    # Admins (>=50) can update any request.
-    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
+    if request.requested_by != current_user.id and not _is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     if request.status != MovementStatus.DRAFT:
@@ -70,7 +75,7 @@ def submit_movement_request(
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
+    if request.requested_by != current_user.id and not _is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     if request.status != MovementStatus.DRAFT:
@@ -100,10 +105,8 @@ def read_pending_requests(
     Restricted to approvers (Roles 1-3).
     Supports filtering by type, warehouse, and date range.
     """
-    # Using Role Level system: 100=Super, 50=Admin, 30=Manager.
-    # Requirement says "Roles 1-3", which corresponds to Level >= 30.
-    if not current_user.role or current_user.role.level < 30:
-         raise HTTPException(status_code=403, detail="Not authorized to view pending requests")
+    if not _is_approver(current_user):
+        raise HTTPException(status_code=403, detail="Not authorized to view pending requests")
     
     requests = movement_request.get_multi_pending(
         db=db, skip=skip, limit=limit,
@@ -126,9 +129,7 @@ def read_movement_request(
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    # Permission check: Owner or Manager+ (Level >= 30)
-    is_manager = current_user.role and current_user.role.level >= 30
-    if request.requested_by != current_user.id and not is_manager:
+    if request.requested_by != current_user.id and not _is_approver(current_user):
         raise HTTPException(status_code=403, detail="Not enough permissions")
         
     return request
@@ -147,8 +148,7 @@ def delete_movement_request(
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
         
-    # Permission check: Only creator can delete (or admin)
-    if request.requested_by != current_user.id and (not current_user.role or current_user.role.level < 50):
+    if request.requested_by != current_user.id and not _is_admin(current_user):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     if request.status != MovementStatus.DRAFT:
@@ -169,27 +169,22 @@ def approve_movement_request(
     Approve a PENDING movement request.
     Only for Roles 1-3 (SuperAdmin, Admin, Manager).
     """
-    # Permission check
-    # Using Role Level system: 100=Super, 50=Admin, 30=Manager.
-    if not current_user.role or current_user.role.level < 30:
-         raise HTTPException(status_code=403, detail="Not authorized to approve requests")
+    if not _is_approver(current_user):
+        raise HTTPException(status_code=403, detail="Not authorized to approve requests")
     
     request = movement_request.get(db=db, id=id)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
     
-    # Self-approval check (Role 4 restriction, applied to all for safety)
-    if request.requested_by == current_user.id:
+    if request.requested_by == current_user.id and not _is_admin(current_user):
         raise HTTPException(status_code=403, detail="You cannot approve your own requests")
 
     if request.status != MovementStatus.PENDING:
         raise HTTPException(status_code=400, detail="Only PENDING requests can be approved")
         
     # Adjustment Special Check
-    if request.type == MovementType.ADJUSTMENT:
-        # Require Level 50 (Admin) or higher for Adjustments
-        if current_user.role.level < 50:
-             raise HTTPException(status_code=403, detail="Adjustments require Admin approval")
+    if request.type == MovementType.ADJUSTMENT and not _is_admin(current_user):
+        raise HTTPException(status_code=403, detail="Adjustments require Admin approval")
 
     request.status = MovementStatus.APPROVED
     request.approved_by = current_user.id
@@ -213,8 +208,8 @@ def reject_movement_request(
     """
     Reject a PENDING movement request.
     """
-    if not current_user.role or current_user.role.level < 30:
-         raise HTTPException(status_code=403, detail="Not authorized to reject requests")
+    if not _is_approver(current_user):
+        raise HTTPException(status_code=403, detail="Not authorized to reject requests")
          
     request = movement_request.get(db=db, id=id)
     if not request:

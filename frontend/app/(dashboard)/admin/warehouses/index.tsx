@@ -6,7 +6,9 @@ import { ScreenContainer } from '../../../../components/ScreenContainer';
 import { Table, Column } from '../../../../components/Table';
 import { Button } from '../../../../components/Button';
 import { Card } from '../../../../components/Card';
-import { warehouseService, Warehouse } from '../../../../services/warehouseService';
+import { warehouseService, Warehouse, Location } from '../../../../services/warehouseService';
+import { LocationTree } from '../../../../components/locations/LocationTree';
+import { Input } from '../../../../components/Input';
 import { useAuth } from '../../../../hooks/useAuth';
 import { usePermission } from '../../../../hooks/usePermission';
 import { AccessDenied } from '../../../../components/AccessDenied';
@@ -16,6 +18,11 @@ import { Colors } from '../../../../constants/Colors';
 export default function WarehousesListScreen() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [locLoading, setLocLoading] = useState(false);
+  const [locForm, setLocForm] = useState({ code: '', name: '', aisle: '', rack: '', shelf: '', position: '' });
+  const [locErrors, setLocErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const theme = useTheme();
   const { user } = useAuth();
@@ -26,6 +33,9 @@ export default function WarehousesListScreen() {
       setLoading(true);
       const data = await warehouseService.getWarehouses();
       setWarehouses(data);
+      if (!selectedWarehouse && data.length > 0) {
+        setSelectedWarehouse(data[0]);
+      }
     } catch (error) {
       console.error('Error loading warehouses:', error);
       Alert.alert('Error', 'No se pudieron cargar los almacenes');
@@ -158,6 +168,96 @@ export default function WarehousesListScreen() {
     }
   ];
 
+  const loadLocations = async (wh: Warehouse | null) => {
+    if (!wh) return;
+    try {
+      setLocLoading(true);
+      const data = await warehouseService.getLocationsTree(wh.id);
+      setLocations(data);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'No se pudo cargar el árbol de ubicaciones');
+    } finally {
+      setLocLoading(false);
+    }
+  };
+
+  const validateLocationForm = () => {
+    const errs: Record<string, string> = {};
+    if (!locForm.code) errs.code = 'Código requerido';
+    if (!locForm.name) errs.name = 'Nombre requerido';
+    setLocErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleCreateRootLocation = async () => {
+    if (!selectedWarehouse) return;
+    if (!validateLocationForm()) return;
+    try {
+      await warehouseService.createLocation(selectedWarehouse.id, {
+        code: locForm.code,
+        name: locForm.name,
+        aisle: locForm.aisle || undefined,
+        rack: locForm.rack || undefined,
+        shelf: locForm.shelf || undefined,
+        position: locForm.position || undefined,
+      });
+      setLocForm({ code: '', name: '', aisle: '', rack: '', shelf: '', position: '' });
+      loadLocations(selectedWarehouse);
+    } catch (e: any) {
+      const msg = e.response?.data?.detail || 'Error al crear ubicación';
+      Alert.alert('Error', msg);
+    }
+  };
+
+  const handleAddChild = async (parent: Location) => {
+    if (!selectedWarehouse) return;
+    // Reutilizamos el formulario actual para añadir hijo con parent_location_id
+    if (!validateLocationForm()) return;
+    try {
+      await warehouseService.createLocation(selectedWarehouse.id, {
+        code: locForm.code,
+        name: locForm.name,
+        aisle: locForm.aisle || undefined,
+        rack: locForm.rack || undefined,
+        shelf: locForm.shelf || undefined,
+        position: locForm.position || undefined,
+        parent_location_id: parent.id,
+      });
+      setLocForm({ code: '', name: '', aisle: '', rack: '', shelf: '', position: '' });
+      loadLocations(selectedWarehouse);
+    } catch (e: any) {
+      const msg = e.response?.data?.detail || 'Error al crear sub-ubicación';
+      Alert.alert('Error', msg);
+    }
+  };
+
+  const handleEditLocation = (loc: Location) => {
+    // Navegar a pantalla dedicada para edición detallada
+    if (selectedWarehouse) {
+      router.push(`/(dashboard)/admin/warehouses/${selectedWarehouse.id}/locations`);
+    }
+  };
+
+  const handleDeleteLocation = async (loc: Location) => {
+    if (!selectedWarehouse) return;
+    try {
+      await warehouseService.deleteLocation(selectedWarehouse.id, loc.id);
+      loadLocations(selectedWarehouse);
+    } catch (e: any) {
+      const msg = e.response?.data?.detail || 'Error al eliminar ubicación';
+      Alert.alert('Error', msg);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedWarehouse) {
+        loadLocations(selectedWarehouse);
+      }
+    }, [selectedWarehouse])
+  );
+
   return (
     <ScreenContainer>
       <View style={styles.header}>
@@ -185,6 +285,106 @@ export default function WarehousesListScreen() {
           renderCard={renderWarehouseCard}
         />
       )}
+
+      {/* Panel integrado de Ubicaciones */}
+      {selectedWarehouse && (
+        <View style={styles.locationsPanel}>
+          <View style={styles.locationsHeader}>
+            <Text variant="titleLarge">Ubicaciones: {selectedWarehouse.name}</Text>
+            <View style={{ flexDirection: 'row' }}>
+              <Button 
+                variant="outline" 
+                icon="refresh" 
+                onPress={() => loadLocations(selectedWarehouse)} 
+                style={{ marginRight: 8 }}
+              >
+                Refrescar
+              </Button>
+              <Button 
+                variant="primary" 
+                icon="file-tree" 
+                onPress={() => router.push(`/(dashboard)/admin/warehouses/${selectedWarehouse.id}/locations`)}
+              >
+                Abrir Vista Completa
+              </Button>
+            </View>
+          </View>
+
+          <View style={styles.locationsContent}>
+            <View style={styles.locationsForm}>
+              <Text variant="titleMedium" style={{ marginBottom: 8 }}>Crear Ubicación</Text>
+              <Input
+                label="Código *"
+                value={locForm.code}
+                onChangeText={(text) => setLocForm({ ...locForm, code: text })}
+                autoCapitalize="characters"
+                error={locErrors.code}
+                containerStyle={{ marginBottom: 8 }}
+              />
+              <Input
+                label="Nombre *"
+                value={locForm.name}
+                onChangeText={(text) => setLocForm({ ...locForm, name: text })}
+                error={locErrors.name}
+                containerStyle={{ marginBottom: 8 }}
+              />
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label="Pasillo"
+                    value={locForm.aisle}
+                    onChangeText={(text) => setLocForm({ ...locForm, aisle: text })}
+                    containerStyle={{ marginBottom: 8 }}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label="Rack"
+                    value={locForm.rack}
+                    onChangeText={(text) => setLocForm({ ...locForm, rack: text })}
+                    containerStyle={{ marginBottom: 8 }}
+                  />
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label="Fila"
+                    value={locForm.shelf}
+                    onChangeText={(text) => setLocForm({ ...locForm, shelf: text })}
+                    containerStyle={{ marginBottom: 8 }}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label="Posición"
+                    value={locForm.position}
+                    onChangeText={(text) => setLocForm({ ...locForm, position: text })}
+                    containerStyle={{ marginBottom: 8 }}
+                  />
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <Button variant="primary" icon="plus" onPress={handleCreateRootLocation}>
+                  Crear Ubicación Raíz
+                </Button>
+              </View>
+            </View>
+            <View style={styles.locationsTree}>
+              {locLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <LocationTree 
+                  roots={locations}
+                  onAddChild={handleAddChild}
+                  onEdit={handleEditLocation}
+                  onDelete={handleDeleteLocation}
+                />
+              )}
+            </View>
+          </View>
+        </View>
+      )}
     </ScreenContainer>
   );
 }
@@ -210,5 +410,27 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     gap: 8,
+  },
+  locationsPanel: {
+    marginTop: Layout.spacing.lg,
+    padding: Layout.spacing.md,
+    backgroundColor: 'white',
+    borderRadius: Layout.borderRadius.md,
+  },
+  locationsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.md,
+  },
+  locationsContent: {
+    flexDirection: 'row',
+    gap: Layout.spacing.md,
+  },
+  locationsForm: {
+    flex: 1,
+  },
+  locationsTree: {
+    flex: 2,
   },
 });

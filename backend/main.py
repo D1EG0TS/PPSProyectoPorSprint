@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from pathlib import Path
 from app.db.connection import test_db_connection
+from app.db.schema_bootstrap import ensure_schema
 from app.api.endpoints.system import router as system_router
 from app.api.auth import router as auth_router
 from app.api.endpoints.products import router as products_router
@@ -31,12 +33,15 @@ from app.core.middleware import ActiveSessionMiddleware
 async def lifespan(app: FastAPI):
     print("Iniciando aplicación...")
     test_db_connection()
+    ensure_schema()
     yield
 
 app = FastAPI(title="Sistema de Inventario API", lifespan=lifespan)
 
 # Mount uploads directory for static file access
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+uploads_dir = Path(__file__).parent / "uploads"
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 # Configuración CORS
 if settings.BACKEND_CORS_ORIGINS:

@@ -85,9 +85,9 @@ class StockService:
             raise HTTPException(status_code=404, detail="Movement request not found")
         
         if request.status != MovementStatus.APPROVED:
-             if request.status == MovementStatus.APPLIED or request.status == MovementStatus.COMPLETED:
-                 raise HTTPException(status_code=400, detail="Movement already applied")
-             raise HTTPException(status_code=400, detail=f"Movement status must be APPROVED, found {request.status}")
+            if request.status == MovementStatus.COMPLETED:
+                raise HTTPException(status_code=400, detail="Movement already applied")
+            raise HTTPException(status_code=400, detail=f"Movement status must be APPROVED, found {request.status}")
 
         # 2. Process items
         items_updated = []
@@ -98,7 +98,7 @@ class StockService:
                     items_updated.append(updated_item)
             
             # 3. Update Request Status
-            request.status = MovementStatus.APPLIED
+            request.status = MovementStatus.COMPLETED
             db.add(request)
             
             db.commit()

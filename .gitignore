@@ -47,3 +47,18 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+node_modules/
+frontend/.expo/
+frontend/web-build/
+frontend/dist/
+
+backend/uploads/
+backend/deployment/.env.prod
+backend/http_check.py
+backend/fix_db_schema.py
+backend/inspect_*.py
+backend/debug_*.py
+backend/test_*.py
+backend/catalog_*.py
+backend/seed_locations.py

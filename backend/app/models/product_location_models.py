@@ -22,7 +22,10 @@ class ProductLocationAssignment(Base):
     assigned_at = Column(DateTime(timezone=True), server_default=func.now())
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     
-    assignment_type = Column(Enum(AssignmentType), default=AssignmentType.MANUAL)
+    assignment_type = Column(
+        Enum(AssignmentType, values_callable=lambda x: [e.value for e in x], native_enum=False),
+        default=AssignmentType.MANUAL
+    )
     is_primary = Column(Boolean, default=False) # Is this the primary picking slot?
     notes = Column(Text, nullable=True)
 

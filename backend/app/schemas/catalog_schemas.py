@@ -46,6 +46,7 @@ class OperationalCatalogItem(PublicCatalogItem):
     total_stock: int = 0
     available_stock: int = 0
     can_add_to_request: bool = True
+    locations: List[CatalogLocation] = []
 
 # --- Tier 3: Internal Catalog (Moderator / Role 3) ---
 class StockByWarehouse(BaseModel):
@@ -55,7 +56,6 @@ class StockByWarehouse(BaseModel):
 
 class InternalCatalogItem(OperationalCatalogItem):
     stock_by_warehouse: List[StockByWarehouse] = []
-    locations: List[CatalogLocation] = []  # Added exact locations for Moderators
     min_stock: int = 0
     needs_reorder: bool = False
 
