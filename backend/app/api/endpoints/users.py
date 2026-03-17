@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 from app.api import deps
 from app.core import security
 from app.models.user import User, UserAudit, Role
@@ -59,6 +60,30 @@ def read_users(
 
     users = query.offset(skip).limit(limit).all()
     return users
+
+@router.get("/{user_id}", response_model=schemas.UserResponse)
+def read_user(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Retrieve a user by id. Only for Roles 1 (Super Admin) and 2 (Admin).
+    Role 2 cannot view Role 1.
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    query = db.query(User).options(joinedload(User.permissions)).filter(User.id == user_id)
+
+    if current_user.role_id == 2:
+        query = query.filter(User.role_id != 1)
+
+    user = query.first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
 
 @router.post("/", response_model=schemas.UserResponse)
 def create_user(
