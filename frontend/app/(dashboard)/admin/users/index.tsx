@@ -123,7 +123,7 @@ export default function UsersListScreen() {
       subtitle={user.email}
       footer={
         <View style={styles.cardActions}>
-          {user.role_id === USER_ROLES.MANAGER && (
+          {Number(user.role_id) === USER_ROLES.MANAGER && (
              <IconButton 
                 icon="shield-account" 
                 size={20} 
@@ -144,7 +144,7 @@ export default function UsersListScreen() {
       <View style={styles.cardContent}>
         <View style={styles.row}>
             <Text style={styles.label}>Rol:</Text>
-            <Chip mode="outlined" style={styles.chip} textStyle={{fontSize: 12}}>{getRoleName(user.role_id)}</Chip>
+            <Chip mode="outlined" style={styles.chip} textStyle={{fontSize: 12}}>{getRoleName(Number(user.role_id))}</Chip>
         </View>
         <View style={styles.row}>
             <Text style={styles.label}>Estado:</Text>
@@ -168,7 +168,7 @@ export default function UsersListScreen() {
       key: 'role_id', 
       label: 'Rol',
       width: 120,
-      renderCell: (item: User) => <Chip mode="outlined" style={styles.chip}>{getRoleName(item.role_id)}</Chip>
+      renderCell: (item: User) => <Chip mode="outlined" style={styles.chip}>{getRoleName(Number(item.role_id))}</Chip>
     },
     { 
       key: 'is_active', 
@@ -190,7 +190,7 @@ export default function UsersListScreen() {
       width: 100,
       renderCell: (item: User) => (
         <View style={styles.actions}>
-          {item.role_id === USER_ROLES.MANAGER && (
+          {Number(item.role_id) === USER_ROLES.MANAGER && (
              <IconButton 
                 icon="shield-account" 
                 size={20} 

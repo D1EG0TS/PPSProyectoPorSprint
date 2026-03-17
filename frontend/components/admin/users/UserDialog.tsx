@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { Switch, Text, useTheme, Menu } from 'react-native-paper';
+import { Switch, Text, useTheme, Menu, TextInput } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -167,7 +167,15 @@ export function UserDialog({ visible, onDismiss, onSubmit, user }: UserDialogPro
                 label="Rol"
                 value={getRoleName(selectedRoleId)}
                 editable={false}
-                right={<Input.Icon icon="menu-down" onPress={() => setShowRoleMenu(true)} />}
+                onPressIn={() => setShowRoleMenu(true)}
+                showSoftInputOnFocus={false}
+                right={
+                  <TextInput.Icon
+                    icon="menu-down"
+                    onPress={() => setShowRoleMenu(true)}
+                    forceTextInputFocus={false}
+                  />
+                }
                 error={errors.role_id?.message}
               />
             }
