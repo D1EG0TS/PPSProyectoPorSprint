@@ -85,12 +85,13 @@ export default function UsersListScreen() {
   };
 
   const handleOpenPermissions = async (user: User) => {
+    setSelectedUser(user);
+    setPermissionsDialogVisible(true);
     try {
       const fullUser = await userService.getUser(user.id);
       setSelectedUser(fullUser);
-      setPermissionsDialogVisible(true);
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar los permisos del usuario');
+      Alert.alert('Error', 'No se pudieron cargar los permisos actuales del usuario');
     }
   };
 
