@@ -6,6 +6,38 @@ from app.core.security import get_password_hash
 import os
 import sys
 
+def seed_permissions(db: Session):
+    permissions = [
+        {"name": "inventory:view", "description": "Ver inventario", "module": "Inventario"},
+        {"name": "inventory:manage", "description": "Gestionar inventario", "module": "Inventario"},
+        {"name": "movements:view", "description": "Ver movimientos", "module": "Inventario"},
+        {"name": "movements:manage", "description": "Gestionar movimientos", "module": "Inventario"},
+        {"name": "warehouses:view", "description": "Ver almacenes", "module": "Almacenes"},
+        {"name": "warehouses:manage", "description": "Gestionar almacenes", "module": "Almacenes"},
+        {"name": "vehicles:view", "description": "Ver vehículos", "module": "Vehículos"},
+        {"name": "vehicles:manage", "description": "Gestionar vehículos", "module": "Vehículos"},
+        {"name": "catalog_internal:view", "description": "Ver catálogo interno", "module": "Catálogo"},
+        {"name": "stock_dashboard:view", "description": "Ver dashboard de stock", "module": "Catálogo"},
+        {"name": "requests:approve", "description": "Aprobar solicitudes", "module": "Solicitudes"},
+        {"name": "epp:moderate", "description": "Ver y validar EPP", "module": "Seguridad (EPP)"},
+        {"name": "assets:view", "description": "Ver activos", "module": "Activos"},
+        {"name": "reports:view", "description": "Ver reportes", "module": "Reportes"},
+    ]
+
+    from app.models.user import Permission
+
+    for perm_data in permissions:
+        existing = db.query(Permission).filter(Permission.name == perm_data["name"]).first()
+        if not existing:
+            db.add(Permission(**perm_data))
+            print(f"✅ Permiso creado: {perm_data['name']}")
+        else:
+            existing.description = perm_data.get("description")
+            existing.module = perm_data.get("module")
+            db.add(existing)
+            print(f"ℹ️ Permiso actualizado: {perm_data['name']}")
+    db.commit()
+
 def seed_roles(db: Session):
     roles = [
         {"name": "super_admin", "description": "Acceso total al sistema (Rol 1)", "level": 100},
@@ -106,8 +138,8 @@ def seed_system_config(db: Session):
     db.commit()
 
 def seed_super_admin(db: Session):
-    admin_email = os.getenv("ADMIN_EMAIL", "diegoterrazas@exproof.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "D25terrazas*")
+    admin_email = os.getenv("ADMIN_EMAIL", "diegoterrazas@exproof.com").strip()
+    admin_password = os.getenv("ADMIN_PASSWORD", "D25terrazas*").strip()
     
     # Validar longitud de contraseña para bcrypt (max 72 bytes)
     if len(admin_password.encode('utf-8')) > 72:
@@ -151,6 +183,7 @@ def main():
     db = SessionLocal()
     try:
         seed_roles(db)
+        seed_permissions(db)
         seed_conditions(db)
         seed_units(db)
         seed_categories(db)

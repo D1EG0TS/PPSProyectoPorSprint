@@ -46,7 +46,7 @@ def get_internal_catalog(
     limit: int = 100,
     search: Optional[str] = None,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "catalog_internal:view"))
 ):
     """
     Get internal catalog (Role 1-3).

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime, timezone
 
-from app.api.deps import get_db, get_current_user
+from app.api import deps
 from app.models.user import User
 from app.models.vehicle import Vehicle, VehicleMaintenance, VehicleDocument, VehicleStatus
 from app.schemas.vehicle import (
@@ -17,7 +17,11 @@ router = APIRouter()
 # --- Vehicle CRUD ---
 
 @router.post("/", response_model=VehicleResponse)
-def create_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_vehicle(
+    vehicle: VehicleCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     # Check for duplicate VIN or License Plate
     if db.query(Vehicle).filter(Vehicle.vin == vehicle.vin).first():
         raise HTTPException(status_code=400, detail="Vehicle with this VIN already exists")
@@ -36,8 +40,8 @@ def get_vehicles(
     limit: int = 100,
     status: Optional[VehicleStatus] = None,
     assigned_to: Optional[int] = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:view")),
 ):
     query = db.query(Vehicle).options(
         joinedload(Vehicle.maintenances),
@@ -52,7 +56,11 @@ def get_vehicles(
     return query.offset(skip).limit(limit).all()
 
 @router.get("/{id}", response_model=VehicleResponse)
-def get_vehicle(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_vehicle(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:view")),
+):
     vehicle = db.query(Vehicle).options(
         joinedload(Vehicle.maintenances),
         joinedload(Vehicle.documents)
@@ -62,7 +70,12 @@ def get_vehicle(id: int, db: Session = Depends(get_db), current_user: User = Dep
     return vehicle
 
 @router.put("/{id}", response_model=VehicleResponse)
-def update_vehicle(id: int, vehicle_update: VehicleUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_vehicle(
+    id: int,
+    vehicle_update: VehicleUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     vehicle = db.query(Vehicle).filter(Vehicle.id == id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -76,7 +89,11 @@ def update_vehicle(id: int, vehicle_update: VehicleUpdate, db: Session = Depends
     return vehicle
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_vehicle(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_vehicle(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     vehicle = db.query(Vehicle).filter(Vehicle.id == id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -88,7 +105,12 @@ def delete_vehicle(id: int, db: Session = Depends(get_db), current_user: User = 
 # --- Maintenance ---
 
 @router.post("/{id}/maintenances", response_model=VehicleMaintenanceResponse)
-def create_maintenance(id: int, maintenance: VehicleMaintenanceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_maintenance(
+    id: int,
+    maintenance: VehicleMaintenanceCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     vehicle = db.query(Vehicle).filter(Vehicle.id == id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -109,7 +131,12 @@ def create_maintenance(id: int, maintenance: VehicleMaintenanceCreate, db: Sessi
     return db_maintenance
 
 @router.put("/maintenances/{id}", response_model=VehicleMaintenanceResponse)
-def update_maintenance(id: int, maintenance_update: VehicleMaintenanceCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_maintenance(
+    id: int,
+    maintenance_update: VehicleMaintenanceCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     maintenance = db.query(VehicleMaintenance).filter(VehicleMaintenance.id == id).first()
     if not maintenance:
         raise HTTPException(status_code=404, detail="Maintenance record not found")
@@ -123,7 +150,11 @@ def update_maintenance(id: int, maintenance_update: VehicleMaintenanceCreate, db
     return maintenance
 
 @router.delete("/maintenances/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_maintenance(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_maintenance(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     maintenance = db.query(VehicleMaintenance).filter(VehicleMaintenance.id == id).first()
     if not maintenance:
         raise HTTPException(status_code=404, detail="Maintenance record not found")
@@ -135,7 +166,12 @@ def delete_maintenance(id: int, db: Session = Depends(get_db), current_user: Use
 # --- Documents ---
 
 @router.post("/{id}/documents", response_model=VehicleDocumentResponse)
-def create_document(id: int, document: VehicleDocumentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_document(
+    id: int,
+    document: VehicleDocumentCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     vehicle = db.query(Vehicle).filter(Vehicle.id == id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -150,7 +186,12 @@ def create_document(id: int, document: VehicleDocumentCreate, db: Session = Depe
     return db_document
 
 @router.post("/documents/{doc_id}/validate", response_model=VehicleDocumentResponse)
-def validate_document(doc_id: int, validation: VehicleDocumentValidate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def validate_document(
+    doc_id: int,
+    validation: VehicleDocumentValidate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "vehicles:manage")),
+):
     """
     Validate a document. Requires evidence.
     """

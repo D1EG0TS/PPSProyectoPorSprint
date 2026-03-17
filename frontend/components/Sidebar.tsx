@@ -31,8 +31,8 @@ export function Sidebar({ onClose, collapsed = false, onToggleCollapse }: Sideba
     return items.reduce((acc, item) => {
       const roleId = user.role_id;
 
-      // Permission Check (skip for Super Admin)
-      if (roleId !== USER_ROLES.SUPER_ADMIN && item.allowedPermissions && item.allowedPermissions.length > 0) {
+      // Permission Check (solo Moderador/Manager)
+      if (roleId === USER_ROLES.MANAGER && item.allowedPermissions && item.allowedPermissions.length > 0) {
          const userPermissions = user.permissions?.map((p: any) => p.name) || [];
          const hasPermission = item.allowedPermissions.some(p => userPermissions.includes(p));
          if (!hasPermission) return acc;

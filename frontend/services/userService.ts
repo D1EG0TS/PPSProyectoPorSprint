@@ -1,4 +1,5 @@
 import api from './api';
+import { Permission } from '../types/auth';
 
 export interface User {
   id: number;
@@ -6,6 +7,7 @@ export interface User {
   full_name?: string;
   role_id: number;
   is_active: boolean;
+  permissions?: Permission[];
   created_at?: string;
   updated_at?: string;
 }
