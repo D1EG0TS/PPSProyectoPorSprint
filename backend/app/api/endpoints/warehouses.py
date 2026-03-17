@@ -11,14 +11,6 @@ from app.models.user import User
 
 router = APIRouter()
 
-# Helper for permissions
-def check_read_permissions(user: User):
-    if user.role_id not in [1, 2, 3]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view warehouses"
-        )
-
 def check_write_permissions(user: User):
     if user.role_id not in [1, 2]:
         raise HTTPException(
@@ -31,13 +23,12 @@ def read_warehouses(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
 ):
     """
     List warehouses with pagination.
     Roles allowed: 1, 2, 3.
     """
-    check_read_permissions(current_user)
     warehouses = db.query(models.Warehouse).offset(skip).limit(limit).all()
     return warehouses
 
@@ -74,13 +65,12 @@ def create_warehouse(
 def read_warehouse(
     warehouse_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
 ):
     """
     Get warehouse details.
     Roles allowed: 1, 2, 3.
     """
-    check_read_permissions(current_user)
     warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
     if warehouse is None:
         raise HTTPException(status_code=404, detail="Warehouse not found")
@@ -90,13 +80,11 @@ def read_warehouse(
 def read_warehouse_stock(
     warehouse_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
 ):
     """
     Get full stock inventory for a warehouse.
     """
-    check_read_permissions(current_user)
-    
     warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
@@ -174,13 +162,12 @@ def delete_warehouse(
 def read_warehouse_locations_tree(
     warehouse_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
 ):
     """
     Get locations for a warehouse in tree structure.
     Roles allowed: 1, 2, 3.
     """
-    check_read_permissions(current_user)
     warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")
@@ -197,13 +184,12 @@ def read_warehouse_locations_tree(
 def read_warehouse_locations(
     warehouse_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
 ):
     """
     Get locations for a warehouse.
     Roles allowed: 1, 2, 3.
     """
-    check_read_permissions(current_user)
     warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
     if not warehouse:
         raise HTTPException(status_code=404, detail="Warehouse not found")

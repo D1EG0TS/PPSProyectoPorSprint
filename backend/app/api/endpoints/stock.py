@@ -98,7 +98,7 @@ def validate_stock(
 @router.get("/dashboard/metrics")
 def get_stock_dashboard_metrics(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "stock_dashboard:view")),
 ):
     """
     Get high-level stock metrics for dashboard.

@@ -33,12 +33,14 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
     path: '/(dashboard)/moderator/catalog/internal',
     icon: 'table-large',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+    allowedPermissions: ['catalog_internal:view'],
   },
   {
     label: 'Dashboard Stock',
     path: '/(dashboard)/moderator/catalog/dashboard',
     icon: 'chart-box-outline',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+    allowedPermissions: ['stock_dashboard:view'],
   },
   {
     label: 'Inventario',
@@ -50,18 +52,21 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
         path: '/(dashboard)/assets/dashboard',
         icon: 'chart-bar',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['assets:view'],
       },
       {
         label: 'Inventario Activos',
         path: '/(dashboard)/assets/inventory',
         icon: 'format-list-bulleted',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER],
+        allowedPermissions: ['assets:view'],
       },
       {
         label: 'Movimientos',
         path: '/(dashboard)/inventory',
         icon: 'dolly',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['movements:view'],
       },
       {
         label: 'Gestión Productos',
@@ -102,6 +107,7 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
         path: '/(dashboard)/moderator/requests/pending',
         icon: 'check-decagram',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['requests:approve'],
       },
     ]
   },
@@ -142,12 +148,14 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
         path: '/(dashboard)/moderator/dashboard/epp',
         icon: 'chart-bar',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['epp:moderate'],
       },
       {
         label: 'Inspecciones',
         path: '/(dashboard)/moderator/epp/inspections',
         icon: 'clipboard-check',
         allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER],
+        allowedPermissions: ['epp:moderate'],
       },
       {
         label: 'Gestión EPP',

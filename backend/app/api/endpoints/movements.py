@@ -98,16 +98,13 @@ def read_pending_requests(
     warehouse_id: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "requests:approve")),
 ) -> Any:
     """
     Get all pending requests (for approval).
     Restricted to approvers (Roles 1-3).
     Supports filtering by type, warehouse, and date range.
     """
-    if not _is_approver(current_user):
-        raise HTTPException(status_code=403, detail="Not authorized to view pending requests")
-    
     requests = movement_request.get_multi_pending(
         db=db, skip=skip, limit=limit,
         type=type, warehouse_id=warehouse_id,
@@ -163,15 +160,12 @@ def approve_movement_request(
     db: Session = Depends(get_db),
     id: int,
     review_in: Optional[MovementRequestReview] = None,
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "requests:approve")),
 ) -> Any:
     """
     Approve a PENDING movement request.
     Only for Roles 1-3 (SuperAdmin, Admin, Manager).
     """
-    if not _is_approver(current_user):
-        raise HTTPException(status_code=403, detail="Not authorized to approve requests")
-    
     request = movement_request.get(db=db, id=id)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
@@ -203,14 +197,11 @@ def reject_movement_request(
     db: Session = Depends(get_db),
     id: int,
     review_in: Optional[MovementRequestReview] = None,
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "requests:approve")),
 ) -> Any:
     """
     Reject a PENDING movement request.
     """
-    if not _is_approver(current_user):
-        raise HTTPException(status_code=403, detail="Not authorized to reject requests")
-         
     request = movement_request.get(db=db, id=id)
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")

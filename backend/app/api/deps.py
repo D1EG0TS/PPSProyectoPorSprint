@@ -97,21 +97,39 @@ def get_current_user_optional(
 
 def check_permission(permission_name: str):
     def _check_permission(current_user: User = Depends(get_current_user)):
-        # Super admins (Role 1) and Admins (Role 2) have all permissions by default
         if current_user.role_id in [1, 2]:
             return current_user
-        
-        # Check if user has the specific permission
-        # Note: We assume permissions are loaded eagerly or lazily fetched here
-        user_permissions = [p.name for p in current_user.permissions]
-        
-        if permission_name not in user_permissions:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not enough permissions. Required: {permission_name}"
-            )
+
+        if current_user.role_id == 3:
+            user_permissions = [p.name for p in current_user.permissions]
+            if permission_name not in user_permissions:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Not enough permissions. Required: {permission_name}"
+                )
         return current_user
     return _check_permission
+
+def require_roles(allowed_roles: list[int]):
+    def _require_roles(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role_id not in allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+        return current_user
+    return _require_roles
+
+def require_roles_with_permission(allowed_roles: list[int], permission_name: str):
+    def _require(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role_id not in allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+        if current_user.role_id == 3:
+            user_permissions = [p.name for p in current_user.permissions]
+            if permission_name not in user_permissions:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Not enough permissions. Required: {permission_name}"
+                )
+        return current_user
+    return _require
 
 def get_catalog_permissions(role_level: int) -> dict:
     """

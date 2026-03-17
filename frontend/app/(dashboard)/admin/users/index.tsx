@@ -84,9 +84,14 @@ export default function UsersListScreen() {
     setSelectedUser(undefined);
   };
 
-  const handleOpenPermissions = (user: User) => {
-    setSelectedUser(user);
-    setPermissionsDialogVisible(true);
+  const handleOpenPermissions = async (user: User) => {
+    try {
+      const fullUser = await userService.getUser(user.id);
+      setSelectedUser(fullUser);
+      setPermissionsDialogVisible(true);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudieron cargar los permisos del usuario');
+    }
   };
 
   const handleDismissPermissions = () => {
@@ -118,7 +123,7 @@ export default function UsersListScreen() {
       subtitle={user.email}
       footer={
         <View style={styles.cardActions}>
-          {user.role_id !== USER_ROLES.SUPER_ADMIN && (
+          {user.role_id === USER_ROLES.MANAGER && (
              <IconButton 
                 icon="shield-account" 
                 size={20} 
@@ -185,7 +190,7 @@ export default function UsersListScreen() {
       width: 100,
       renderCell: (item: User) => (
         <View style={styles.actions}>
-          {item.role_id !== USER_ROLES.SUPER_ADMIN && (
+          {item.role_id === USER_ROLES.MANAGER && (
              <IconButton 
                 icon="shield-account" 
                 size={20} 
