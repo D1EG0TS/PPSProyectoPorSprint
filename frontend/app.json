@@ -26,7 +26,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/isologo_desarrollado.webp"
+      "favicon": "./assets/isologo_desarrollado.png"
     },
     "plugins": [
       "expo-secure-store",
