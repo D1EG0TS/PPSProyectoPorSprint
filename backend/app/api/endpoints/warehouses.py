@@ -7,6 +7,7 @@ from app.schemas import warehouse as schemas
 from app.schemas import location as location_schemas
 from app.models import warehouse as models
 from app.models import location_models
+from app.models import product_location_models
 from app.models.user import User
 
 router = APIRouter()
@@ -342,3 +343,272 @@ def delete_location(
     db.delete(db_location)
     db.commit()
     return None
+
+
+@router.post("/{warehouse_id}/locations/batch", response_model=location_schemas.BatchLocationResponse)
+def create_locations_batch(
+    warehouse_id: int,
+    batch_data: location_schemas.BatchLocationCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Create multiple locations at once.
+    Useful for creating containers in bulk (e.g., C-001 to C-050).
+    """
+    check_write_permissions(current_user)
+    
+    warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    parent_path = ""
+    if batch_data.parent_location_id:
+        parent = db.query(location_models.StorageLocation).filter(
+            location_models.StorageLocation.id == batch_data.parent_location_id
+        ).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent location not found")
+        if parent.warehouse_id != warehouse_id:
+            raise HTTPException(status_code=400, detail="Parent location belongs to a different warehouse")
+        parent_path = parent.path or ""
+    
+    created_locations = []
+    errors = []
+    
+    for i in range(batch_data.count):
+        number = batch_data.start_number + i
+        code = f"{batch_data.prefix}{number:03d}"
+        name = batch_data.name_template.replace("{n}", str(number)).replace("{n:02d}", f"{number:02d}").replace("{n:03d}", f"{number:03d}")
+        barcode = f"{batch_data.barcode_prefix}{number:03d}" if batch_data.barcode_prefix else None
+        position = f"{batch_data.position_prefix}{number}" if batch_data.position_prefix else str(number)
+        
+        existing = db.query(location_models.StorageLocation).filter(
+            location_models.StorageLocation.warehouse_id == warehouse_id,
+            location_models.StorageLocation.code == code
+        ).first()
+        
+        if existing:
+            errors.append(f"Code {code} already exists, skipping")
+            continue
+        
+        if barcode:
+            existing_barcode = db.query(location_models.StorageLocation).filter(
+                location_models.StorageLocation.barcode == barcode
+            ).first()
+            if existing_barcode:
+                errors.append(f"Barcode {barcode} already exists, skipping")
+                continue
+        
+        db_location = location_models.StorageLocation(
+            warehouse_id=warehouse_id,
+            parent_location_id=batch_data.parent_location_id,
+            code=code,
+            name=name,
+            location_type=batch_data.location_type,
+            aisle=batch_data.aisle,
+            rack=batch_data.rack,
+            shelf=batch_data.shelf,
+            position=position,
+            capacity=batch_data.capacity,
+            barcode=barcode,
+            path=f"{parent_path}/{code}" if parent_path else code
+        )
+        db.add(db_location)
+        created_locations.append(db_location)
+    
+    db.commit()
+    
+    for loc in created_locations:
+        db.refresh(loc)
+    
+    return location_schemas.BatchLocationResponse(
+        created=len(created_locations),
+        locations=created_locations,
+        errors=errors
+    )
+
+
+@router.post("/{warehouse_id}/locations/{location_id}/duplicate", response_model=location_schemas.StorageLocationResponse)
+def duplicate_location(
+    warehouse_id: int,
+    location_id: int,
+    new_code: str = Query(..., description="New code for the duplicated location"),
+    new_name: Optional[str] = Query(None, description="New name (optional, defaults to original)"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Duplicate an existing location with a new code.
+    Does not copy children - only the location itself.
+    """
+    check_write_permissions(current_user)
+    
+    original = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.id == location_id,
+        location_models.StorageLocation.warehouse_id == warehouse_id
+    ).first()
+    
+    if not original:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    existing = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id,
+        location_models.StorageLocation.code == new_code
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Location code already exists")
+    
+    parent_path = ""
+    if original.parent_location_id:
+        parent = original.parent
+        parent_path = parent.path if parent and parent.path else ""
+    
+    db_location = location_models.StorageLocation(
+        warehouse_id=warehouse_id,
+        parent_location_id=original.parent_location_id,
+        code=new_code,
+        name=new_name or f"{original.name} (copia)",
+        location_type=original.location_type,
+        aisle=original.aisle,
+        rack=original.rack,
+        shelf=original.shelf,
+        position=original.position,
+        capacity=original.capacity,
+        dimensions=original.dimensions,
+        temperature_zone=original.temperature_zone,
+        is_restricted=original.is_restricted,
+        path=f"{parent_path}/{new_code}" if parent_path else new_code
+    )
+    
+    db.add(db_location)
+    db.commit()
+    db.refresh(db_location)
+    return db_location
+
+
+@router.get("/{warehouse_id}/locations/hierarchy", response_model=location_schemas.LocationHierarchyResponse)
+def get_location_hierarchy(
+    warehouse_id: int,
+    aisle: Optional[str] = Query(None, description="Filter by aisle"),
+    rack: Optional[str] = Query(None, description="Filter by rack"),
+    shelf: Optional[str] = Query(None, description="Filter by shelf"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
+):
+    """
+    Get hierarchical location data for dropdown selectors.
+    Returns unique values for each level, filtered by parent selections.
+    """
+    warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    query = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id
+    )
+    
+    if aisle:
+        query = query.filter(location_models.StorageLocation.aisle == aisle)
+    if rack:
+        query = query.filter(location_models.StorageLocation.rack == rack)
+    if shelf:
+        query = query.filter(location_models.StorageLocation.shelf == shelf)
+    
+    locations = query.all()
+    
+    aisles = sorted(set(loc.aisle for loc in locations if loc.aisle))
+    racks = sorted(set(loc.rack for loc in locations if loc.rack))
+    shelves = sorted(set(loc.shelf for loc in locations if loc.shelf))
+    positions = sorted(set(loc.position for loc in locations if loc.position))
+    
+    return location_schemas.LocationHierarchyResponse(
+        aisles=aisles,
+        racks=racks,
+        shelves=shelves,
+        positions=positions
+    )
+
+
+@router.get("/{warehouse_id}/locations/children", response_model=List[location_schemas.StorageLocationResponse])
+def get_location_children(
+    warehouse_id: int,
+    parent_id: Optional[int] = Query(None, description="Parent location ID (null for root)"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
+):
+    """
+    Get direct children of a location.
+    Useful for tree view expansion.
+    """
+    warehouse = db.query(models.Warehouse).filter(models.Warehouse.id == warehouse_id).first()
+    if not warehouse:
+        raise HTTPException(status_code=404, detail="Warehouse not found")
+    
+    query = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.warehouse_id == warehouse_id
+    )
+    
+    if parent_id is None:
+        query = query.filter(location_models.StorageLocation.parent_location_id == None)
+    else:
+        query = query.filter(location_models.StorageLocation.parent_location_id == parent_id)
+    
+    return query.all()
+
+
+@router.get("/locations/check-container")
+def check_container_availability(
+    container_code: str = Query(..., description="Container code to check"),
+    exclude_product_id: Optional[int] = Query(None, description="Product ID to exclude from check"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_roles_with_permission([1, 2, 3], "warehouses:view")),
+):
+    """
+    Check if a container is available or occupied.
+    Returns current contents if occupied.
+    """
+    location = db.query(location_models.StorageLocation).filter(
+        location_models.StorageLocation.code == container_code
+    ).first()
+    
+    if not location:
+        raise HTTPException(status_code=404, detail="Container not found")
+    
+    assignment = db.query(product_location_models.ProductLocationAssignment).filter(
+        product_location_models.ProductLocationAssignment.location_id == location.id,
+        product_location_models.ProductLocationAssignment.quantity > 0
+    ).first()
+    
+    if assignment and assignment.product_id == exclude_product_id:
+        remaining = location.capacity - assignment.quantity if location.capacity > 0 else None
+        return location_schemas.ContainerCheckResponse(
+            available=True,
+            current_product_id=assignment.product_id,
+            current_quantity=assignment.quantity,
+            remaining_capacity=remaining,
+            location_id=location.id,
+            location_code=location.code
+        )
+    
+    if assignment:
+        from app.models.product import Product
+        product = db.query(Product).filter(Product.id == assignment.product_id).first()
+        return location_schemas.ContainerCheckResponse(
+            available=False,
+            current_product=product.name if product else f"Producto #{assignment.product_id}",
+            current_product_id=assignment.product_id,
+            current_quantity=assignment.quantity,
+            remaining_capacity=None,
+            location_id=location.id,
+            location_code=location.code
+        )
+    
+    remaining = location.capacity if location.capacity > 0 else None
+    return location_schemas.ContainerCheckResponse(
+        available=True,
+        remaining_capacity=remaining,
+        location_id=location.id,
+        location_code=location.code
+    )

@@ -30,41 +30,84 @@ export interface Location {
   name: string;
   path?: string;
   children?: Location[];
-  
-  // Coordinate fields
+  location_type?: string;
+  capacity?: number;
+  current_occupancy?: number;
   aisle?: string;
   rack?: string;
   shelf?: string;
   position?: string;
+  is_restricted?: boolean;
+  barcode?: string;
 }
 
 export interface LocationCreate {
   code: string;
   name: string;
   parent_location_id?: number | null;
-  
-  // Coordinate fields
+  location_type?: string;
   aisle?: string;
   rack?: string;
   shelf?: string;
   position?: string;
+  capacity?: number;
 }
 
 export interface LocationUpdate {
   code?: string;
   name?: string;
   parent_location_id?: number | null;
-  
-  // Coordinate fields
+  location_type?: string;
   aisle?: string;
   rack?: string;
   shelf?: string;
   position?: string;
+  capacity?: number;
+  is_restricted?: boolean;
+  barcode?: string;
 }
 
 export interface WarehouseStockItem {
   product_id: number;
   quantity: number;
+}
+
+export interface BatchLocationCreate {
+  parent_location_id?: number | null;
+  location_type: string;
+  prefix: string;
+  start_number: number;
+  count: number;
+  name_template: string;
+  aisle?: string;
+  rack?: string;
+  shelf?: string;
+  position_prefix?: string;
+  capacity: number;
+  barcode_prefix?: string;
+}
+
+export interface BatchLocationResponse {
+  created: number;
+  locations: Location[];
+  errors: string[];
+}
+
+export interface LocationHierarchy {
+  aisles: string[];
+  racks: string[];
+  shelves: string[];
+  positions: string[];
+}
+
+export interface ContainerCheck {
+  available: boolean;
+  current_product?: string;
+  current_product_id?: number;
+  current_quantity: number;
+  remaining_capacity?: number;
+  location_id?: number;
+  location_code?: string;
 }
 
 export const warehouseService = {
@@ -96,8 +139,7 @@ export const warehouseService = {
   },
 
   deleteWarehouse: async (id: number) => {
-    const response = await api.delete(`/warehouses/${id}`);
-    return response.data;
+    await api.delete(`/warehouses/${id}`);
   },
 
   getLocations: async (warehouseId: number) => {
@@ -110,8 +152,36 @@ export const warehouseService = {
     return response.data;
   },
 
+  getLocationChildren: async (warehouseId: number, parentId?: number | null) => {
+    const response = await api.get<StorageLocation[]>(`/warehouses/${warehouseId}/locations/children`, {
+      params: { parent_id: parentId ?? undefined }
+    });
+    return response.data;
+  },
+
+  getLocationHierarchy: async (warehouseId: number, aisle?: string, rack?: string, shelf?: string) => {
+    const response = await api.get<LocationHierarchy>(`/warehouses/${warehouseId}/locations/hierarchy`, {
+      params: { aisle, rack, shelf }
+    });
+    return response.data;
+  },
+
   createLocation: async (warehouseId: number, data: LocationCreate) => {
     const response = await api.post<StorageLocation>(`/warehouses/${warehouseId}/locations`, data);
+    return response.data;
+  },
+
+  createLocationsBatch: async (warehouseId: number, data: BatchLocationCreate) => {
+    const response = await api.post<BatchLocationResponse>(`/warehouses/${warehouseId}/locations/batch`, data);
+    return response.data;
+  },
+
+  duplicateLocation: async (warehouseId: number, locationId: number, newCode: string, newName?: string) => {
+    const response = await api.post<StorageLocation>(
+      `/warehouses/${warehouseId}/locations/${locationId}/duplicate`,
+      null,
+      { params: { new_code: newCode, new_name: newName } }
+    );
     return response.data;
   },
   
@@ -122,5 +192,15 @@ export const warehouseService = {
 
   deleteLocation: async (warehouseId: number, locationId: number) => {
     await api.delete(`/warehouses/${warehouseId}/locations/${locationId}`);
+  },
+
+  checkContainer: async (containerCode: string, excludeProductId?: number) => {
+    const response = await api.get<ContainerCheck>('/warehouses/locations/check-container', {
+      params: { 
+        container_code: containerCode,
+        exclude_product_id: excludeProductId
+      }
+    });
+    return response.data;
   },
 };

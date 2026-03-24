@@ -1,7 +1,7 @@
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from app.models.user import Base
+from app.database import Base
 import enum
 
 class ToolStatus(str, enum.Enum):
@@ -22,8 +22,8 @@ class Tool(Base):
     location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
     status = Column(Enum(ToolStatus), default=ToolStatus.AVAILABLE, nullable=False)
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     product = relationship("Product", backref="tools")
@@ -51,7 +51,7 @@ class ToolHistory(Base):
     
     changed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     notes = Column(String(255), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     tool = relationship("Tool", back_populates="history")
     changed_by_user = relationship("User", foreign_keys=[changed_by])

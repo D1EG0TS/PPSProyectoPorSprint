@@ -3,7 +3,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
-from app.models.user import Base, User, Role
+from app.database import Base
+from app.models.user import User, Role
 from app.models.product import Product
 from app.models.inventory_refs import Category, Unit
 from app.models.warehouse import Warehouse

@@ -1,8 +1,8 @@
 import enum
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Text, Boolean, Enum
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from app.models.user import Base
+from app.database import Base
 
 class IntegratedRequestPurpose(str, enum.Enum):
     PROYECTO = 'proyecto'
@@ -45,8 +45,8 @@ class IntegratedRequest(Base):
     notes = Column(Text, nullable=True)
     emergency_level = Column(Enum(EmergencyLevel), default=EmergencyLevel.NORMAL, nullable=False)
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     requester = relationship("User", foreign_keys=[requested_by], backref="integrated_requests")
@@ -221,7 +221,7 @@ class RequestTracking(Base):
     action = Column(Enum(RequestTrackingAction), nullable=False)
     performed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     request = relationship("IntegratedRequest", back_populates="tracking")

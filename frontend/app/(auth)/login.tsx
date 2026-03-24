@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, ImageBackground } from 'react-native';
+import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, Image, ImageBackground, useColorScheme } from 'react-native';
 import { Text, Checkbox } from 'react-native-paper';
 import { useAuth } from '../../hooks/useAuth';
 import { useForm } from 'react-hook-form';
@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useAppTheme } from '../../context/ThemeContext';
 
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
@@ -27,7 +28,10 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isDesktop, isTablet, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
+  const { isDesktop, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
+  const { isDark } = useAppTheme();
+
+  const theme = isDark ? Colors.darkScheme : Colors.lightScheme;
 
   const { control, handleSubmit } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -62,8 +66,8 @@ export default function LoginScreen() {
           style={[styles.logo, { width: isSmallDevice ? 150 : 200, height: isSmallDevice ? 60 : 80 }]}
           resizeMode="contain"
         />
-        <Text variant="headlineMedium" style={[styles.welcomeText, { fontSize: fontSize.title }]}>BIENVENIDO</Text>
-        <Text variant="bodyMedium" style={[styles.subtitleText, { fontSize: fontSize.subtitle }]}>Inicia sesión para acceder a la plataforma</Text>
+        <Text variant="headlineMedium" style={[styles.welcomeText, { fontSize: fontSize.title, color: isDark ? '#FFFFFF' : '#1A1A1A' }]}>BIENVENIDO</Text>
+        <Text variant="bodyMedium" style={[styles.subtitleText, { fontSize: fontSize.subtitle, color: isDark ? '#9CA3AF' : '#666666' }]}>Inicia sesión para acceder a la plataforma</Text>
       </View>
 
       <View style={styles.formContainer}>
@@ -75,8 +79,8 @@ export default function LoginScreen() {
           keyboardType="email-address"
           testID="email-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Input
@@ -87,8 +91,8 @@ export default function LoginScreen() {
           testID="password-input"
           onSubmitEditing={handleSubmit(onSubmit)}
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <View style={styles.row}>
@@ -96,12 +100,12 @@ export default function LoginScreen() {
             <Checkbox.Android
               status={rememberMe ? 'checked' : 'unchecked'}
               onPress={() => setRememberMe(!rememberMe)}
-              color={Colors.primary}
-              uncheckedColor="#9E9E9E"
+              color={theme.primary}
+              uncheckedColor={theme.textSecondary}
             />
-            <Text onPress={() => setRememberMe(!rememberMe)} style={[styles.rememberMeText, { fontSize: fontSize.body }]}>Recordarme</Text>
+            <Text onPress={() => setRememberMe(!rememberMe)} style={[styles.rememberMeText, { fontSize: fontSize.body, color: isDark ? '#D1D5DB' : '#424242' }]}>Recordarme</Text>
           </View>
-          <Link href="/forgot-password" variant="bodySmall" style={[styles.forgotPasswordLink, { fontSize: fontSize.body }]}>
+          <Link href="/forgot-password" variant="bodySmall" style={[styles.forgotPasswordLink, { fontSize: fontSize.body, color: isDark ? '#9CA3AF' : '#666666' }]}>
             ¿Olvidaste tu contraseña?
           </Link>
         </View>
@@ -121,7 +125,7 @@ export default function LoginScreen() {
         </Button>
 
         <View style={styles.createAccountContainer}>
-          <Text variant="bodyMedium" style={{ color: '#666666', fontSize: fontSize.body }}>¿No tienes una cuenta? </Text>
+          <Text variant="bodyMedium" style={{ color: isDark ? '#9CA3AF' : '#666666', fontSize: fontSize.body }}>¿No tienes una cuenta? </Text>
           <Link href="/register" variant="bodyMedium" style={[styles.createAccountLink, { fontSize: fontSize.body }]}>
             Regístrate aquí
           </Link>
@@ -138,7 +142,7 @@ export default function LoginScreen() {
           style={styles.desktopImageSide}
           resizeMode="cover"
         />
-        <View style={styles.desktopFormSide}>
+        <View style={[styles.desktopFormSide, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
           <ScrollView contentContainerStyle={styles.desktopFormContent}>
             {renderFormContent()}
           </ScrollView>
@@ -168,6 +172,7 @@ export default function LoginScreen() {
           <View style={[
             styles.cardContainer, 
             { 
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
               paddingBottom: insets.bottom + 20,
               paddingHorizontal: paddingHorizontal
             }
@@ -207,7 +212,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    alignItems: 'center', // Center the form wrapper
+    alignItems: 'center',
   },
   formWrapper: {
     width: '100%',
@@ -244,7 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 32,
     marginTop: 8,
-    flexWrap: 'wrap', // Allow wrapping on very small screens
+    flexWrap: 'wrap',
   },
   checkboxContainer: {
     flexDirection: 'row',

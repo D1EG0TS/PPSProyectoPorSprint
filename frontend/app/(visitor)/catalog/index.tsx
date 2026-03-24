@@ -70,8 +70,8 @@ export default function CatalogScreen() {
             {/* Logo Area */}
             <View style={styles.logoContainer}>
                 {/* Placeholder for Logo - In real app use Image */}
-                <Text variant="headlineMedium" style={styles.logoText}>DIMEINT</Text>
-                <Text variant="labelSmall" style={styles.logoSubtext}>Material Eléctrico y Automatización</Text>
+                <Text variant="headlineMedium" style={styles.logoText}>EXPROOF</Text>
+                <Text variant="labelSmall" style={styles.logoSubtext}>Tecnologia electromeccanica</Text>
             </View>
 
             {/* Search Bar */}
@@ -90,7 +90,7 @@ export default function CatalogScreen() {
             <View style={styles.headerActions}>
                 {user ? (
                     <>
-                        {(user.role_id === USER_ROLES.SUPER_ADMIN || user.role_id === USER_ROLES.ADMIN || user.role_id === USER_ROLES.MANAGER) && (
+                        {(user.role_id === USER_ROLES.SUPER_ADMIN || user.role_id === USER_ROLES.ADMIN || user.role_id === USER_ROLES.MODERATOR) && (
                             <Button 
                                 mode="text" 
                                 textColor={Colors.white} 
@@ -121,12 +121,6 @@ export default function CatalogScreen() {
         </View>
         
         {/* Sub-Header Navigation */}
-        <View style={styles.subHeader}>
-            <View style={styles.subHeaderContent}>
-                <Button mode="text" textColor={Colors.white} labelStyle={{ fontWeight: 'bold' }}>Categorías</Button>
-                <Button mode="text" textColor={Colors.white} labelStyle={{ fontWeight: 'bold' }}>Sucursales</Button>
-            </View>
-        </View>
       </View>
 
       <View style={styles.mainContent}>

@@ -246,6 +246,11 @@ class StockService:
         # Invalidate Cache for this product (all scopes)
         stock_cache.delete_pattern(f"stock:{item.product_id}:")
         
+        # Update item status
+        item.quantity_delivered = item.quantity
+        item.status = "DELIVERED"
+        db.add(item)
+        
         return {
             "product_id": item.product_id,
             "updates": updates

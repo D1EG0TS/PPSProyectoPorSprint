@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, E
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from app.models.user import Base
+from app.database import Base
 
 class NotificationType(str, enum.Enum):
     INFO = "INFO"

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Text, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.models.user import Base
+from app.database import Base
 import enum
 
 class AssignmentType(str, enum.Enum):
@@ -16,20 +16,19 @@ class ProductLocationAssignment(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
     batch_id = Column(Integer, ForeignKey("product_batches.id"), nullable=True)
     location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=False, index=True)
-    warehouse_id = Column(Integer, ForeignKey("warehouses.id"), nullable=False, index=True) # Redundant but good for performance
+    warehouse_id = Column(Integer, ForeignKey("warehouses.id"), nullable=False, index=True)
     
     quantity = Column(Integer, default=0, nullable=False)
-    assigned_at = Column(DateTime(timezone=True), server_default=func.now())
+    assigned_at = Column(DateTime(timezone=True), server_default=func.current_timestamp())
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     assignment_type = Column(
         Enum(AssignmentType, values_callable=lambda x: [e.value for e in x], native_enum=False),
         default=AssignmentType.MANUAL
     )
-    is_primary = Column(Boolean, default=False) # Is this the primary picking slot?
+    is_primary = Column(Boolean, default=False)
     notes = Column(Text, nullable=True)
 
-    # Relationships
     product = relationship("Product")
     batch = relationship("ProductBatch")
     location = relationship("StorageLocation", back_populates="product_assignments")

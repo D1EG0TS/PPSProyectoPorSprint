@@ -36,7 +36,14 @@ export const useRoleMiddleware = (allowedRoles: number[]) => {
       return;
     }
 
-    // 2. Check specific allowed roles for the component/screen using this hook
+    // 2. Allow all authenticated users (roles 1-4) to access public catalog routes
+    const isPublicCatalogRoute = path.includes('(visitor)/catalog');
+    if (isPublicCatalogRoute) {
+      // All authenticated users can access public catalog - no redirect needed
+      return;
+    }
+
+    // 3. Check specific allowed roles for the component/screen using this hook
     if (allowedRoles.length > 0) {
         if (user.role_id === undefined || !allowedRoles.includes(user.role_id)) {
             console.log(`Middleware: Access denied for role ${user.role_id}`);

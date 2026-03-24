@@ -8,6 +8,7 @@ import { z } from 'zod';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useAppTheme } from '../../context/ThemeContext';
 
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
@@ -30,6 +31,9 @@ export default function RegisterScreen() {
   const { register, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
   const { isDesktop, isTablet, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
+  const { isDark } = useAppTheme();
+
+  const theme = isDark ? Colors.darkScheme : Colors.lightScheme;
 
   const { control, handleSubmit } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -70,8 +74,8 @@ export default function RegisterScreen() {
           style={[styles.logo, { width: isSmallDevice ? 100 : 140, height: isSmallDevice ? 50 : 70 }]}
           resizeMode="contain"
         />
-        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title }]}>CREAR CUENTA</Text>
-        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle }]}>Únete a nosotros para empezar</Text>
+        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title, color: isDark ? '#FFFFFF' : '#1A1A1A' }]}>CREAR CUENTA</Text>
+        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle, color: isDark ? '#9CA3AF' : '#666666' }]}>Únete a nosotros para empezar</Text>
       </View>
 
       <View style={styles.formContainer}>
@@ -82,8 +86,8 @@ export default function RegisterScreen() {
           autoCapitalize="words"
           testID="fullname-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Input
@@ -94,8 +98,8 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           testID="email-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Input
@@ -105,8 +109,8 @@ export default function RegisterScreen() {
           secureTextEntry
           testID="password-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Input
@@ -116,8 +120,8 @@ export default function RegisterScreen() {
           secureTextEntry
           testID="confirm-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Button
@@ -135,7 +139,7 @@ export default function RegisterScreen() {
         </Button>
 
         <View style={styles.footer}>
-          <Text variant="bodyMedium" style={{ color: '#666666', fontSize: fontSize.body }}>¿Ya tienes cuenta? </Text>
+          <Text variant="bodyMedium" style={{ color: isDark ? '#9CA3AF' : '#666666', fontSize: fontSize.body }}>¿Ya tienes cuenta? </Text>
           <Link href="/login" variant="bodyMedium" style={[styles.loginLink, { fontSize: fontSize.body }]}>
             Iniciar Sesión
           </Link>
@@ -152,7 +156,7 @@ export default function RegisterScreen() {
           style={styles.desktopImageSide}
           resizeMode="cover"
         />
-        <View style={styles.desktopFormSide}>
+        <View style={[styles.desktopFormSide, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
           <ScrollView contentContainerStyle={styles.desktopFormContent}>
             {renderFormContent()}
           </ScrollView>
@@ -181,6 +185,7 @@ export default function RegisterScreen() {
           <View style={[
             styles.cardContainer, 
             { 
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
               paddingBottom: insets.bottom + 20,
               paddingHorizontal: paddingHorizontal
             }

@@ -17,7 +17,7 @@ export const useProtectedRoute = () => {
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/login');
     } else if (isAuthenticated && inAuthGroup) {
-      if (user?.role_id === USER_ROLES.GUEST) {
+      if (user?.role_id === USER_ROLES.VISITOR) {
         router.replace('/(visitor)/catalog');
       } else {
         router.replace('/');
@@ -27,8 +27,8 @@ export const useProtectedRoute = () => {
         // e.g., ['(dashboard)', 'users'] -> '/(dashboard)/users'
         const currentPath = '/' + segments.join('/');
         
-        // Redirect Guest to catalog if they are at root
-        if (currentPath === '/' && user.role_id === USER_ROLES.GUEST) {
+        // Redirect Visitor to catalog if they are at root
+        if (currentPath === '/' && user.role_id === USER_ROLES.VISITOR) {
             router.replace('/(visitor)/catalog');
             return;
         }

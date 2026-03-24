@@ -1,0 +1,894 @@
+INFO:     Will watch for changes in these directories: ['/home/diego-terrazas/PPSProyectoPorSprint/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [22097] using StatReload
+INFO:     Started server process [22099]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Iniciando aplicación...
+✅ Conexión a la base de datos exitosa.
+INFO:     127.0.0.1:34800 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57838 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34720 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:47322 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58244 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58252 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58330 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58338 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58680 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58688 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36380 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36380 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35168 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35168 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35168 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35168 - "GET /auth/me HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:35182 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35168 - "OPTIONS /reports/inventory/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35198 - "OPTIONS /reports/inventory/turnover?period_days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35168 - "OPTIONS /reports/movements/daily?days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35198 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35214 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:35168 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:44528 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:44544 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:38238 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38252 - "OPTIONS /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38258 - "OPTIONS /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38258 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38258 - "OPTIONS /products/?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38258 - "GET /products/?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:38266 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38258 - "OPTIONS /movements/requests/pending?limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "OPTIONS /movements/requests/my?limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /movements/requests/my?limit=50 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:38258 - "GET /movements/requests/pending?limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55216 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38276 - "OPTIONS /catalog/operational?skip=0&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /catalog/operational?skip=0&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "OPTIONS /catalog/operational?skip=0&limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/operational?skip=0&limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "OPTIONS /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "OPTIONS /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55224 - "OPTIONS /catalog/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55224 - "GET /catalog/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55228 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55224 - "GET /catalog/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/operational?skip=0&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/operational?skip=0&limit=50 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38276 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55224 - "GET /catalog/permissions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /catalog/internal?skip=0&limit=1000 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:53784 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38252 - "OPTIONS /assets/dashboard/widgets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38252 - "GET /assets/dashboard/widgets HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: asset_calibration
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/core/middleware.py", line 11, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 326, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/api/endpoints/assets.py", line 48, in get_dashboard_widgets
+    return AssetReportService.get_dashboard_widgets(db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/services/asset_report_service.py", line 153, in get_dashboard_widgets
+    ).count()
+      ^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2835, in scalar
+    ret = self.one()
+          ^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: asset_calibration
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT asset_calibration.id AS asset_calibration_id, asset_calibration.asset_id AS asset_calibration_asset_id, asset_calibration.calibration_date AS asset_calibration_calibration_date, asset_calibration.expiration_date AS asset_calibration_expiration_date, asset_calibration.certificate_number AS asset_calibration_certificate_number, asset_calibration.certificate_file AS asset_calibration_certificate_file, asset_calibration.calibration_lab AS asset_calibration_calibration_lab, asset_calibration.standard_used AS asset_calibration_standard_used, asset_calibration.results AS asset_calibration_results, asset_calibration.deviation AS asset_calibration_deviation, asset_calibration.tolerance AS asset_calibration_tolerance, asset_calibration.passed AS asset_calibration_passed, asset_calibration.adjusted AS asset_calibration_adjusted, asset_calibration.cost AS asset_calibration_cost, asset_calibration.performed_by AS asset_calibration_performed_by, asset_calibration.certificate_url AS asset_calibration_certificate_url, asset_calibration.next_calibration_date AS asset_calibration_next_calibration_date, asset_calibration.status AS asset_calibration_status 
+FROM asset_calibration 
+WHERE asset_calibration.expiration_date >= ? AND asset_calibration.expiration_date <= ? AND asset_calibration.status != ?) AS anon_1]
+[parameters: ('2026-03-23', '2026-03-30', 'VIGENTE')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:53800 - "OPTIONS /assets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53800 - "GET /assets HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:53800 - "OPTIONS /assets/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53800 - "GET /assets/ HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: assets
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/core/middleware.py", line 11, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 326, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/api/endpoints/assets.py", line 162, in list_assets
+    return query.offset(skip).limit(limit).all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: assets
+[SQL: SELECT assets.id AS assets_id, assets.asset_tag AS assets_asset_tag, assets.category_id AS assets_category_id, assets.name AS assets_name, assets.brand AS assets_brand, assets.model AS assets_model, assets.serial_number AS assets_serial_number, assets.barcode AS assets_barcode, assets.acquisition_date AS assets_acquisition_date, assets.acquisition_cost AS assets_acquisition_cost, assets.current_value AS assets_current_value, assets.supplier AS assets_supplier, assets.invoice_number AS assets_invoice_number, assets.warranty_expiration AS assets_warranty_expiration, assets.location_id AS assets_location_id, assets.warehouse_id AS assets_warehouse_id, assets.responsible_user_id AS assets_responsible_user_id, assets.status AS assets_status, assets.condition AS assets_condition, assets.notes AS assets_notes, assets.created_at AS assets_created_at, assets.updated_at AS assets_updated_at 
+FROM assets
+ LIMIT ? OFFSET ?]
+[parameters: (100, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:53820 - "OPTIONS /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53804 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53820 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:53834 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:40662 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40610 - "GET /assets HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:40610 - "OPTIONS /assets/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40610 - "GET /assets/ HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: assets
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/applications.py", line 1160, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/core/middleware.py", line 11, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 130, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 116, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 670, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/fastapi/routing.py", line 326, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2502, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 986, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/PPSProyectoPorSprint/backend/app/api/endpoints/assets.py", line 162, in list_assets
+    return query.offset(skip).limit(limit).all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/diego-terrazas/.local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: assets
+[SQL: SELECT assets.id AS assets_id, assets.asset_tag AS assets_asset_tag, assets.category_id AS assets_category_id, assets.name AS assets_name, assets.brand AS assets_brand, assets.model AS assets_model, assets.serial_number AS assets_serial_number, assets.barcode AS assets_barcode, assets.acquisition_date AS assets_acquisition_date, assets.acquisition_cost AS assets_acquisition_cost, assets.current_value AS assets_current_value, assets.supplier AS assets_supplier, assets.invoice_number AS assets_invoice_number, assets.warranty_expiration AS assets_warranty_expiration, assets.location_id AS assets_location_id, assets.warehouse_id AS assets_warehouse_id, assets.responsible_user_id AS assets_responsible_user_id, assets.status AS assets_status, assets.condition AS assets_condition, assets.notes AS assets_notes, assets.created_at AS assets_created_at, assets.updated_at AS assets_updated_at 
+FROM assets
+ LIMIT ? OFFSET ?]
+[parameters: (100, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:40624 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40636 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40644 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40624 - "OPTIONS /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40636 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:40656 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40624 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40636 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40666 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40636 - "GET /warehouses/?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40624 - "GET /products/categories/ HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:58452 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58456 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58456 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58468 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58478 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58456 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58468 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58478 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58456 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58468 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:37876 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:54492 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42818 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:39166 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:46494 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42214 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55776 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55790 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55804 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55808 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55790 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "OPTIONS /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "OPTIONS /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48056 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48060 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48064 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36192 - "OPTIONS /auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36192 - "POST /auth/logout HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33622 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52238 - "OPTIONS /auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52238 - "POST /auth/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52238 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52238 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52244 - "OPTIONS /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52238 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52254 - "OPTIONS /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52256 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52238 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52244 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "OPTIONS /products/?search=&category_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "GET /products/?search=&category_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38366 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "OPTIONS /products/?search=&category_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "GET /products/?search=&category_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38366 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "OPTIONS /products/?search=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38366 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "GET /products/?search=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "OPTIONS /products/?search=&category_id=4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38366 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "GET /products/?search=&category_id=4 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:38374 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38356 - "OPTIONS /products/?search=&category_id=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38366 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38356 - "GET /products/?search=&category_id=5 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:49758 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:59470 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:60154 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:34838 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:53348 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55940 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57814 - "OPTIONS /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57802 - "GET /products/?search=&category_id=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57814 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57824 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57824 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57824 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57824 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57834 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38484 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38490 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/?search=&category_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/?search=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/?search=&category_id=4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38492 - "GET /products/?search=&category_id=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38504 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "OPTIONS /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55526 - "OPTIONS /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55526 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "OPTIONS /auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55514 - "POST /auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59764 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59764 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59764 - "GET /auth/me HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:59780 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59764 - "OPTIONS /reports/inventory/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59764 - "OPTIONS /reports/inventory/turnover?period_days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59794 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59804 - "OPTIONS /reports/movements/daily?days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59794 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59764 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59764 - "OPTIONS /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59764 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:35552 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:35562 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33880 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33894 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:58410 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:58416 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33868 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33872 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:45042 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:47906 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:56186 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:47310 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:37770 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:58698 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44918 - "OPTIONS /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44918 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44918 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44918 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44918 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44922 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44932 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:51316 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:38284 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37740 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37740 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37740 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37754 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37764 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:37740 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53080 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53080 - "GET /auth/me HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:53092 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53080 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53094 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53110 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:33064 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51306 - "GET /catalog/public?skip=0&limit=100 HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:46128 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44034 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44040 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:44052 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:32950 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:48254 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:34314 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36688 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "OPTIONS /reports/inventory/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36702 - "OPTIONS /reports/inventory/turnover?period_days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36706 - "OPTIONS /reports/movements/daily?days=30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36702 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36706 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36688 - "OPTIONS /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36702 - "OPTIONS /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36706 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36706 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36688 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36702 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36706 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36706 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36688 - "OPTIONS /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36706 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42122 - "OPTIONS /users/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42122 - "GET /users/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58702 - "OPTIONS /auth/login HTTP/1.1" 400 Bad Request
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:58730 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58702 - "OPTIONS /auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58702 - "POST /auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37588 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37588 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37588 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37588 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37610 - "GET /products/?search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37604 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37624 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37604 - "POST /auth/logout HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42798 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:35650 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:57664 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42644 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55920 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42492 - "OPTIONS /auth/login HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:42988 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42988 - "OPTIONS /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42988 - "GET /auth/me HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42994 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:42988 - "GET /reports/inventory/summary HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:43006 - "GET /reports/inventory/turnover?period_days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:43008 - "GET /reports/movements/daily?days=30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56818 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56834 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56818 - "OPTIONS /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56818 - "GET /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56834 - "GET /products/categories/ HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55136 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60236 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60252 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60252 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40392 - "OPTIONS /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40392 - "POST /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40392 - "GET /products/categories/ HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:36170 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:36176 - "POST /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36176 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37572 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37570 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37570 - "GET /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "OPTIONS /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "POST /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "GET /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "OPTIONS /tools/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "GET /tools/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "GET /products/?search=&include_inactive=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37418 - "GET /products/categories/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37412 - "GET /products/units/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37418 - "GET /products/categories/ HTTP/1.1" 200 OK
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42606 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42772 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:34562 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:38180 - "OPTIONS /products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38180 - "POST /products/ HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:46812 - "POST /products/ HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:46812 - "POST /products/ HTTP/1.1" 422 Unprocessable Entity
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:46394 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:55630 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:46674 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55114 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54396 - "POST /products/ HTTP/1.1" 422 Unprocessable Entity
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:42762 - "GET /ws/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53158 - "POST /products/ HTTP/1.1" 422 Unprocessable Entity
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:56474 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:47766 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:60284 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:56144 - "GET /ws/1 HTTP/1.1" 404 Not Found
+WARNING:  Unsupported upgrade request.
+WARNING:  No supported WebSocket library detected. Please use "pip install 'uvicorn[standard]'", or install 'websockets' or 'wsproto' manually.
+INFO:     127.0.0.1:38824 - "GET /ws/1 HTTP/1.1" 404 Not Found

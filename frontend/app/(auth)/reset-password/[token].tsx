@@ -9,6 +9,7 @@ import api from '../../../services/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { useAppTheme } from '../../../context/ThemeContext';
 
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
@@ -30,6 +31,9 @@ export default function ResetPasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const insets = useSafeAreaInsets();
   const { isDesktop, isTablet, isSmallDevice, paddingHorizontal, fontSize } = useResponsive();
+  const { isDark } = useAppTheme();
+
+  const theme = isDark ? Colors.darkScheme : Colors.lightScheme;
 
   const { control, handleSubmit } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -86,8 +90,8 @@ export default function ResetPasswordScreen() {
           style={[styles.logo, { width: isSmallDevice ? 100 : 140, height: isSmallDevice ? 50 : 70 }]}
           resizeMode="contain"
         />
-        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title }]}>RESTABLECER CONTRASEÑA</Text>
-        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle }]}>
+        <Text variant="headlineMedium" style={[styles.title, { fontSize: fontSize.title, color: isDark ? '#FFFFFF' : '#1A1A1A' }]}>RESTABLECER CONTRASEÑA</Text>
+        <Text variant="bodyMedium" style={[styles.subtitle, { fontSize: fontSize.subtitle, color: isDark ? '#9CA3AF' : '#666666' }]}>
           Ingresa tu nueva contraseña.
         </Text>
       </View>
@@ -100,8 +104,8 @@ export default function ResetPasswordScreen() {
           secureTextEntry
           testID="password-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Input
@@ -111,8 +115,8 @@ export default function ResetPasswordScreen() {
           secureTextEntry
           testID="confirm-input"
           style={styles.input}
-          outlineColor="#E0E0E0"
-          activeOutlineColor={Colors.primary}
+          outlineColor={theme.border}
+          activeOutlineColor={theme.primary}
         />
 
         <Button
@@ -140,7 +144,7 @@ export default function ResetPasswordScreen() {
           style={styles.desktopImageSide}
           resizeMode="cover"
         />
-        <View style={styles.desktopFormSide}>
+        <View style={[styles.desktopFormSide, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
           <ScrollView contentContainerStyle={styles.desktopFormContent}>
             {renderFormContent()}
           </ScrollView>
@@ -169,6 +173,7 @@ export default function ResetPasswordScreen() {
           <View style={[
             styles.cardContainer, 
             { 
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
               paddingBottom: insets.bottom + 20,
               paddingHorizontal: paddingHorizontal
             }

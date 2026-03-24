@@ -2,16 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Appbar } from 'react-native-paper';
-import { warehouseService } from '../../../../../services/warehouseService';
+import { warehouseService, Location } from '../../../../../services/warehouseService';
 import { LocationTree } from '../../../../../components/locations/LocationTree';
-import { StorageLocation } from '../../../../../types/location';
 import { Colors } from '../../../../../constants/Colors';
 import { Card } from '../../../../../components/Card';
 
 export default function WarehouseMapScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [locations, setLocations] = useState<StorageLocation[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [warehouseName, setWarehouseName] = useState('');
 
@@ -28,7 +27,7 @@ export default function WarehouseMapScreen() {
         warehouseService.getLocationsTree(Number(id))
       ]);
       setWarehouseName(wh.name);
-      setLocations(locs as unknown as StorageLocation[]);
+      setLocations(locs as Location[]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -36,7 +35,11 @@ export default function WarehouseMapScreen() {
     }
   };
 
-  const handleLocationSelect = (location: StorageLocation) => {
+  const handleLocationSelect = (location: Location) => {
+    router.push(`/(dashboard)/moderator/locations/${location.id}/detail`);
+  };
+
+  const handleEdit = (location: Location) => {
     router.push(`/(dashboard)/moderator/locations/${location.id}/detail`);
   };
 
@@ -53,8 +56,10 @@ export default function WarehouseMapScreen() {
         ) : (
           <Card style={styles.treeCard}>
             <LocationTree 
-              locations={locations} 
-              onSelectLocation={handleLocationSelect} 
+              roots={locations} 
+              onEdit={handleEdit}
+              onDelete={() => {}}
+              onAddChild={() => {}}
             />
           </Card>
         )}

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, BigI
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
-from app.models.user import Base
+from app.database import Base
 
 class LedgerEntryType(str, enum.Enum):
     INCREMENT = "increment"
@@ -20,15 +20,14 @@ class LedgerEntry(Base):
     location_id = Column(Integer, ForeignKey("storage_locations.id"), nullable=True)
     
     entry_type = Column(Enum(LedgerEntryType, native_enum=False), nullable=False)
-    quantity = Column(Integer, nullable=False) # Always positive, direction determined by entry_type
+    quantity = Column(Integer, nullable=False)
     
     previous_balance = Column(Integer, nullable=False)
     new_balance = Column(Integer, nullable=False)
     
-    applied_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    applied_at = Column(DateTime(timezone=True), server_default=func.current_timestamp(), index=True)
     applied_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    # Relationships
     movement_request = relationship("MovementRequest")
     product = relationship("Product")
     batch = relationship("ProductBatch")

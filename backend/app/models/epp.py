@@ -2,7 +2,7 @@ import enum
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Boolean, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.models.user import Base
+from app.database import Base
 
 class EPPStatus(str, enum.Enum):
     AVAILABLE = "AVAILABLE"

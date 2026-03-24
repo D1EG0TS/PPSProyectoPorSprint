@@ -152,7 +152,7 @@ export const createProduct = async (product: ProductCreate, imageUri?: string) =
 };
 
 export const updateProduct = async (id: number, product: ProductUpdate) => {
-  const response = await api.put<Product>(`/products/${id}`, product);
+  const response = await api.put<Product>(`/products/${id}/json`, product);
   return response.data;
 };
 

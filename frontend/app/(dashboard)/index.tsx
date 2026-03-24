@@ -18,14 +18,13 @@ export default function DashboardIndex() {
     return <Redirect href="/(dashboard)/admin/dashboard" />;
   }
 
-  if (user?.role_id === USER_ROLES.MANAGER) { // Moderator/Manager
+  if (user?.role_id === USER_ROLES.MANAGER) {
     return <Redirect href="/(dashboard)/moderator/dashboard" />;
   }
 
-  if (user?.role_id === USER_ROLES.USER) { // Operator
+  if (user?.role_id === USER_ROLES.USER) {
     return <Redirect href="/(dashboard)/operator/requests/create" />;
   }
   
-  // Default fallback for others (Guest)
   return <Redirect href="/(visitor)/catalog" />;
 }

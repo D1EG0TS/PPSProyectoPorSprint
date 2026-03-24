@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Text
-from app.models.user import Base
+from app.database import Base
 
 class SystemConfig(Base):
     __tablename__ = "system_config"

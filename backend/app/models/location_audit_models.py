@@ -1,7 +1,7 @@
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from app.models.user import Base
+from app.database import Base
 
 class LocationAuditLog(Base):
     __tablename__ = "location_audit_logs"
@@ -17,7 +17,7 @@ class LocationAuditLog(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     movement_id = Column(Integer, ForeignKey("movements.id"), nullable=True)
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     location = relationship("StorageLocation")

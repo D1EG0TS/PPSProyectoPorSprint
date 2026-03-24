@@ -148,6 +148,23 @@ def create_product(
     product = crud_product.create_product(db, product=product_in)
     return product
 
+@router.put("/{id}/json", response_model=product_schemas.Product)
+def update_product_json(
+    id: int,
+    product_in: product_schemas.ProductUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.check_permission("inventory:update")),
+):
+    """
+    Update a product using JSON body.
+    """
+    product = crud_product.get_product(db, product_id=id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    updated = crud_product.update_product(db, product_id=id, product_in=product_in)
+    return updated
+
 @router.put("/{id}", response_model=product_schemas.Product)
 def update_product(
     id: int,

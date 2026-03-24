@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu } from 'react-native-paper';
+import { Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { 
   getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch, getCategories, getUnits,
@@ -10,12 +10,12 @@ import Toast from 'react-native-toast-message';
 import { BatchTable } from '../../../../../components/products/BatchTable';
 import { Input } from '../../../../../components/Input';
 import { Button } from '../../../../../components/Button';
-import { Colors } from '../../../../../constants/Colors';
 import { Layout } from '../../../../../constants/Layout';
 
 export default function EditProductScreen() {
   const { id, tab } = useLocalSearchParams();
   const router = useRouter();
+  const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
@@ -144,7 +144,7 @@ export default function EditProductScreen() {
         text1: 'Éxito',
         text2: 'Producto actualizado correctamente'
       });
-      loadData(); // Reload to ensure sync
+      loadData();
     } catch (error: any) {
       console.error(error);
       const msg = error.response?.data?.detail || 'No se pudo actualizar el producto';
@@ -189,8 +189,6 @@ export default function EditProductScreen() {
       if (editingBatch) {
         const updateData: ProductBatchUpdate = {
           quantity: parseInt(batchQty),
-          // batch_number: batchNumber // Usually typically handled, but schema allows it?
-          // Checking ProductBatchUpdate interface: it allows batch_number and quantity.
           batch_number: batchNumber,
         };
         await updateProductBatch(editingBatch.id, updateData);
@@ -223,20 +221,20 @@ export default function EditProductScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <SegmentedButtons
         value={activeTab}
         onValueChange={setActiveTab}
         buttons={[
-          { value: 'details', label: 'Details' },
-          { value: 'batches', label: 'Batches', disabled: !hasBatch },
+          { value: 'details', label: 'Detalles' },
+          { value: 'batches', label: 'Lotes', disabled: !hasBatch },
         ]}
         style={styles.tabs}
       />
@@ -245,9 +243,9 @@ export default function EditProductScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
             <Input label="SKU" value={sku} onChangeText={setSku} containerStyle={styles.input} />
-            <Input label="Barcode" value={barcode} onChangeText={setBarcode} containerStyle={styles.input} />
-            <Input label="Name" value={name} onChangeText={setName} containerStyle={styles.input} />
-            <Input label="Description" value={description} onChangeText={setDescription} multiline containerStyle={styles.input} />
+            <Input label="Código de Barras" value={barcode} onChangeText={setBarcode} containerStyle={styles.input} />
+            <Input label="Nombre" value={name} onChangeText={setName} containerStyle={styles.input} />
+            <Input label="Descripción" value={description} onChangeText={setDescription} multiline containerStyle={styles.input} />
             
             <View style={styles.row}>
               <View style={[styles.halfInput, { marginBottom: 15 }]}>
@@ -256,11 +254,10 @@ export default function EditProductScreen() {
                   onDismiss={() => setShowCategoryMenu(false)}
                   anchor={
                     <Input
-                      label="Category"
+                      label="Categoría"
                       value={getCategoryName()}
                       editable={false}
                       right={<Input.Icon icon="menu-down" onPress={() => setShowCategoryMenu(true)} />}
-                      containerStyle={{ backgroundColor: 'white' }}
                     />
                   }
                 >
@@ -280,11 +277,10 @@ export default function EditProductScreen() {
                   onDismiss={() => setShowUnitMenu(false)}
                   anchor={
                     <Input
-                      label="Unit"
+                      label="Unidad"
                       value={getUnitName()}
                       editable={false}
                       right={<Input.Icon icon="menu-down" onPress={() => setShowUnitMenu(true)} />}
-                      containerStyle={{ backgroundColor: 'white' }}
                     />
                   }
                 >
@@ -300,65 +296,71 @@ export default function EditProductScreen() {
             </View>
 
             <View style={styles.row}>
-              <Input label="Cost" value={cost} onChangeText={setCost} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
-              <Input label="Price" value={price} onChangeText={setPrice} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Costo" value={cost} onChangeText={setCost} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Precio" value={price} onChangeText={setPrice} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
             </View>
 
             <View style={styles.row}>
-              <Input label="Min Stock" value={minStock} onChangeText={setMinStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
-              <Input label="Target Stock" value={targetStock} onChangeText={setTargetStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Stock Mínimo" value={minStock} onChangeText={setMinStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Stock Objetivo" value={targetStock} onChangeText={setTargetStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
             </View>
 
-            <Surface style={styles.switchContainer} elevation={1}>
+            <Surface style={[styles.switchContainer, { backgroundColor: theme.colors.surfaceVariant }]} elevation={1}>
               <View style={styles.switchRow}>
-                <Text>Active</Text>
-                <Switch value={isActive} onValueChange={setIsActive} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Activo</Text>
+                <Switch value={isActive} onValueChange={setIsActive} color={theme.colors.primary} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Has Batch Management</Text>
-                <Switch value={hasBatch} onValueChange={setHasBatch} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Gestión de Lotes</Text>
+                <Switch value={hasBatch} onValueChange={setHasBatch} color={theme.colors.primary} />
               </View>
               <View style={styles.switchRow}>
-                <Text>Has Expiration Date</Text>
-                <Switch value={hasExpiration} onValueChange={setHasExpiration} />
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>Tiene Fecha de Caducidad</Text>
+                <Switch value={hasExpiration} onValueChange={setHasExpiration} color={theme.colors.primary} />
               </View>
             </Surface>
 
             <Button variant="primary" onPress={handleUpdateProduct} loading={saving} style={styles.saveButton}>
-              Save Changes
+              Guardar Cambios
             </Button>
           </View>
         </ScrollView>
       ) : (
-        <View style={styles.batchContainer}>
+        <View style={[styles.batchContainer, { backgroundColor: theme.colors.background }]}>
           <View style={styles.batchHeader}>
-            <Text variant="titleMedium">Product Batches</Text>
-            <Button variant="primary" onPress={() => openBatchModal()} icon="plus">Add Batch</Button>
+            <Text variant="titleMedium" style={{ color: theme.colors.onBackground }}>Lotes del Producto</Text>
+            <Button variant="primary" onPress={() => openBatchModal()} icon="plus">Agregar Lote</Button>
           </View>
           <BatchTable 
-                    batches={batches} 
-                    onEdit={(batch: ProductBatch) => openBatchModal(batch)} 
-                  />
+            batches={batches} 
+            onEdit={(batch: ProductBatch) => openBatchModal(batch)} 
+          />
         </View>
       )}
 
       <Portal>
-        <Modal visible={batchModalVisible} onDismiss={() => setBatchModalVisible(false)} contentContainerStyle={styles.modalContent}>
-          <Text variant="headlineSmall" style={styles.modalTitle}>{editingBatch ? 'Edit Batch' : 'New Batch'}</Text>
+        <Modal 
+          visible={batchModalVisible} 
+          onDismiss={() => setBatchModalVisible(false)} 
+          contentContainerStyle={[styles.modalContent, { backgroundColor: theme.colors.surface }]}
+        >
+          <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+            {editingBatch ? 'Editar Lote' : 'Nuevo Lote'}
+          </Text>
           
-          <Input label="Batch Number" value={batchNumber} onChangeText={setBatchNumber} containerStyle={styles.input} />
-          <Input label="Quantity" value={batchQty} onChangeText={setBatchQty} keyboardType="numeric" containerStyle={styles.input} />
+          <Input label="Número de Lote" value={batchNumber} onChangeText={setBatchNumber} containerStyle={styles.input} />
+          <Input label="Cantidad" value={batchQty} onChangeText={setBatchQty} keyboardType="numeric" containerStyle={styles.input} />
           
           {!editingBatch && (
-             <>
-              <Input label="Mfg Date (YYYY-MM-DD)" value={mfgDate} onChangeText={setMfgDate} containerStyle={styles.input} placeholder="2023-01-01" />
-              <Input label="Exp Date (YYYY-MM-DD)" value={expDate} onChangeText={setExpDate} containerStyle={styles.input} placeholder="2024-01-01" />
-             </>
+            <>
+              <Input label="Fecha Fabricación (AAAA-MM-DD)" value={mfgDate} onChangeText={setMfgDate} containerStyle={styles.input} placeholder="2023-01-01" />
+              <Input label="Fecha Caducidad (AAAA-MM-DD)" value={expDate} onChangeText={setExpDate} containerStyle={styles.input} placeholder="2024-01-01" />
+            </>
           )}
 
           <View style={styles.modalButtons}>
-            <Button variant="text" onPress={() => setBatchModalVisible(false)} style={styles.modalButton}>Cancel</Button>
-            <Button variant="primary" onPress={handleSaveBatch} style={styles.modalButton}>Save</Button>
+            <Button variant="text" onPress={() => setBatchModalVisible(false)} style={styles.modalButton}>Cancelar</Button>
+            <Button variant="primary" onPress={handleSaveBatch} style={styles.modalButton}>Guardar</Button>
           </View>
         </Modal>
       </Portal>
@@ -369,7 +371,6 @@ export default function EditProductScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -401,7 +402,6 @@ const styles = StyleSheet.create({
     borderRadius: Layout.borderRadius.md,
     marginTop: Layout.spacing.sm,
     marginBottom: Layout.spacing.lg,
-    backgroundColor: Colors.white,
   },
   switchRow: {
     flexDirection: 'row',
@@ -423,7 +423,6 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.md,
   },
   modalContent: {
-    backgroundColor: 'white',
     padding: Layout.spacing.lg,
     margin: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.md,

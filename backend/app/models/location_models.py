@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint, JSON, Enum
 from sqlalchemy.orm import relationship
-from app.models.user import Base
+from app.database import Base
 import enum
 
 class LocationType(str, enum.Enum):

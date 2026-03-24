@@ -1,8 +1,8 @@
 import enum
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, Numeric, ForeignKey, Enum, Text, JSON
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from app.models.user import Base
+from app.database import Base
 
 # Enums
 class AssetType(str, enum.Enum):
@@ -112,8 +112,8 @@ class Asset(Base):
     condition = Column(Enum(AssetCondition), default=AssetCondition.NUEVO, nullable=False)
     notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     category = relationship("AssetCategory", back_populates="assets")
@@ -212,7 +212,7 @@ class AssetAssignment(Base):
     asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
     assigned_to = Column(Integer, ForeignKey("users.id"), nullable=False)
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    assignment_date = Column(DateTime, default=func.now())
+    assignment_date = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     expected_return_date = Column(Date, nullable=True)
     return_date = Column(DateTime, nullable=True)
     condition_out = Column(String(50), nullable=True)
@@ -235,7 +235,7 @@ class AssetAuditLog(Base):
     previous_value = Column(JSON, nullable=True)
     new_value = Column(JSON, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    timestamp = Column(DateTime, default=func.now())
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     ip_address = Column(String(45), nullable=True)
 
     asset = relationship("Asset", back_populates="audit_logs")

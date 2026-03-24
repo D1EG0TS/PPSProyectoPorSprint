@@ -1,0 +1,85 @@
+env: load .env
+env: export EXPO_PUBLIC_API_URL
+Starting project at /home/diego-terrazas/PPSProyectoPorSprint/frontend
+Starting Metro Bundler
+The following packages should be updated for best compatibility with the installed expo version:
+  @react-native-community/datetimepicker@8.6.0 - expected version: 8.4.4
+Your project may not work correctly until you install the expected versions of the packages.
+Waiting on http://localhost:3000
+Logs for your project will appear below.
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 34.6% (198/440)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.9% (470/703)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.9% ( 931/1790)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓░░░░░ 72.9% (1696/1986)
+Web Bundling failed 17183ms node_modules/expo-router/entry.js (2269 modules)
+Unable to resolve "../../../components/ScreenContainer" from "app/(dashboard)/admin/movements/index.tsx"
+[0m [90m 4 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'expo-router'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mToast[39m [36mfrom[39m [32m'react-native-toast-message'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mScreenContainer[39m } [36mfrom[39m [32m'../../../components/ScreenContainer'[39m[33m;[39m
+ [90m   |[39m                                  [31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { [33mCard[39m [36mas[39m [33mCustomCard[39m } [36mfrom[39m [32m'../../../components/Card'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m { [33mLayout[39m } [36mfrom[39m [32m'../../../constants/Layout'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m { [0m
+
+Import stack:
+
+ app/(dashboard)/admin/movements/index.tsx
+ | import "../../../components/ScreenContainer"
+
+ app (require.context)
+
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundling failed 960ms node_modules/expo-router/entry.js (2223 modules)
+Unable to resolve "../../../components/ScreenContainer" from "app/(dashboard)/admin/inventory/index.tsx"
+[0m [90m 4 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'expo-router'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mToast[39m [36mfrom[39m [32m'react-native-toast-message'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mScreenContainer[39m } [36mfrom[39m [32m'../../../components/ScreenContainer'[39m[33m;[39m
+ [90m   |[39m                                  [31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { [33mCard[39m [36mas[39m [33mCustomCard[39m } [36mfrom[39m [32m'../../../components/Card'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m { [33mLayout[39m } [36mfrom[39m [32m'../../../constants/Layout'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m { warehouseService[33m,[39m [33mWarehouseStockItem[39m } [36mfrom[39m [32m'../../../services/warehouseService'[39m[33m;[39m[0m
+
+Import stack:
+
+ app/(dashboard)/admin/inventory/index.tsx
+ | import "../../../components/ScreenContainer"
+
+ app (require.context)
+
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundling failed 776ms node_modules/expo-router/entry.js (2166 modules)
+Unable to resolve "../../../components/ScreenContainer" from "app/(dashboard)/admin/inventory/index.tsx"
+[0m [90m 4 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'expo-router'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mToast[39m [36mfrom[39m [32m'react-native-toast-message'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mScreenContainer[39m } [36mfrom[39m [32m'../../../components/ScreenContainer'[39m[33m;[39m
+ [90m   |[39m                                  [31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { [33mCard[39m [36mas[39m [33mCustomCard[39m } [36mfrom[39m [32m'../../../components/Card'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m { [33mLayout[39m } [36mfrom[39m [32m'../../../constants/Layout'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m { warehouseService[33m,[39m [33mWarehouseStockItem[39m } [36mfrom[39m [32m'../../../services/warehouseService'[39m[33m;[39m[0m
+
+Import stack:
+
+ app/(dashboard)/admin/inventory/index.tsx
+ | import "../../../components/ScreenContainer"
+
+ app (require.context)
+
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundling failed 814ms node_modules/expo-router/entry.js (2166 modules)
+Unable to resolve "../../../components/ScreenContainer" from "app/(dashboard)/admin/inventory/index.tsx"
+[0m [90m 4 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'expo-router'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mToast[39m [36mfrom[39m [32m'react-native-toast-message'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mScreenContainer[39m } [36mfrom[39m [32m'../../../components/ScreenContainer'[39m[33m;[39m
+ [90m   |[39m                                  [31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m { [33mCard[39m [36mas[39m [33mCustomCard[39m } [36mfrom[39m [32m'../../../components/Card'[39m[33m;[39m
+ [90m 8 |[39m [36mimport[39m { [33mLayout[39m } [36mfrom[39m [32m'../../../constants/Layout'[39m[33m;[39m
+ [90m 9 |[39m [36mimport[39m { warehouseService[33m,[39m [33mWarehouseStockItem[39m } [36mfrom[39m [32m'../../../services/warehouseService'[39m[33m;[39m[0m
+
+Import stack:
+
+ app/(dashboard)/admin/inventory/index.tsx
+ | import "../../../components/ScreenContainer"
+
+ app (require.context)
+

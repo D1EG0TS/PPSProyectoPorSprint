@@ -99,6 +99,12 @@ def update_product(db: Session, product_id: int, product_in: ProductUpdate) -> O
         
     update_data = product_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
+        # No actualizar SKU si es None o vacío (es NOT NULL)
+        if field == 'sku' and (value is None or value == ''):
+            continue
+        # Preservar valores existentes si el nuevo valor es None
+        if value is None:
+            continue
         setattr(db_product, field, value)
         
     db.add(db_product)

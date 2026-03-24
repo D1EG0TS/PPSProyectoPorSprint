@@ -1,42 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { ScrollableContent } from '../../../../components/ScrollableContent';
-import { Text, Chip, IconButton } from 'react-native-paper';
+import { Text, Chip, IconButton, Card, Button, TextInput, useTheme, ActivityIndicator, DataTable } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
-import { Table, Column } from '../../../../components/Table';
-import { Button } from '../../../../components/Button';
-import { Card } from '../../../../components/Card';
-import { Input } from '../../../../components/Input';
 import { LoadingScreen } from '../../../../components/LoadingScreen';
-import { getPendingMovementRequests, MovementRequest, MovementType } from '../../../../services/movementService';
-import { Colors } from '../../../../constants/Colors';
-import { Layout } from '../../../../constants/Layout';
+import { getPendingMovementRequests, MovementRequest, MovementType, MovementStatus } from '../../../../services/movementService';
 
 export default function PendingRequestsScreen() {
+  const theme = useTheme();
   const router = useRouter();
-  // ... (state)
+  
   const [requests, setRequests] = useState<MovementRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   
-  // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState<MovementType | undefined>(undefined);
-  const [filterWarehouse, setFilterWarehouse] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-
-  // ... (loadRequests)
 
   const loadRequests = async () => {
-    setLoading(true);
     try {
       const params: any = {};
       if (filterType) params.type = filterType;
-      if (filterWarehouse) params.warehouse_id = Number(filterWarehouse);
-      if (filterDate) {
-          params.start_date = filterDate;
-      }
 
       const data = await getPendingMovementRequests(params);
       setRequests(data);
@@ -45,193 +31,174 @@ export default function PendingRequestsScreen() {
       Toast.show({ type: 'error', text1: 'Error cargando solicitudes pendientes' });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
       loadRequests();
-    }, [filterType, filterWarehouse, filterDate])
+    }, [filterType])
   );
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadRequests();
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString() + ' ' + new Date(dateString).toLocaleTimeString();
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getTypeColor = (type: MovementType) => {
     switch (type) {
-      case MovementType.IN: return Colors.success;
-      case MovementType.OUT: return Colors.error;
-      case MovementType.TRANSFER: return Colors.info;
-      case MovementType.ADJUSTMENT: return Colors.warning;
-      default: return Colors.primary;
+      case MovementType.IN: return '#4caf50';
+      case MovementType.OUT: return '#f44336';
+      case MovementType.TRANSFER: return '#2196f3';
+      case MovementType.ADJUSTMENT: return '#ff9800';
+      default: return theme.colors.primary;
     }
   };
 
-  const renderRequestCard = (item: MovementRequest) => (
-    <Card
-      title={`Solicitud #${item.id}`}
-      subtitle={formatDate(item.created_at)}
-      footer={
-        <View style={styles.cardActions}>
-          <Button 
-            variant="primary" 
-            onPress={() => router.push(`/(dashboard)/moderator/requests/${item.id}`)}
-            size="small"
-          >
-            Revisar
-          </Button>
-        </View>
-      }
-    >
-      <View style={styles.cardContent}>
-        <View style={styles.row}>
-            <Text style={styles.label}>Tipo:</Text>
-            <Chip 
-              textStyle={{ color: 'white', fontSize: 10 }} 
-              style={{ backgroundColor: getTypeColor(item.type), height: 24 }}
-            >
-              {item.type}
-            </Chip>
-        </View>
-        <View style={styles.row}>
-            <Text style={styles.label}>Motivo:</Text>
-            <Text style={{flex: 1}} numberOfLines={2}>{item.reason}</Text>
-        </View>
-      </View>
-    </Card>
-  );
-
-  const columns: Column<MovementRequest>[] = [
-    {
-      key: 'id',
-      label: 'ID',
-      numeric: true,
-      width: 60,
-    },
-    {
-      key: 'type',
-      label: 'Tipo',
-      width: 100,
-      renderCell: (item) => (
-        <Chip 
-          textStyle={{ color: 'white', fontSize: 10 }} 
-          style={{ backgroundColor: getTypeColor(item.type), height: 24 }}
-        >
-          {item.type}
-        </Chip>
-      )
-    },
-    {
-        key: 'reason',
-        label: 'Motivo',
-        flex: 2,
-    },
-    {
-      key: 'created_at',
-      label: 'Fecha',
-      width: 150,
-      renderCell: (item) => <Text variant="bodySmall">{formatDate(item.created_at)}</Text>
-    },
-    {
-      key: 'actions',
-      label: 'Acciones',
-      width: 100,
-      renderCell: (item) => (
-        <Button 
-          variant="primary" 
-          onPress={() => router.push(`/(dashboard)/moderator/requests/${item.id}`)}
-          size="small"
-        >
-          Revisar
-        </Button>
-      )
+  const getTypeLabel = (type: MovementType) => {
+    switch (type) {
+      case MovementType.IN: return 'Entrada';
+      case MovementType.OUT: return 'Salida';
+      case MovementType.TRANSFER: return 'Transferencia';
+      case MovementType.ADJUSTMENT: return 'Ajuste';
+      default: return type;
     }
-  ];
+  };
 
   return (
-    <View style={styles.container}>
-      <ScrollableContent>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <ScrollView 
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.header}>
-          <Text variant="headlineMedium" style={styles.title}>Solicitudes Pendientes</Text>
+          <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onBackground }]}>
+            Solicitudes Pendientes
+          </Text>
           <View style={{ flexDirection: 'row' }}>
-              <Button 
-                  variant={showFilters ? "primary" : "outline"} 
-                  onPress={() => setShowFilters(!showFilters)} 
-                  icon="filter"
-                  style={{ marginRight: 8 }}
-              >
-                  Filtros
-              </Button>
-              <Button variant="outline" onPress={loadRequests} icon="refresh">Actualizar</Button>
+            <Button 
+              mode={showFilters ? "contained" : "outlined"} 
+              onPress={() => setShowFilters(!showFilters)} 
+              icon="filter"
+              style={{ marginRight: 8 }}
+              compact
+            >
+              Filtros
+            </Button>
+            <Button mode="outlined" onPress={loadRequests} icon="refresh" compact>
+              Actualizar
+            </Button>
           </View>
         </View>
 
         {showFilters && (
-          <Card style={styles.filtersCard}>
-              <View style={styles.filtersContent}>
-                  <Text variant="titleSmall" style={{ marginBottom: 8 }}>Filtrar por Tipo</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                      <Chip 
-                          selected={filterType === undefined} 
-                          onPress={() => setFilterType(undefined)}
-                          style={styles.filterChip}
-                          showSelectedOverlay
-                      >
-                          Todos
-                      </Chip>
-                      {Object.values(MovementType).map(type => (
-                          <Chip 
-                              key={type} 
-                              selected={filterType === type} 
-                              onPress={() => setFilterType(type)}
-                              style={styles.filterChip}
-                              showSelectedOverlay
-                          >
-                              {type}
-                          </Chip>
-                      ))}
-                  </ScrollView>
-
-                  <View style={styles.inputRow}>
-                      <Input 
-                          label="ID Almacén"
-                          value={filterWarehouse}
-                          onChangeText={setFilterWarehouse}
-                          keyboardType="numeric"
-                          containerStyle={[styles.inputContainer, { marginRight: 8 }]}
-                          dense
-                      />
-                      <Input 
-                          label="Fecha (YYYY-MM-DD)"
-                          value={filterDate}
-                          onChangeText={setFilterDate}
-                          containerStyle={styles.inputContainer}
-                          dense
-                      />
-                  </View>
-                  
-                  <Button variant="outline" onPress={() => {
-                      setFilterType(undefined);
-                      setFilterWarehouse('');
-                      setFilterDate('');
-                  }}>Limpiar Filtros</Button>
-              </View>
+          <Card style={[styles.filtersCard, { backgroundColor: theme.colors.surface }]}>
+            <Card.Content>
+              <Text variant="titleSmall" style={{ marginBottom: 12, color: theme.colors.onSurface }}>
+                Filtrar por Tipo
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <Chip 
+                  selected={filterType === undefined} 
+                  onPress={() => setFilterType(undefined)}
+                  style={styles.filterChip}
+                  selectedColor={theme.colors.primary}
+                  showSelectedOverlay
+                >
+                  Todos
+                </Chip>
+                {Object.values(MovementType).map(type => (
+                  <Chip 
+                    key={type} 
+                    selected={filterType === type} 
+                    onPress={() => setFilterType(type)}
+                    style={styles.filterChip}
+                    selectedColor={getTypeColor(type)}
+                    showSelectedOverlay
+                  >
+                    {getTypeLabel(type)}
+                  </Chip>
+                ))}
+              </ScrollView>
+            </Card.Content>
           </Card>
-      )}
+        )}
 
-      {loading && requests.length === 0 ? (
-           <LoadingScreen />
-       ) : (
-           <Table
-            columns={columns}
-            data={requests}
-            keyExtractor={(item) => String(item.id)}
-            emptyMessage="No hay solicitudes pendientes que coincidan con los filtros."
-            renderCard={renderRequestCard}
-           />
-       )}
-      </ScrollableContent>
+        {loading && requests.length === 0 ? (
+          <LoadingScreen />
+        ) : requests.length === 0 ? (
+          <Card style={[styles.emptyCard, { backgroundColor: theme.colors.surface }]}>
+            <Card.Content style={styles.emptyContent}>
+              <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+                No hay solicitudes pendientes
+              </Text>
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginTop: 8 }}>
+                Las solicitudes aparecerán aquí cuando existan movimientos pendientes por revisar
+              </Text>
+            </Card.Content>
+          </Card>
+        ) : (
+          <Card style={[styles.tableCard, { backgroundColor: theme.colors.surface }]}>
+            <DataTable>
+              <DataTable.Header>
+                <DataTable.Title numeric style={styles.colId}>ID</DataTable.Title>
+                <DataTable.Title style={styles.colType}>Tipo</DataTable.Title>
+                <DataTable.Title style={styles.colReason}>Motivo</DataTable.Title>
+                <DataTable.Title style={styles.colDate}>Fecha</DataTable.Title>
+                <DataTable.Title style={styles.colActions}>Acciones</DataTable.Title>
+              </DataTable.Header>
+
+              {requests.map((item) => (
+                <DataTable.Row 
+                  key={item.id}
+                  onPress={() => router.push(`/(dashboard)/moderator/requests/${item.id}`)}
+                >
+                  <DataTable.Cell style={styles.colId}>
+                    <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>#{item.id}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.colType}>
+                    <Chip 
+                      textStyle={{ color: 'white', fontSize: 10 }} 
+                      style={{ backgroundColor: getTypeColor(item.type), height: 24 }}
+                      compact
+                    >
+                      {getTypeLabel(item.type)}
+                    </Chip>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.colReason}>
+                    <Text variant="bodySmall" numberOfLines={2} style={{ color: theme.colors.onSurface }}>
+                      {item.reason || '-'}
+                    </Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.colDate}>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                      {formatDate(item.created_at)}
+                    </Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.colActions}>
+                    <Button 
+                      mode="text" 
+                      compact
+                      onPress={() => router.push(`/(dashboard)/moderator/requests/${item.id}`)}
+                    >
+                      Revisar
+                    </Button>
+                  </DataTable.Cell>
+                </DataTable.Row>
+              ))}
+            </DataTable>
+          </Card>
+        )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
     </View>
   );
 }
@@ -239,53 +206,49 @@ export default function PendingRequestsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: Layout.spacing.md,
-    backgroundColor: Colors.background,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Layout.spacing.md,
+    marginBottom: 16,
     flexWrap: 'wrap',
-    gap: Layout.spacing.sm,
+    gap: 8,
   },
   title: {
     fontWeight: 'bold',
     flex: 1,
   },
   filtersCard: {
-      marginBottom: Layout.spacing.md,
-  },
-  filtersContent: {
-      padding: 0,
+    marginBottom: 16,
   },
   filterChip: {
-      marginRight: 8,
+    marginRight: 8,
   },
-  inputRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: Layout.spacing.sm,
+  emptyCard: {
+    marginTop: 32,
   },
-  inputContainer: {
-      flex: 1,
+  emptyContent: {
+    padding: 32,
+    alignItems: 'center',
   },
-  cardActions: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
+  tableCard: {
+    marginBottom: 16,
   },
-  cardContent: {
-      gap: 4,
+  colId: {
+    width: 50,
   },
-  row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 4,
+  colType: {
+    width: 100,
   },
-  label: {
-      fontWeight: 'bold',
-      marginRight: 8,
-      width: 60,
-  }
+  colReason: {
+    flex: 2,
+  },
+  colDate: {
+    width: 100,
+  },
+  colActions: {
+    width: 80,
+  },
 });

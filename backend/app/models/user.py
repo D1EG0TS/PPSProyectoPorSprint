@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Table
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import json
 
-Base = declarative_base()
+from app.database import Base
 
 # Association table for User-Permission (Many-to-Many)
 user_permissions = Table(

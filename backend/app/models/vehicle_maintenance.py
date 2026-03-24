@@ -1,8 +1,8 @@
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, Boolean, Date, DateTime, Numeric, ForeignKey, Enum, TIMESTAMP
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 import enum
-from app.models.user import Base
+from app.database import Base
 
 class MaintenanceCategory(str, enum.Enum):
     PREVENTIVE = 'preventivo'
@@ -58,8 +58,8 @@ class VehicleMaintenanceRecord(Base):
     notes = Column(Text, nullable=True)
     requires_followup = Column(Boolean, default=False)
     followup_date = Column(Date, nullable=True)
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    created_at = Column(TIMESTAMP, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = Column(TIMESTAMP, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     vehicle = relationship("Vehicle", backref="maintenance_records") # Using backref to avoid modifying Vehicle class directly if possible
