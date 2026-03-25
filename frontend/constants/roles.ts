@@ -4,7 +4,14 @@ export const USER_ROLES = {
   MODERATOR: 3,
   OPERATIVE: 4,
   VISITOR: 5,
+  USER: 3,
+  MANAGER: 2,
+  GUEST: 5,
 } as const;
+
+export const USER = USER_ROLES.MODERATOR;
+export const MANAGER = USER_ROLES.ADMIN;
+export const GUEST = USER_ROLES.VISITOR;
 
 export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 
