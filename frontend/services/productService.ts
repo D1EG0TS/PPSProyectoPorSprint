@@ -21,6 +21,7 @@ export interface Product {
   image_url?: string;
   category_id: number;
   unit_id: number;
+  condition_id?: number;
   cost?: number;
   price?: number;
   min_stock?: number;
@@ -29,11 +30,11 @@ export interface Product {
   has_expiration?: boolean;
   is_active?: boolean;
   batches?: ProductBatch[];
-  total_stock?: number; // Added for catalog view
+  total_stock?: number;
 }
 
 export interface ProductCreate {
-  sku?: string; // Optional (auto-generated)
+  sku?: string;
   barcode?: string;
   name: string;
   description?: string;
@@ -42,6 +43,7 @@ export interface ProductCreate {
   image_url?: string;
   category_id: number;
   unit_id: number;
+  condition_id?: number;
   cost?: number;
   price?: number;
   min_stock?: number;
@@ -61,6 +63,7 @@ export interface ProductUpdate {
   image_url?: string;
   category_id?: number;
   unit_id?: number;
+  condition_id?: number;
   cost?: number;
   price?: number;
   min_stock?: number;
@@ -79,6 +82,8 @@ export interface ProductBatchCreate {
 
 export interface ProductBatchUpdate {
   batch_number?: string;
+  manufactured_date?: string;
+  expiration_date?: string;
   quantity?: number;
 }
 
@@ -94,6 +99,24 @@ export interface Unit {
   id: number;
   name: string;
   abbreviation: string;
+}
+
+export interface Condition {
+  id: number;
+  name: string;
+  description?: string;
+  is_active: boolean;
+}
+
+export interface ConditionCreate {
+  name: string;
+  description?: string;
+}
+
+export interface ConditionUpdate {
+  name?: string;
+  description?: string;
+  is_active?: boolean;
 }
 
 export const getProducts = async (params?: {
@@ -234,6 +257,21 @@ export const createProductBatch = async (productId: number, batch: ProductBatchC
   return response.data;
 };
 
+export const updateProductBatch = async (batchId: number, batch: ProductBatchUpdate) => {
+  const response = await api.put<ProductBatch>(`/products/batches/${batchId}`, batch);
+  return response.data;
+};
+
+export const deleteProductBatch = async (batchId: number) => {
+  const response = await api.delete(`/products/batches/${batchId}`);
+  return response.data;
+};
+
+export const getProductBatches = async (productId: number, params?: { skip?: number; limit?: number }) => {
+  const response = await api.get<ProductBatch[]>(`/products/${productId}/batches`, { params });
+  return response.data;
+};
+
 export const getProductByCode = async (code: string) => {
   try {
     const response = await api.get<Product>(`/products/scan/${code}`);
@@ -273,5 +311,25 @@ export const uploadProductImage = async (id: number, imageUri: string) => {
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response.data;
+};
+
+export const getConditions = async (params?: { skip?: number; limit?: number; include_inactive?: boolean }) => {
+  const response = await api.get<Condition[]>('/products/conditions/', { params });
+  return response.data;
+};
+
+export const createCondition = async (condition: ConditionCreate) => {
+  const response = await api.post<Condition>('/products/conditions/', condition);
+  return response.data;
+};
+
+export const updateCondition = async (id: number, condition: ConditionUpdate) => {
+  const response = await api.put<Condition>(`/products/conditions/${id}`, condition);
+  return response.data;
+};
+
+export const deleteCondition = async (id: number) => {
+  const response = await api.delete(`/products/conditions/${id}`);
   return response.data;
 };

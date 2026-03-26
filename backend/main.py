@@ -26,6 +26,11 @@ from app.api.endpoints.websockets import router as websockets_router
 from app.api.endpoints.integrated_requests import router as integrated_requests_router
 from app.api.endpoints.tracking import router as tracking_router
 from app.api.endpoints.assets import router as assets_router
+from app.api.endpoints.warehouse_layout import router as warehouse_layout_router
+from app.api.endpoints.inventory import router as inventory_router
+from app.api.endpoints.labels import router as labels_router
+from app.api.endpoints.suppliers import router as suppliers_router
+from app.api.endpoints.purchase_orders import router as purchase_orders_router
 from app.core.config import settings
 from app.core.middleware import ActiveSessionMiddleware
 
@@ -76,6 +81,11 @@ app.include_router(assets_router, prefix="/assets", tags=["Assets"])
 app.include_router(reports_router, prefix="/reports", tags=["Reports"])
 app.include_router(purchase_router, prefix="/purchase", tags=["Purchase Alerts"])
 app.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
+app.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
+app.include_router(warehouse_layout_router, prefix="/inventory/layout", tags=["Warehouse Layout"])
+app.include_router(labels_router, prefix="/inventory/labels", tags=["Labels"])
+app.include_router(suppliers_router, prefix="/suppliers", tags=["Suppliers"])
+app.include_router(purchase_orders_router, prefix="/purchase-orders", tags=["Purchase Orders"])
 
 @app.get("/")
 def read_root():

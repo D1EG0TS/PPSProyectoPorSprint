@@ -851,6 +851,770 @@ Authorization: Bearer <token>
 
 ---
 
+## Mapa Visual del Almacén
+
+### Tipos de Celda
+
+| Tipo | Descripción |
+|------|-------------|
+| `zone` | Zona general |
+| `aisle` | Pasillo |
+| `rack` | Estante/Rack |
+| `shelf` | Anaquel |
+| `storage` | Almacenamiento |
+| `receiving` | Area de recepción |
+| `shipping` | Area de envío |
+| `staging` | Area de preparación |
+| `empty` | Celda vacía |
+
+### Niveles de Ocupación
+
+| Nivel | Descripción |
+|-------|-------------|
+| `empty` | Sin ocupación (0%) |
+| `low` | Ocupación baja (1-25%) |
+| `medium` | Ocupación media (26-50%) |
+| `high` | Ocupación alta (51-75%) |
+| `full` | Ocupación completa (76-100%) |
+
+### Listar Layouts
+
+```http
+GET /inventory/layout/
+Authorization: Bearer <token>
+```
+
+**Parámetros de Query:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `skip` | int | Offset (default: 0) |
+| `limit` | int | Limite (default: 100) |
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "warehouse_id": 1,
+    "name": "Layout Almacén Central",
+    "grid_rows": 10,
+    "grid_cols": 10,
+    "cell_width": 100,
+    "cell_height": 100,
+    "is_active": true
+  }
+]
+```
+
+### Crear Layout
+
+```http
+POST /inventory/layout/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "warehouse_id": 1,
+  "name": "Layout Almacén Central",
+  "description": "Layout principal del almacén",
+  "grid_rows": 10,
+  "grid_cols": 10,
+  "cell_width": 100,
+  "cell_height": 100
+}
+```
+
+### Obtener Layout con Celdas
+
+```http
+GET /inventory/layout/{layout_id}
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "warehouse_id": 1,
+  "name": "Layout Almacén Central",
+  "grid_rows": 10,
+  "grid_cols": 10,
+  "cell_width": 100,
+  "cell_height": 100,
+  "cells": [
+    {
+      "id": 1,
+      "layout_id": 1,
+      "row": 0,
+      "col": 0,
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 100,
+      "cell_type": "storage",
+      "name": "Estante A-1",
+      "color": null,
+      "occupancy_level": "low",
+      "occupancy_percentage": 15.5,
+      "linked_location_id": null
+    }
+  ]
+}
+```
+
+### Generar Grid Vacío
+
+```http
+POST /inventory/layout/{layout_id}/generate
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "rows": 5,
+  "cols": 5,
+  "cell_width": 100,
+  "cell_height": 100
+}
+```
+
+### Obtener Heatmap
+
+```http
+GET /inventory/layout/{layout_id}/heatmap
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "layout_id": 1,
+  "warehouse_id": 1,
+  "cells": [
+    {
+      "row": 0,
+      "col": 0,
+      "occupancy_percentage": 50,
+      "occupancy_level": "medium",
+      "product_count": 5
+    }
+  ],
+  "average_occupancy": 35.5,
+  "total_capacity": 100,
+  "total_occupancy": 35.5
+}
+```
+
+### Exportar Layout
+
+```http
+GET /inventory/layout/{layout_id}/export
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "name": "Layout Almacén Central",
+  "description": "Layout principal",
+  "grid_rows": 10,
+  "grid_cols": 10,
+  "cell_width": 100,
+  "cell_height": 100,
+  "cells": [...],
+  "exported_at": "2024-03-25 12:00:00"
+}
+```
+
+### Importar Layout
+
+```http
+POST /inventory/layout/import?warehouse_id=1
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Layout Importado",
+  "grid_rows": 10,
+  "grid_cols": 10,
+  "cell_width": 100,
+  "cell_height": 100,
+  "cells": [...]
+}
+```
+
+### Operaciones con Celdas
+
+**Crear celda:**
+```http
+POST /inventory/layout/{layout_id}/cells
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "row": 0,
+  "col": 0,
+  "x": 0,
+  "y": 0,
+  "width": 100,
+  "height": 100,
+  "cell_type": "storage",
+  "name": "Estante A-1"
+}
+```
+
+**Actualizar celda:**
+```http
+PUT /inventory/layout/{layout_id}/cells/{cell_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "cell_type": "rack",
+  "name": "Estante A-2"
+}
+```
+
+**Eliminar celda:**
+```http
+DELETE /inventory/layout/{layout_id}/cells/{cell_id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Sistema de Etiquetas (Labels)
+
+Base URL: `/inventory/labels`
+
+### Tipos de Código de Barras
+- `qr` - Código QR
+- `code128` - Code 128
+- `code39` - Code 39
+- `ean13` - EAN-13
+
+### Tamaños de Etiqueta
+- `small` - 50x25 mm
+- `medium` - 70x35 mm
+- `large` - 100x50 mm
+- `custom` - Personalizado
+
+### Gestión de Plantillas
+
+**Listar plantillas:**
+```http
+GET /inventory/labels/templates
+Authorization: Bearer <token>
+```
+
+**Crear plantilla:**
+```http
+POST /inventory/labels/templates
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Etiqueta Producto Estándar",
+  "label_type": "qr",
+  "label_size": "medium",
+  "width_mm": 70,
+  "height_mm": 35,
+  "qr_size": 100,
+  "barcode_height": 30,
+  "font_name": "Helvetica",
+  "font_size": 8,
+  "show_border": true,
+  "border_width": 1,
+  "background_color": "#FFFFFF",
+  "text_color": "#000000",
+  "include_product_name": true,
+  "include_sku": true,
+  "include_barcode": true,
+  "include_location": false,
+  "include_batch": false,
+  "include_expiration": false
+}
+```
+
+**Obtener plantilla:**
+```http
+GET /inventory/labels/templates/{template_id}
+Authorization: Bearer <token>
+```
+
+**Actualizar plantilla:**
+```http
+PUT /inventory/labels/templates/{template_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Nueva Nombre",
+  "font_size": 10
+}
+```
+
+**Eliminar plantilla:**
+```http
+DELETE /inventory/labels/templates/{template_id}
+Authorization: Bearer <token>
+```
+
+### Generación de Etiquetas
+
+**Generar etiqueta de producto:**
+```http
+GET /inventory/labels/product/{product_id}?template_id={id}&label_type={type}
+Authorization: Bearer <token>
+```
+Parametros opcionales:
+- `template_id`: ID de plantilla (opcional)
+- `label_type`: Tipo de código (qr, code128, code39, ean13)
+
+Retorna: PDF con la etiqueta
+
+**Generar etiqueta de ubicación:**
+```http
+GET /inventory/labels/location/{location_id}?template_id={id}
+Authorization: Bearer <token>
+```
+Parametros opcionales:
+- `template_id`: ID de plantilla (opcional)
+
+Retorna: PDF con la etiqueta de ubicación
+
+**Generar etiqueta personalizada:**
+```http
+POST /inventory/labels/generate
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "template_id": 1,
+  "label_type": "code128",
+  "data": {
+    "product_id": 123,
+    "product_name": "Producto Ejemplo",
+    "sku": "SKU-001",
+    "barcode": "1234567890123",
+    "location_code": "A-01-01",
+    "location_name": "Estante A pasillo 1",
+    "batch": "LOTE-2024-001",
+    "expiration_date": "2025-12-31"
+  }
+}
+```
+
+**Impresión por lotes:**
+```http
+POST /inventory/labels/batch-print
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "template_id": 1,
+  "label_type": "qr",
+  "copies_per_label": 1,
+  "items": [
+    {
+      "product_id": 1,
+      "product_name": "Producto A",
+      "sku": "SKU-A",
+      "barcode": "1234567890001"
+    },
+    {
+      "product_id": 2,
+      "product_name": "Producto B",
+      "sku": "SKU-B",
+      "barcode": "1234567890002"
+    }
+  ]
+}
+```
+
+Respuesta:
+```json
+{
+  "success": true,
+  "filename": "labels_batch_1234567890.pdf",
+  "label_count": 2
+}
+```
+
+---
+
+## Sistema de Proveedores
+
+Base URL: `/suppliers`
+
+### Estados de Proveedor
+- `active` - Activo
+- `inactive` - Inactivo
+- `pending` - Pendiente
+- `blocked` - Bloqueado
+
+### Categorías de Proveedor
+- `raw_materials` - Materias primas
+- `finished_goods` - Productos terminados
+- `equipment` - Equipo
+- `services` - Servicios
+- `packaging` - Empaque
+- `other` - Otro
+
+### Gestión de Proveedores
+
+**Listar proveedores:**
+```http
+GET /suppliers/?search={term}&status={status}&category={category}
+Authorization: Bearer <token>
+```
+Parametros:
+- `skip`: Número de registros a omitir (default: 0)
+- `limit`: Límite de registros (default: 50, max: 100)
+- `search`: Término de búsqueda (nombre, código, email)
+- `status`: Filtrar por estado
+- `category`: Filtrar por categoría
+- `is_active`: Filtrar por estado activo
+
+**Crear proveedor:**
+```http
+POST /suppliers/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Acme Corp",
+  "code": "SUP001",
+  "contact_person": "John Doe",
+  "email": "john@acme.com",
+  "phone": "+52 555 123 4567",
+  "address": "Av. Principal 123",
+  "city": "Ciudad de México",
+  "state": "CDMX",
+  "country": "México",
+  "postal_code": "06600",
+  "tax_id": "TAX123456",
+  "rfc": "ACM123456ABC",
+  "category": "raw_materials",
+  "status": "active",
+  "payment_terms_days": 30,
+  "credit_limit": 100000.00,
+  "rating": 5
+}
+```
+
+**Obtener proveedor:**
+```http
+GET /suppliers/{id}
+Authorization: Bearer <token>
+```
+
+**Actualizar proveedor:**
+```http
+PUT /suppliers/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Nuevo Nombre",
+  "status": "active"
+}
+```
+
+**Eliminar proveedor (soft delete):**
+```http
+DELETE /suppliers/{id}
+Authorization: Bearer <token>
+```
+
+**Estadísticas de proveedores:**
+```http
+GET /suppliers/stats/overview
+Authorization: Bearer <token>
+```
+
+---
+
+## Sistema de Órdenes de Compra
+
+Base URL: `/purchase-orders`
+
+### Estados de Orden
+- `draft` - Borrador
+- `pending_approval` - Pendiente aprobación
+- `approved` - Aprobada
+- `sent` - Enviada al proveedor
+- `confirmed` - Confirmada por proveedor
+- `in_progress` - En preparación
+- `partially_received` - Parcialmente recibida
+- `received` - Completamente recibida
+- `cancelled` - Cancelada
+- `rejected` - Rechazada
+
+### Prioridades
+- `low` - Baja
+- `normal` - Normal
+- `high` - Alta
+- `urgent` - Urgente
+
+### Gestión de Órdenes de Compra
+
+**Listar órdenes:**
+```http
+GET /purchase-orders/?supplier_id={id}&status={status}&search={term}
+Authorization: Bearer <token>
+```
+
+**Crear orden:**
+```http
+POST /purchase-orders/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "supplier_id": 1,
+  "priority": "normal",
+  "expected_delivery_date": "2024-03-15",
+  "notes": "Entregar en almacén principal",
+  "currency": "MXN",
+  "shipping_cost": 500.00,
+  "items": [
+    {
+      "product_id": 1,
+      "product_name": "Producto A",
+      "quantity": 100,
+      "unit_price": 25.50,
+      "expected_delivery_date": "2024-03-15"
+    },
+    {
+      "product_name": "Producto B",
+      "quantity": 50,
+      "unit_price": 100.00
+    }
+  ]
+}
+```
+
+**Obtener orden:**
+```http
+GET /purchase-orders/{id}
+Authorization: Bearer <token>
+```
+
+**Actualizar orden:**
+```http
+PUT /purchase-orders/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "priority": "high",
+  "notes": "Actualización de notas"
+}
+```
+
+**Flujo de Estados:**
+```
+draft → submit → pending_approval → approve → approved → send → sent
+                          ↓
+                       reject → rejected
+
+approved → send → sent → confirm → confirmed → in_progress → receive → received
+
+any (except received/cancelled) → cancel → cancelled
+```
+
+**Acciones de Orden:**
+```http
+POST /purchase-orders/{id}/submit     # Enviar a aprobación
+POST /purchase-orders/{id}/approve    # Aprobar orden
+POST /purchase-orders/{id}/reject     # Rechazar orden
+POST /purchase-orders/{id}/send       # Enviar al proveedor
+POST /purchase-orders/{id}/receive    # Marcar como recibida
+POST /purchase-orders/{id}/cancel     # Cancelar orden
+Authorization: Bearer <token>
+```
+
+**Estadísticas:**
+```http
+GET /purchase-orders/stats/overview
+Authorization: Bearer <token>
+```
+
+---
+
+## Sistema de Notificaciones
+
+Base URL: `/notifications`
+
+### Preferencias de Notificación
+
+**Obtener preferencias:**
+```http
+GET /notifications/preferences
+Authorization: Bearer <token>
+```
+
+**Actualizar preferencias:**
+```http
+PUT /notifications/preferences
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "email_enabled": true,
+  "push_enabled": true,
+  "purchase_order_created": true,
+  "purchase_order_approved": true,
+  "purchase_order_received": true,
+  "low_stock_alert": true,
+  "email_frequency": "immediate"
+}
+```
+
+### Gestión de Tokens Push
+
+**Registrar token:**
+```http
+POST /notifications/register-push-token
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[xxxxxxx]",
+  "platform": "expo",
+  "device_id": "device-uuid"
+}
+```
+
+**Eliminar token:**
+```http
+DELETE /notifications/unregister-push-token?token={token}
+Authorization: Bearer <token>
+```
+
+### Eventos de Notificación
+- `purchase_order_created` - Orden creada
+- `purchase_order_approved` - Orden aprobada
+- `purchase_order_rejected` - Orden rechazada
+- `purchase_order_sent` - Orden enviada
+- `purchase_order_confirmed` - Orden confirmada
+- `purchase_order_received` - Orden recibida
+- `purchase_order_cancelled` - Orden cancelada
+- `low_stock_alert` - Alerta de stock bajo
+- `expiration_warning` - Warning de caducidad
+- `payment_due_reminder` - Recordatorio de pago
+
+---
+
+## Sistema de Condiciones de Producto (Sprint 9)
+
+Base URL: `/products/conditions`
+
+**Nota:** Solo usuarios con rol Admin (1) o Super Admin (2) pueden gestionar condiciones.
+
+### Endpoints de Condiciones
+
+**Listar condiciones:**
+```http
+GET /products/conditions/?include_inactive=true
+Authorization: Bearer <token>
+```
+
+**Crear condición:**
+```http
+POST /products/conditions/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Reacondicionado",
+  "description": "Producto reacondicionado por el fabricante"
+}
+```
+
+**Actualizar condición:**
+```http
+PUT /products/conditions/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Nuevo Nombre",
+  "is_active": false
+}
+```
+
+**Eliminar condición (soft delete):**
+```http
+DELETE /products/conditions/{id}
+Authorization: Bearer <token>
+```
+
+### Gestión de Lotes (Batches)
+
+**Obtener lotes de producto:**
+```http
+GET /products/{product_id}/batches?skip=0&limit=100
+Authorization: Bearer <token>
+```
+
+**Crear lote:**
+```http
+POST /products/{product_id}/batches
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "batch_number": "LOTE-2024-001",
+  "quantity": 100,
+  "manufactured_date": "2024-01-15",
+  "expiration_date": "2025-01-15"
+}
+```
+
+**Nota:** Si `has_expiration=true` en el producto, `expiration_date` es requerido.
+
+**Actualizar lote (incluye fechas):**
+```http
+PUT /products/batches/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "batch_number": "LOTE-2024-001-UPD",
+  "quantity": 150,
+  "manufactured_date": "2024-01-20",
+  "expiration_date": "2025-01-20"
+}
+```
+
+**Eliminar lote:**
+```http
+DELETE /products/batches/{id}
+Authorization: Bearer <token>
+```
+
+**Nota:** Solo se pueden eliminar lotes con `quantity = 0`.
+
+### Campos de Producto Actualizados (Sprint 9)
+
+```json
+{
+  "id": 1,
+  "sku": "SKU-001",
+  "name": "Producto Ejemplo",
+  "brand": "Marca X",
+  "model": "Modelo Y",
+  "condition_id": 1,
+  "category_id": 1,
+  "unit_id": 1,
+  "has_batch": true,
+  "has_expiration": true
+}
+```
+
+---
+
 ## Notas Adicionales
 
 - Todos los timestamps están en formato ISO 8601 (UTC)

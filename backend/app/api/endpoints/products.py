@@ -289,8 +289,8 @@ def create_product_batch(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # If product doesn't have batch tracking enabled, maybe we should enable it or warn?
-    # For now, we assume if they are creating a batch, they want to use batches.
+    # Validation: If product has batch tracking disabled, we still allow creating batches
+    # but we warn. The has_batch flag on product is for UI display purposes.
     
     # Validation: If product has expiration, batch must have expiration date
     if product.has_expiration and not batch_in.expiration_date:
@@ -310,16 +310,51 @@ def update_product_batch(
     current_user: User = Depends(deps.get_current_user),
 ):
     """
-    Update a batch.
+    Update a batch. Allows updating batch_number, dates, and quantity.
     """
     check_permissions(current_user)
     
     batch = crud_product.get_batch(db, batch_id=id)
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
-        
+    
+    # Validation: If product has expiration, expiration_date is required
+    if batch_in.expiration_date is None:
+        product = crud_product.get_product(db, product_id=batch.product_id)
+        if product and product.has_expiration:
+            current_exp = batch_in.expiration_date if batch_in.expiration_date is not None else batch.expiration_date
+            if not current_exp:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Expiration date is required for this product type"
+                )
+    
     batch = crud_product.update_batch(db, batch_id=id, batch_in=batch_in)
     return batch
+
+@router.delete("/batches/{id}")
+def delete_product_batch(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Delete a batch. Only allowed if batch quantity is 0 or user confirms.
+    """
+    check_permissions(current_user, min_level=50)
+    
+    batch = crud_product.get_batch(db, batch_id=id)
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    if batch.quantity > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot delete batch with quantity > 0. Current quantity: {batch.quantity}"
+        )
+    
+    crud_product.delete_batch(db, batch_id=id)
+    return {"success": True, "message": "Batch deleted successfully"}
 
 @router.get("/scan/{code}", response_model=product_schemas.Product)
 def scan_product(
@@ -448,6 +483,103 @@ def delete_unit(
     if not unit:
         raise HTTPException(status_code=404, detail="Unit not found")
     return crud_product.delete_unit(db, unit_id=id)
+
+
+# === CONDITION ENDPOINTS ===
+
+@router.get("/conditions/", response_model=List[ref_schemas.Condition])
+def read_conditions(
+    skip: int = 0,
+    limit: int = 100,
+    include_inactive: bool = False,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Retrieve product conditions.
+    Only accessible by Admin (role 1) and SuperAdmin (role 2).
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage conditions"
+        )
+    return crud_product.get_conditions(db, skip=skip, limit=limit, include_inactive=include_inactive)
+
+
+@router.post("/conditions/", response_model=ref_schemas.Condition, status_code=status.HTTP_201_CREATED)
+def create_condition(
+    condition_in: ref_schemas.ConditionCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Create a new product condition.
+    Only accessible by Admin (role 1) and SuperAdmin (role 2).
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage conditions"
+        )
+    
+    existing = crud_product.get_condition_by_name(db, name=condition_in.name)
+    if existing:
+        raise HTTPException(status_code=400, detail="A condition with this name already exists")
+    
+    return crud_product.create_condition(db, condition=condition_in)
+
+
+@router.put("/conditions/{id}", response_model=ref_schemas.Condition)
+def update_condition(
+    id: int,
+    condition_in: ref_schemas.ConditionUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Update a product condition.
+    Only accessible by Admin (role 1) and SuperAdmin (role 2).
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage conditions"
+        )
+    
+    condition = crud_product.get_condition(db, condition_id=id)
+    if not condition:
+        raise HTTPException(status_code=404, detail="Condition not found")
+    
+    if condition_in.name and condition_in.name != condition.name:
+        existing = crud_product.get_condition_by_name(db, name=condition_in.name)
+        if existing:
+            raise HTTPException(status_code=400, detail="A condition with this name already exists")
+    
+    return crud_product.update_condition(db, condition_id=id, condition_in=condition_in)
+
+
+@router.delete("/conditions/{id}")
+def delete_condition(
+    id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Delete a product condition (soft delete - sets is_active=False).
+    Only accessible by Admin (role 1) and SuperAdmin (role 2).
+    """
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only administrators can manage conditions"
+        )
+    
+    condition = crud_product.get_condition(db, condition_id=id)
+    if not condition:
+        raise HTTPException(status_code=404, detail="Condition not found")
+    
+    return crud_product.delete_condition(db, condition_id=id)
 
 @router.get("/{id}", response_model=product_schemas.Product)
 def read_product(

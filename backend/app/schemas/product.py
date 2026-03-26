@@ -15,8 +15,10 @@ class ProductBatchBase(BaseModel):
 class ProductBatchCreate(ProductBatchBase):
     pass
 
-class ProductBatchUpdate(ProductBatchBase):
+class ProductBatchUpdate(BaseModel):
     batch_number: Optional[str] = None
+    manufactured_date: Optional[date] = None
+    expiration_date: Optional[date] = None
     quantity: Optional[int] = None
 
 class ProductBatch(ProductBatchBase):
@@ -37,6 +39,7 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
     category_id: int
     unit_id: int
+    condition_id: Optional[int] = None
     cost: Decimal = Decimal('0.00')
     price: Decimal = Decimal('0.00')
     min_stock: int = 0
@@ -58,6 +61,7 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     category_id: Optional[int] = None
     unit_id: Optional[int] = None
+    condition_id: Optional[int] = None
     cost: Optional[Decimal] = None
     price: Optional[Decimal] = None
     min_stock: Optional[int] = None

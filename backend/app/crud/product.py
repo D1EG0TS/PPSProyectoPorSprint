@@ -2,10 +2,10 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, asc, desc
 from app.models.product import Product, ProductBatch
-from app.models.inventory_refs import Category, Unit
+from app.models.inventory_refs import Category, Unit, Condition
 from app.models.product_location_models import ProductLocationAssignment
 from app.schemas.product import ProductCreate, ProductUpdate, ProductBatchCreate, ProductBatchUpdate
-from app.schemas.inventory_refs import CategoryCreate, CategoryUpdate, UnitCreate, UnitUpdate
+from app.schemas.inventory_refs import CategoryCreate, CategoryUpdate, UnitCreate, UnitUpdate, ConditionCreate, ConditionUpdate
 
 def get_product(db: Session, product_id: int) -> Optional[Product]:
     return db.query(Product).filter(Product.id == product_id).first()
@@ -167,6 +167,15 @@ def update_batch(db: Session, batch_id: int, batch_in: ProductBatchUpdate) -> Op
     db.refresh(db_batch)
     return db_batch
 
+def delete_batch(db: Session, batch_id: int) -> bool:
+    db_batch = get_batch(db, batch_id)
+    if not db_batch:
+        return False
+    
+    db.delete(db_batch)
+    db.commit()
+    return True
+
 
 # --- Category CRUD Operations ---
 
@@ -243,3 +252,51 @@ def delete_unit(db: Session, unit_id: int) -> Optional[Unit]:
     db.delete(db_unit)
     db.commit()
     return db_unit
+
+
+# --- Condition CRUD Operations ---
+
+def get_condition(db: Session, condition_id: int) -> Optional[Condition]:
+    return db.query(Condition).filter(Condition.id == condition_id).first()
+
+def get_condition_by_name(db: Session, name: str) -> Optional[Condition]:
+    return db.query(Condition).filter(Condition.name == name).first()
+
+def get_conditions(db: Session, skip: int = 0, limit: int = 100, include_inactive: bool = False) -> List[Condition]:
+    query = db.query(Condition)
+    if not include_inactive:
+        query = query.filter(Condition.is_active == True)
+    return query.offset(skip).limit(limit).all()
+
+def create_condition(db: Session, condition: ConditionCreate) -> Condition:
+    db_condition = Condition(**condition.model_dump())
+    db.add(db_condition)
+    db.commit()
+    db.refresh(db_condition)
+    return db_condition
+
+def update_condition(db: Session, condition_id: int, condition_in: ConditionUpdate) -> Optional[Condition]:
+    db_condition = get_condition(db, condition_id)
+    if not db_condition:
+        return None
+    
+    update_data = condition_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_condition, field, value)
+        
+    db.add(db_condition)
+    db.commit()
+    db.refresh(db_condition)
+    return db_condition
+
+def delete_condition(db: Session, condition_id: int) -> Optional[Condition]:
+    db_condition = get_condition(db, condition_id)
+    if not db_condition:
+        return None
+    
+    # Soft delete
+    db_condition.is_active = False
+    db.add(db_condition)
+    db.commit()
+    db.refresh(db_condition)
+    return db_condition

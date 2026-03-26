@@ -8,18 +8,18 @@ import { Colors } from '../../constants/Colors';
 interface BatchTableProps {
   batches: ProductBatch[];
   onEdit?: (batch: ProductBatch) => void;
-  onDelete?: (batch: ProductBatch) => void; // Optional, depending on requirements
+  onDelete?: (batchId: number) => void;
 }
 
 export function BatchTable({ batches, onEdit, onDelete }: BatchTableProps) {
   const columns: Column<ProductBatch>[] = [
-    { key: 'batch_number', label: 'Batch #' },
-    { key: 'quantity', label: 'Qty', numeric: true },
-    { key: 'manufactured_date', label: 'Mfg Date' },
-    { key: 'expiration_date', label: 'Exp Date' },
+    { key: 'batch_number', label: 'Lote' },
+    { key: 'quantity', label: 'Cantidad', numeric: true },
+    { key: 'manufactured_date', label: 'Fabricación' },
+    { key: 'expiration_date', label: 'Caducidad' },
     {
       key: 'actions',
-      label: 'Actions',
+      label: 'Acciones',
       renderCell: (item) => (
         <View style={styles.actions}>
           {onEdit && (
@@ -28,6 +28,14 @@ export function BatchTable({ batches, onEdit, onDelete }: BatchTableProps) {
               size={20}
               onPress={() => onEdit(item)}
               iconColor={Colors.primary}
+            />
+          )}
+          {onDelete && (
+            <IconButton
+              icon="delete"
+              size={20}
+              onPress={() => onDelete(item.id)}
+              iconColor={Colors.danger}
             />
           )}
         </View>

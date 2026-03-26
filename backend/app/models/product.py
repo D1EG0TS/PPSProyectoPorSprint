@@ -16,6 +16,7 @@ class Product(Base):
     image_url = Column(String(255), nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     unit_id = Column(Integer, ForeignKey("units.id"), nullable=False)
+    condition_id = Column(Integer, ForeignKey("conditions.id"), nullable=True)
     cost = Column(Numeric(10, 2), default=0.0)
     price = Column(Numeric(10, 2), default=0.0)
     min_stock = Column(Integer, default=0)
@@ -27,6 +28,7 @@ class Product(Base):
     # Relationships
     category = relationship("Category", backref="products")
     unit = relationship("Unit", backref="products")
+    condition = relationship("Condition", lazy="select")
     batches = relationship("ProductBatch", back_populates="product", cascade="all, delete-orphan")
 
 class ProductBatch(Base):

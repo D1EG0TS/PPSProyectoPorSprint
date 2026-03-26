@@ -204,6 +204,57 @@ export const SIDEBAR_ITEMS: NavigationItem[] = [
     ]
   },
   {
+    label: 'Mapa de Almacén',
+    icon: 'map',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+    children: [
+      {
+        label: 'Ver Mapa',
+        path: '/(dashboard)/admin/warehouse-map',
+        icon: 'map-search',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+      },
+      {
+        label: 'Editor de Mapa',
+        path: '/(dashboard)/admin/warehouse-map/editor',
+        icon: 'map-edit',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+      },
+    ]
+  },
+  {
+    label: 'Etiquetas',
+    icon: 'qrcode',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR, USER_ROLES.OPERATIVE],
+    children: [
+      {
+        label: 'Generar Etiqueta',
+        path: '/(dashboard)/operator/labels',
+        icon: 'qrcode-edit',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR, USER_ROLES.OPERATIVE],
+      },
+    ]
+  },
+  {
+    label: 'Proveedores',
+    icon: 'truck',
+    allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+    children: [
+      {
+        label: 'Lista Proveedores',
+        path: '/(dashboard)/admin/suppliers',
+        icon: 'account-group-outline',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+      },
+      {
+        label: 'Órdenes de Compra',
+        path: '/(dashboard)/admin/purchase-orders',
+        icon: 'clipboard-list-outline',
+        allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+      },
+    ]
+  },
+  {
     label: 'Administración',
     icon: 'cog',
     allowedRoles: [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
@@ -266,4 +317,8 @@ export const PROTECTED_ROUTES: Record<string, number[]> = {
   '/(dashboard)/admin/vehicles': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
   '/(dashboard)/admin/vehicles/[id]': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
   '/(dashboard)/moderator/vehicles/pending-validation': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+  '/(dashboard)/admin/warehouse-map': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+  '/(dashboard)/admin/warehouse-map/editor': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN],
+  '/(dashboard)/admin/suppliers': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
+  '/(dashboard)/admin/purchase-orders': [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MODERATOR],
 };

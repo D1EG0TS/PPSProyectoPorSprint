@@ -27,6 +27,8 @@ from app.models.integrated_request import (
 from app.models.tracking import ItemTracking, Penalization, PenalizationReason, PenalizationStatus
 from app.models.purchase import PurchaseAlert
 from app.models.notification import Notification, NotificationType
+from app.models.warehouse_layout import WarehouseLayout, LayoutCell, CellType, OccupancyLevel
+from app.models.label import LabelTemplate, LabelType, LabelSize
 from app.models.assets import (
     AssetCategory, Asset, AssetAttribute, AssetDepreciation, 
     AssetMaintenance, AssetCalibration, AssetAssignment, AssetAuditLog,
@@ -34,3 +36,6 @@ from app.models.assets import (
     AttributeType, MaintenanceType, MaintenanceStatus, CalibrationStatus, 
     AssetAction, AssignmentStatus
 )
+from app.models.supplier import Supplier, SupplierStatus, SupplierCategory
+from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, PurchaseOrderPriority
+from app.models.notification_preferences import UserNotificationPreference, NotificationChannel, NotificationEvent

@@ -1,6 +1,24 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
+class ConditionBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class ConditionCreate(ConditionBase):
+    pass
+
+class ConditionUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class Condition(ConditionBase):
+    id: int
+    is_active: bool = True
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None

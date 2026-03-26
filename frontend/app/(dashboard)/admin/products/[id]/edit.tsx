@@ -3,8 +3,8 @@ import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Switch, Text, SegmentedButtons, ActivityIndicator, Portal, Modal, Surface, Menu, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { 
-  getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch, getCategories, getUnits,
-  Product, ProductBatch, ProductUpdate, ProductBatchCreate, ProductBatchUpdate, Category, Unit
+  getProductById, updateProduct, getProductBatches, createProductBatch, updateProductBatch, deleteProductBatch, getCategories, getUnits, getConditions,
+  Product, ProductBatch, ProductUpdate, ProductBatchCreate, ProductBatchUpdate, Category, Unit, Condition
 } from '../../../../../services/productService';
 import Toast from 'react-native-toast-message';
 import { BatchTable } from '../../../../../components/products/BatchTable';
@@ -25,16 +25,21 @@ export default function EditProductScreen() {
   // Metadata
   const [categories, setCategories] = useState<Category[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [conditions, setConditions] = useState<Condition[]>([]);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showUnitMenu, setShowUnitMenu] = useState(false);
+  const [showConditionMenu, setShowConditionMenu] = useState(false);
 
   // Product Form State
   const [sku, setSku] = useState('');
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState('');
   const [description, setDescription] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [conditionId, setConditionId] = useState<string>('');
   const [cost, setCost] = useState('');
   const [price, setPrice] = useState('');
   const [minStock, setMinStock] = useState('');
@@ -69,9 +74,14 @@ export default function EditProductScreen() {
 
   const loadMetadata = async () => {
     try {
-      const [cats, uns] = await Promise.all([getCategories(), getUnits()]);
+      const [cats, uns, conds] = await Promise.all([
+        getCategories(), 
+        getUnits(),
+        getConditions({ include_inactive: true })
+      ]);
       setCategories(cats);
       setUnits(uns);
+      setConditions(conds);
     } catch (error) {
       console.error(error);
     }
@@ -88,8 +98,11 @@ export default function EditProductScreen() {
       setName(data.name);
       setBarcode(data.barcode || '');
       setDescription(data.description || '');
+      setBrand(data.brand || '');
+      setModel(data.model || '');
       setCategoryId(data.category_id.toString());
       setUnitId(data.unit_id.toString());
+      setConditionId(data.condition_id?.toString() || '');
       setCost(data.cost ? data.cost.toString() : '');
       setPrice(data.price ? data.price.toString() : '');
       setMinStock(data.min_stock?.toString() || '');
@@ -127,8 +140,11 @@ export default function EditProductScreen() {
         name,
         barcode: barcode || undefined,
         description: description || undefined,
+        brand: brand || undefined,
+        model: model || undefined,
         category_id: parseInt(categoryId),
         unit_id: parseInt(unitId),
+        condition_id: conditionId ? parseInt(conditionId) : undefined,
         cost: cost ? parseFloat(cost) : 0,
         price: price ? parseFloat(price) : 0,
         min_stock: minStock ? parseInt(minStock) : 0,
@@ -190,6 +206,8 @@ export default function EditProductScreen() {
         const updateData: ProductBatchUpdate = {
           quantity: parseInt(batchQty),
           batch_number: batchNumber,
+          manufactured_date: mfgDate || undefined,
+          expiration_date: expDate || undefined,
         };
         await updateProductBatch(editingBatch.id, updateData);
       } else {
@@ -219,6 +237,35 @@ export default function EditProductScreen() {
     return units.find(u => u.id.toString() === unitId)?.name || '';
   };
 
+  const getConditionName = () => {
+    if (!conditionId) return '';
+    return conditions.find(c => c.id.toString() === conditionId)?.name || '';
+  };
+
+  const handleDeleteBatch = async (batchId: number) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      '¿Estás seguro de que deseas eliminar este lote?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProductBatch(batchId);
+              Toast.show({ type: 'success', text1: 'Éxito', text2: 'Lote eliminado' });
+              loadBatches();
+            } catch (error: any) {
+              const msg = error.response?.data?.detail || 'No se pudo eliminar el lote';
+              Toast.show({ type: 'error', text1: 'Error', text2: msg });
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
@@ -246,6 +293,11 @@ export default function EditProductScreen() {
             <Input label="Código de Barras" value={barcode} onChangeText={setBarcode} containerStyle={styles.input} />
             <Input label="Nombre" value={name} onChangeText={setName} containerStyle={styles.input} />
             <Input label="Descripción" value={description} onChangeText={setDescription} multiline containerStyle={styles.input} />
+            
+            <View style={styles.row}>
+              <Input label="Marca" value={brand} onChangeText={setBrand} containerStyle={[styles.input, styles.halfInput]} />
+              <Input label="Modelo" value={model} onChangeText={setModel} containerStyle={[styles.input, styles.halfInput]} />
+            </View>
             
             <View style={styles.row}>
               <View style={[styles.halfInput, { marginBottom: 15 }]}>
@@ -301,6 +353,35 @@ export default function EditProductScreen() {
             </View>
 
             <View style={styles.row}>
+              <View style={[styles.halfInput, { marginBottom: 15 }]}>
+                <Menu
+                  visible={showConditionMenu}
+                  onDismiss={() => setShowConditionMenu(false)}
+                  anchor={
+                    <Input
+                      label="Condición (opcional)"
+                      value={getConditionName()}
+                      editable={false}
+                      right={<Input.Icon icon="menu-down" onPress={() => setShowConditionMenu(true)} />}
+                    />
+                  }
+                >
+                  <Menu.Item 
+                    onPress={() => { setConditionId(''); setShowConditionMenu(false); }} 
+                    title="Sin condición" 
+                  />
+                  {conditions.filter(c => c.is_active).map((cond) => (
+                    <Menu.Item 
+                      key={cond.id} 
+                      onPress={() => { setConditionId(cond.id.toString()); setShowConditionMenu(false); }} 
+                      title={cond.name} 
+                    />
+                  ))}
+                </Menu>
+              </View>
+            </View>
+
+            <View style={styles.row}>
               <Input label="Stock Mínimo" value={minStock} onChangeText={setMinStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
               <Input label="Stock Objetivo" value={targetStock} onChangeText={setTargetStock} keyboardType="numeric" containerStyle={[styles.input, styles.halfInput]} />
             </View>
@@ -333,7 +414,8 @@ export default function EditProductScreen() {
           </View>
           <BatchTable 
             batches={batches} 
-            onEdit={(batch: ProductBatch) => openBatchModal(batch)} 
+            onEdit={(batch: ProductBatch) => openBatchModal(batch)}
+            onDelete={(batchId: number) => handleDeleteBatch(batchId)}
           />
         </View>
       )}
@@ -351,7 +433,7 @@ export default function EditProductScreen() {
           <Input label="Número de Lote" value={batchNumber} onChangeText={setBatchNumber} containerStyle={styles.input} />
           <Input label="Cantidad" value={batchQty} onChangeText={setBatchQty} keyboardType="numeric" containerStyle={styles.input} />
           
-          {!editingBatch && (
+          {(hasExpiration || editingBatch) && (
             <>
               <Input label="Fecha Fabricación (AAAA-MM-DD)" value={mfgDate} onChangeText={setMfgDate} containerStyle={styles.input} placeholder="2023-01-01" />
               <Input label="Fecha Caducidad (AAAA-MM-DD)" value={expDate} onChangeText={setExpDate} containerStyle={styles.input} placeholder="2024-01-01" />

@@ -343,13 +343,236 @@ chore: tareas de mantenimiento
 
 ---
 
-## Próximos Sprints (Planificados)
+## Sprint 6: Mapa Visual del Almacén (Editor Visual) ✅
 
-| Sprint | Módulo | Descripción |
-|--------|--------|-------------|
-| 6 | Mapa Visual | Layout 2D del almacén, heatmap de ocupación |
-| 7 | Etiquetas | Generación QR/código, preview e impresión |
-| 8 | Proveedores | CRUD proveedores, órdenes de compra |
+**Backend:**
+- `models/warehouse_layout.py` - Modelos WarehouseLayout y LayoutCell
+- `schemas/warehouse_layout.py` - Schemas Pydantic
+- `crud/warehouse_layout.py` - CRUD operations
+- `endpoints/warehouse_layout.py` - API endpoints
+- `tests/test_warehouse_layout.py` - Tests unitarios
+
+**Endpoints:**
+- `GET /inventory/layout/` - Listar layouts
+- `POST /inventory/layout/` - Crear layout
+- `GET /inventory/layout/{id}` - Obtener layout con celdas
+- `PUT /inventory/layout/{id}` - Actualizar layout
+- `DELETE /inventory/layout/{id}` - Eliminar layout
+- `GET /inventory/layout/warehouse/{warehouse_id}` - Layout por almacén
+- `POST /inventory/layout/{id}/cells` - Crear celda
+- `PUT /inventory/layout/{id}/cells/{cell_id}` - Actualizar celda
+- `POST /inventory/layout/{id}/generate` - Generar grid vacío
+- `GET /inventory/layout/{id}/heatmap` - Datos de ocupación
+- `GET /inventory/layout/{id}/export` - Exportar JSON
+- `POST /inventory/layout/import` - Importar JSON
+
+**Frontend:**
+- `warehouseLayoutService.ts` - Servicio API
+- `WarehouseMap.tsx` - Componente de visualización
+- `MapEditor.tsx` - Componente de edición visual
+- `CellDetailModal.tsx` - Modal de detalle
+- `/admin/warehouse-map/index.tsx` - Vista del mapa
+- `/admin/warehouse-map/editor/index.tsx` - Editor de mapa
+
+**Funcionalidades:**
+- Visualización 2D del almacén con grid
+- Editor visual para crear/editar celdas
+- Tipos de celdas: zona, pasillo, estante, almacenamiento, recepción, envío, preparación
+- Heatmap de ocupación
+- Zoom y pan en el mapa
+- Import/Export JSON
+- Vinculación con ubicaciones
+
+**Tests:**
+- `backend/tests/test_warehouse_layout.py` - Tests del backend
+- `frontend/services/__tests__/warehouseLayoutService.test.ts` - Tests del frontend
+
+---
+
+## Sprint 7: Sistema de Etiquetas (Generación PDF) ✅
+
+**Backend:**
+- `models/label.py` - Modelo LabelTemplate
+- `schemas/label.py` - Schemas de etiquetas
+- `services/barcode_generator.py` - Generación de códigos QR, Code128, EAN-13
+- `services/pdf_generator.py` - Generación de PDFs con ReportLab
+- `endpoints/labels.py` - API endpoints
+- `tests/test_labels.py` - Tests unitarios
+- `requirements.txt` - Dependencias agregadas: reportlab, python-barcode, qrcode, Pillow
+
+**Endpoints:**
+- `GET /inventory/labels/templates` - Listar plantillas
+- `POST /inventory/labels/templates` - Crear plantilla
+- `GET /inventory/labels/templates/{id}` - Obtener plantilla
+- `PUT /inventory/labels/templates/{id}` - Actualizar plantilla
+- `DELETE /inventory/labels/templates/{id}` - Eliminar plantilla
+- `GET /inventory/labels/product/{id}` - Generar etiqueta de producto (PDF)
+- `GET /inventory/labels/location/{id}` - Generar etiqueta de ubicación (PDF)
+- `POST /inventory/labels/generate` - Generar etiqueta personalizada (PDF)
+- `POST /inventory/labels/batch-print` - Impresión por lote
+
+**Frontend:**
+- `services/labelService.ts` - Servicio API
+- `components/labels/LabelPreview.tsx` - Componente de preview
+- `/operator/labels/index.tsx` - Pantalla de generación de etiquetas
+- Dependencias: expo-print, expo-sharing
+
+**Funcionalidades:**
+- Generación de códigos QR, Code128, Code39, EAN-13
+- Plantillas predefinidas (pequeña, mediana, grande)
+- Preview de etiqueta antes de imprimir
+- Exportar a PDF para imprimir
+- Compartir etiqueta
+- Historial de plantillas
+
+**Tipos de código:**
+- QR Code - Productos, ubicaciones
+- Code128 - Productos, assets
+- EAN-13 - Productos con UPC
+- Code39 - Ubicaciones
+
+**Tests:**
+- `backend/tests/test_labels.py` - Tests del backend
+- `frontend/services/__tests__/labelService.test.ts` - Tests del frontend
+
+---
+
+## Sprint 8: Módulo de Proveedores + Notificaciones ✅
+
+**Backend:**
+- `models/supplier.py` - Modelo Supplier con estados y categorías
+- `models/purchase_order.py` - Modelo PurchaseOrder con workflow completo
+- `models/notification_preferences.py` - Modelo UserNotificationPreference
+- `schemas/supplier.py` - Schemas de proveedor
+- `schemas/purchase_order.py` - Schemas de orden de compra
+- `schemas/notification_preferences.py` - Schemas de preferencias
+- `endpoints/suppliers.py` - API de proveedores
+- `endpoints/purchase_orders.py` - API de órdenes de compra
+- `endpoints/notifications.py` - Endpoints de preferencias y tokens push
+- `services/email_service.py` - Servicio de email con SendGrid
+- `services/push_notification_service.py` - Servicio Expo Push
+- `tests/test_suppliers.py` - Tests unitarios
+- `requirements.txt` - Dependencia: sendgrid
+
+**Endpoints Proveedores:**
+- `GET /suppliers/` - Listar proveedores (con filtros)
+- `POST /suppliers/` - Crear proveedor
+- `GET /suppliers/{id}` - Obtener proveedor
+- `PUT /suppliers/{id}` - Actualizar proveedor
+- `DELETE /suppliers/{id}` - Desactivar proveedor
+- `GET /suppliers/stats/overview` - Estadísticas
+
+**Endpoints Órdenes de Compra:**
+- `GET /purchase-orders/` - Listar órdenes
+- `POST /purchase-orders/` - Crear orden
+- `GET /purchase-orders/{id}` - Obtener orden
+- `PUT /purchase-orders/{id}` - Actualizar orden
+- `POST /purchase-orders/{id}/submit` - Enviar orden
+- `POST /purchase-orders/{id}/approve` - Aprobar orden
+- `POST /purchase-orders/{id}/reject` - Rechazar orden
+- `POST /purchase-orders/{id}/send` - Enviar a proveedor
+- `POST /purchase-orders/{id}/receive` - Marcar como recibida
+- `POST /purchase-orders/{id}/cancel` - Cancelar orden
+- `GET /purchase-orders/stats/overview` - Estadísticas
+
+**Endpoints Notificaciones:**
+- `GET /notifications/preferences` - Obtener preferencias
+- `PUT /notifications/preferences` - Actualizar preferencias
+- `POST /notifications/register-push-token` - Registrar token
+- `DELETE /notifications/unregister-push-token` - Eliminar token
+
+**Estados de Orden de Compra:**
+- `draft` - Borrador
+- `pending_approval` - Pendiente aprobación
+- `approved` - Aprobada
+- `sent` - Enviada
+- `confirmed` - Confirmada por proveedor
+- `in_progress` - En progreso
+- `partially_received` - Parcialmente recibida
+- `received` - Recibida completamente
+- `cancelled` - Cancelada
+- `rejected` - Rechazada
+
+**Categorías de Proveedor:**
+- `raw_materials` - Materias primas
+- `finished_goods` - Productos terminados
+- `equipment` - Equipo
+- `services` - Servicios
+- `packaging` - Empaque
+- `other` - Otro
+
+**Servicios de Notificación:**
+- Email con SendGrid (HTML templates)
+- Push con Expo Push
+- Preferencias por usuario y evento
+
+**Frontend:**
+- `services/supplierService.ts` - Servicio de proveedores
+- `services/purchaseOrderService.ts` - Servicio de órdenes
+- `services/notificationPreferencesService.ts` - Servicio de preferencias
+- `app/(dashboard)/admin/suppliers/index.tsx` - Lista de proveedores
+- `app/(dashboard)/admin/purchase-orders/index.tsx` - Lista de órdenes
+- `config/navigation.ts` - Menú actualizado
+
+**Tests:**
+- `backend/tests/test_suppliers.py` - Tests del backend
+- `frontend/services/__tests__/supplierService.test.ts` - Tests de proveedores
+- `frontend/services/__tests__/purchaseOrderService.test.ts` - Tests de órdenes
+
+**Dependencias Frontend:**
+- expo-notifications
+
+---
+
+## Sprint 9: Correcciones Críticas + Condiciones de Producto ✅
+
+**Objetivo:** Corregir bugs críticos y agregar soporte para condiciones de producto
+
+**Backend:**
+- `models/product.py` - Agregado `condition_id` (nullable)
+- `models/inventory_refs.py` - Agregado `is_active` a Condition
+- `crud/product.py` - CRUD completo de condiciones, `delete_batch`
+- `schemas/product.py` - `ProductBatchUpdate` con fechas, `condition_id`
+- `schemas/inventory_refs.py` - Schemas de Condition (CRUD)
+- `endpoints/products.py`:
+  - `GET/POST /products/conditions/` - Listar/Crear condiciones (roles 1,2)
+  - `PUT/DELETE /products/conditions/{id}` - Actualizar/Eliminar condición
+  - `PUT /products/batches/{id}` - Actualizar lote con fechas
+  - `DELETE /products/batches/{id}` - Eliminar lote
+  - Validación: expiration_date requerido si `has_expiration=True`
+
+**Endpoints Nuevos:**
+```
+GET    /products/conditions/           - Listar condiciones
+POST   /products/conditions/           - Crear condición
+PUT    /products/conditions/{id}       - Actualizar condición
+DELETE /products/conditions/{id}        - Eliminar condición (soft delete)
+PUT    /products/batches/{id}         - Actualizar lote (incluye fechas)
+DELETE /products/batches/{id}         - Eliminar lote
+```
+
+**Frontend:**
+- `services/productService.ts`:
+  - Exportado `getProductBatches` (faltaba)
+  - Agregado `updateProductBatch`, `deleteProductBatch`
+  - CRUD de condiciones (`getConditions`, `createCondition`, `updateCondition`, `deleteCondition`)
+- `app/(dashboard)/admin/products/[id]/edit.tsx`:
+  - Agregados campos `brand` y `model` (faltan en edit)
+  - Agregado selector de condición (opcional)
+  - Modal de batch permite editar fechas
+  - Botón eliminar lote
+- `components/products/BatchTable.tsx`:
+  - Agregado botón de eliminar lote
+  - Columnas en español
+
+**Validaciones:**
+- Si `has_expiration=True`, `expiration_date` es requerido al crear batch
+- Solo admins (rol 1,2) pueden gestionar condiciones
+- No se puede eliminar lote con quantity > 0
+
+**Tests:**
+- `backend/tests/test_products_sprint9.py` - Tests de condiciones y batches
+- `frontend/services/__tests__/productServiceSprint9.test.ts` - 10 tests passing
 
 ---
 
